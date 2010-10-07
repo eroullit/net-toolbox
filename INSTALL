@@ -1,0 +1,28 @@
+What platforms are supported?
+=============================
+
+Currently only operating systems running on Linux kernels with
+CONFIG_PACKET_MMAP enabled. This feature can be found even back
+to the days of 2.4 kernels. Most operating systems ship pre-compiled
+kernels that have this config option enabled and even the latest
+kernel versions got rid of this option and have this functionality
+built-in. However, we recommend >= 2.6.26. 
+
+What libraries are required?
+============================
+
+Well, libc is the only one. Most operating systems already have their
+libc shipped. That's it, nothing else.
+
+Installation
+============
+
+$ make
+# make install
+
+Uninstall
+=========
+
+# make uninstall
+$ make clean
+
