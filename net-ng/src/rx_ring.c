@@ -42,16 +42,17 @@
 #include <linux/if_packet.h>
 #include <linux/filter.h>
 
-#include "pcap.h"
-#include "cursor.h"
-#include "dump.h"
-#include "macros.h"
-#include "types.h"
-#include "rx_ring.h"
-#include "netdev.h"
-#include "bpf.h"
-#include "xmalloc.h"
-#include "strlcpy.h"
+#include <net-ng/pcap.h>
+#include <net-ng/cursor.h>
+#include <net-ng/dump.h>
+#include <net-ng/macros.h>
+#include <net-ng/types.h>
+#include <net-ng/rx_ring.h>
+#include <net-ng/rxtx_common.h>
+#include <net-ng/netdev.h>
+#include <net-ng/bpf.h>
+#include <net-ng/xmalloc.h>
+#include <net-ng/strlcpy.h>
 
 static int register_rx_ring(int sock, struct tpacket_req * req)
 {

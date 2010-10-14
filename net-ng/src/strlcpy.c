@@ -35,10 +35,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110, USA
  */
 
-/* xmalloc.c taken from the Linux kernel and adapted */
+/* strlcpy.c taken from the Linux kernel and adapted */
 
 #include <string.h>
-#include "strlcpy.h"
+
+//#include "strlcpy.h"
 
 size_t strlcpy(char *dest, const char *src, size_t size)
 {

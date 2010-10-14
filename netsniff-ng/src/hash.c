@@ -25,14 +25,14 @@
 
 #include <arpa/inet.h>
 
-#include "macros.h"
-#include "hash.h"
-#include "xmalloc.h"
+#include <net-ng/macros.h>
+#include <net-ng/hash.h>
+#include <net-ng/xmalloc.h>
 
-#include "oui.h"
-#include "ports_udp.h"
-#include "ports_tcp.h"
-#include "ether_types.h"
+#include <net-ng/oui.h>
+#include <net-ng/ports_udp.h>
+#include <net-ng/ports_tcp.h>
+#include <net-ng/ether_types.h>
 
 /*
  * Hash function API

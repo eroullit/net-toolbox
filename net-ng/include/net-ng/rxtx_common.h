@@ -27,9 +27,9 @@
 
 #include <sys/poll.h>
 
-#include "macros.h"
-#include "types.h"
-#include "xmalloc.h"
+#include <net-ng/macros.h>
+#include <net-ng/types.h>
+#include <net-ng/xmalloc.h>
 
 #ifndef POLLRDNORM
 # define POLLRDNORM      0x0040

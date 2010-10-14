@@ -47,11 +47,11 @@
 #include <linux/ethtool.h>
 #include <linux/wireless.h>
 
-#include "xmalloc.h"
-#include "strlcpy.h"
-#include "macros.h"
-#include "netdev.h"
-#include "bpf.h"
+#include <net-ng/xmalloc.h>
+#include <net-ng/strlcpy.h>
+#include <net-ng/macros.h>
+#include <net-ng/netdev.h>
+#include <net-ng/bpf.h>
 
 #ifndef PACKET_LOSS
 # define PACKET_LOSS   14

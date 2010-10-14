@@ -25,9 +25,9 @@
 
 #include <linux/version.h>
 
-#include "macros.h"
-#include "types.h"
-#include "rxtx_common.h"
+#include <net-ng/macros.h>
+#include <net-ng/types.h>
+#include <net-ng/rxtx_common.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 31)
 # define __HAVE_TX_RING__

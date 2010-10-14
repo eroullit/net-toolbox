@@ -24,9 +24,9 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "ringbuff.h"
-#include "macros.h"
-#include "xmalloc.h"
+#include <net-ng/ringbuff.h>
+#include <net-ng/macros.h>
+#include <net-ng/xmalloc.h>
 
 int ringbuffer_init(struct ringbuffer **rb, size_t slots)
 {

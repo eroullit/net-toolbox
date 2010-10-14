@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-#include "protocols/layers_all.h"
+#include <net-ng/protocols/layers_all.h>
 
 #define ETHERNET 0x4554
 

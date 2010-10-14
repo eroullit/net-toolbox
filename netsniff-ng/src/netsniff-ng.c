@@ -26,15 +26,13 @@
 #include <pthread.h>
 #include <signal.h>
 
-#include "types.h"
-#include "rx_ring.h"
-#include "rx_ring_compat.h"
-#include "tx_ring.h"
-#include "read.h"
-#include "config.h"
-#include "bootstrap.h"
-#include "system.h"
-#include "netdev.h"
+#include <net-ng/types.h>
+#include <net-ng/rx_ring.h>
+#include <net-ng/rx_ring_compat.h>
+#include <net-ng/tx_ring.h>
+#include <net-ng/netdev.h>
+#include <netsniff-ng/config.h>
+#include <netsniff-ng/system.h>
 
 /* XXX HACK this is unused */
 volatile sig_atomic_t sigint = 0;

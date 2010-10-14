@@ -22,7 +22,7 @@
 
 #include <linux/ip.h>
 
-#include "types.h"
+#include <net-ng/types.h>
 
 /* Function signatures */
 extern void print_packet_buffer_mode_1(uint8_t * rbb, const struct tpacket_hdr *tp);

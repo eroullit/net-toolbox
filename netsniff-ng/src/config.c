@@ -30,13 +30,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "system.h"
-#include "dump.h"
-#include "macros.h"
-#include "misc.h"
-#include "config.h"
-#include "netdev.h"
-#include "xmalloc.h"
+#include <net-ng/dump.h>
+#include <net-ng/macros.h>
+#include <net-ng/misc.h>
+#include <net-ng/netdev.h>
+#include <net-ng/xmalloc.h>
+#include <netsniff-ng/system.h>
+#include <netsniff-ng/config.h>
 
 #if 0
 static const char *short_options = "MS:QIe:lqi:NxXg:vchd:p:r:P:Df:sb:Hnt:C";

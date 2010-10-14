@@ -39,15 +39,14 @@
 #include <linux/filter.h>
 #include <linux/version.h>
 
-#include "bpf.h"
-#include "macros.h"
-#include "types.h"
-#include "replay.h"
-#include "tx_ring.h"
-#include "netdev.h"
-#include "nsignal.h"
-#include "cursor.h"
-#include "xmalloc.h"
+#include <net-ng/bpf.h>
+#include <net-ng/macros.h>
+#include <net-ng/types.h>
+#include <net-ng/replay.h>
+#include <net-ng/netdev.h>
+#include <net-ng/nsignal.h>
+#include <net-ng/cursor.h>
+#include <net-ng/xmalloc.h>
 
 #define flushlock_lock(x) do{ (x) = 1; } while(0);
 #define flushlock_unlock(x) do{ (x) = 0; } while(0);

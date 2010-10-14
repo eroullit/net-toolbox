@@ -20,11 +20,11 @@
 #ifndef	_NET_CONFIG_H_
 #define	_NET_CONFIG_H_
 
-#include "types.h"
-#include "print.h"
+#include <net-ng/types.h>
+#include <net-ng/print.h>
+#include <net-ng/thread.h>
 #include <linux/filter.h>
 
-#include "thread.h"
 
 /* Internals */
 #define DEFAULT_INTERFACE "lo"

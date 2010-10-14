@@ -25,11 +25,11 @@
 #include <net/if.h>
 #include <sys/queue.h>
 
-#include "macros.h"
-#include "types.h"
-#include "thread.h"
-#include "rxtx_common.h"
-#include "bpf.h"
+#include <net-ng/macros.h> 
+#include <net-ng/types.h> 
+#include <net-ng/thread.h> 
+#include <net-ng/bpf.h> 
+//#include <net-ng/rxtx_common.h> 
 
 /* Function signatures */
 /* a rx ring must only belong to one entity */

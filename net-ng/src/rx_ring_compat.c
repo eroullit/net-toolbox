@@ -44,15 +44,15 @@
 #include <linux/if_packet.h>
 #include <linux/filter.h>
 
-#include "bpf.h"
-#include "cursor.h"
-#include "dump.h"
-#include "macros.h"
-#include "types.h"
-#include "rx_ring_compat.h"
-#include "netdev.h"
-#include "xmalloc.h"
-#include "strlcpy.h"
+#include <net-ng/bpf.h>
+#include <net-ng/cursor.h>
+#include <net-ng/dump.h>
+#include <net-ng/macros.h>
+#include <net-ng/types.h>
+#include <net-ng/rx_ring_compat.h>
+#include <net-ng/netdev.h>
+#include <net-ng/xmalloc.h>
+#include <net-ng/strlcpy.h>
 
 static int bind_dev_to_sock(const char * dev, int sock)
 {

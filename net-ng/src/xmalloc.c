@@ -43,9 +43,9 @@
 #define SIZE_T_MAX  UINT_MAX
 #endif
 
-#include "macros.h"
-#include "xmalloc.h"
-#include "strlcpy.h"
+#include <net-ng/macros.h>
+#include <net-ng/xmalloc.h>
+#include <net-ng/strlcpy.h>
 
 void *xmalloc(size_t size)
 {

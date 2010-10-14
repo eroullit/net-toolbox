@@ -30,9 +30,9 @@
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>
 
-#include "pcap.h"
-#include "replay.h"
-#include "macros.h"
+#include <net-ng/pcap.h>
+#include <net-ng/replay.h>
+#include <net-ng/macros.h>
 
 int pcap_has_packets(int fd)
 {

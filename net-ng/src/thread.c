@@ -25,8 +25,8 @@
 #include <pthread.h>
 #include <sched.h>
 
-#include "macros.h"
-#include "thread.h"
+#include <net-ng/macros.h>
+#include <net-ng/thread.h>
 
 static int init_thread_attr(struct netsniff_ng_thread_context * thread_ctx, const int sched_prio, const int sched_policy, const cpu_set_t * run_on)
 {

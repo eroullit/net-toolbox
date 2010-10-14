@@ -24,7 +24,7 @@
 #include <stdarg.h>
 #include <signal.h>
 
-#include "misc.h"
+#include <net-ng/misc.h>
 
 extern volatile sig_atomic_t sigint;
 

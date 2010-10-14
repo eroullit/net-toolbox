@@ -31,8 +31,8 @@
 
 #include <sys/resource.h>
 
-#include "macros.h"
-#include "system.h"
+#include <net-ng/macros.h>
+#include <netsniff-ng/system.h>
 
 /**
  * nexttoken - Fetches next param token

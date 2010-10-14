@@ -28,15 +28,15 @@
 #include <assert.h>
 #include <pthread.h>
 #include <errno.h>
-#include <netsniff-ng.h>
 
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-#include "macros.h"
-#include "version.h"
+#include <net-ng/macros.h>
+#include <netsniff-ng/version.h>
+#include <netsniff-ng/netsniff-ng.h>
 
 int send_qmsg(int q_id, struct netsniff_msg *msg, pid_t pid, int type, char *buff, size_t len)
 {
