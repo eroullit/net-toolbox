@@ -9,12 +9,12 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 # Bear in mind that no profiling will be available on 64-bit arch when on
 SET(BUILD_SHARED_LIBS ON)
 
-#SET(CMAKE_C_FLAGS "-Wall -Werror -pedantic -std=gnu99 -O2 -lrt -lpthread")
-#SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g")
-#SET(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS} -pg")
+SET(CMAKE_C_FLAGS "-Wall -Werror -pedantic -std=gnu99 -O2 -lrt -lpthread")
+SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g")
+SET(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS} -pg")
 
 SET(NET-NG "net-ng")
-#SET(NETSNIFF-NG "netsniff-ng")
+SET(NETSNIFF-NG "netsniff-ng")
 
 ADD_SUBDIRECTORY(net-ng)
 ADD_SUBDIRECTORY(netsniff-ng)

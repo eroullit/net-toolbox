@@ -29,6 +29,7 @@
 #include "types.h"
 #include "thread.h"
 #include "rxtx_common.h"
+#include "bpf.h"
 
 /* Function signatures */
 /* a rx ring must only belong to one entity */

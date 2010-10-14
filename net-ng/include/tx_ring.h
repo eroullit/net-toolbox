@@ -27,7 +27,6 @@
 
 #include "macros.h"
 #include "types.h"
-#include "config.h"
 #include "rxtx_common.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 31)
@@ -40,6 +39,7 @@
 
 /* Function signatures */
 
+#if 0
 extern void destroy_virt_tx_ring(int sock, struct ring_buff *rb);
 extern void create_virt_tx_ring(int sock, struct ring_buff *rb, char *ifname, unsigned int usize);
 extern void mmap_virt_tx_ring(int sock, struct ring_buff *rb);
@@ -61,5 +61,5 @@ static inline void mem_notify_kernel_for_tx(struct tpacket_hdr *header)
 	header->tp_status = TP_STATUS_SEND_REQUEST;
 }
 #endif				/* __HAVE_TX_RING__ */
-
+#endif
 #endif				/* _NET_TX_RING_H_ */

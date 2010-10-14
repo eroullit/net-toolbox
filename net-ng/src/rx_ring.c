@@ -163,7 +163,7 @@ static void * rx_thread_listen(void * arg)
 				info("Process frame %zu/%u state : %lu on %s: %u bytes %p\n", rb->cur_frame, rb->layout.tp_frame_nr, fm->tp_h.tp_status, nic_ctx->rx_dev, fm->tp_h.tp_len, pkt_buf);
 
 				if (nic_ctx->pcap_fd > 0)
-					pcap_dump(nic_ctx->pcap_fd, &fm->tp_h, (struct ethhdr *)pkt_buf);
+					pcap_write_payload(nic_ctx->pcap_fd, &fm->tp_h, (struct ethhdr *)pkt_buf);
 			}
 	
 			fm->tp_h.tp_status = TP_STATUS_KERNEL;
