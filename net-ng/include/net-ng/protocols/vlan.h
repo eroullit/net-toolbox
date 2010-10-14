@@ -23,7 +23,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include "macros.h"
+#include <net-ng/macros.h>
 
 #define VLAN_HLEN 4
 #define ETH_P_8021QinQ	0x8200

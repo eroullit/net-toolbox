@@ -22,9 +22,9 @@
 #include <pthread.h>
 #include <assert.h>
 
-#include "cursor.h"
-#include "macros.h"
-#include "strlcpy.h"
+#include <net-ng/cursor.h>
+#include <net-ng/macros.h>
+#include <net-ng/strlcpy.h>
 
 #define SPINNER_SLEEP_TIME	250000
 

@@ -37,14 +37,14 @@
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>
 
-#include "macros.h"
-#include "xmalloc.h"
-#include "types.h"
-#include "print.h"
-#include "protocols/layers_all.h"
-#include "packet.h"
-#include "replay.h"
-#include "bpf.h"
+#include <net-ng/macros.h>
+#include <net-ng/xmalloc.h>
+#include <net-ng/types.h>
+#include <net-ng/print.h>
+#include <net-ng/protocols/layers_all.h>
+#include <net-ng/packet.h>
+#include <net-ng/replay.h>
+#include <net-ng/bpf.h>
 
 
 #if 0

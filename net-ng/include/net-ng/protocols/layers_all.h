@@ -17,11 +17,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110, USA
  */
 
-#ifndef	__LAYERS_4_H__
-#define __LAYERS_4_H__
+#ifndef	__LAYERS_ALL_H__
+#define __LAYERS_ALL_H__
 
-#include "protocols/tcp.h"
-#include "protocols/udp.h"
-#include "protocols/icmp.h"
+#include <net-ng/protocols/layers_2.h>
+#include <net-ng/protocols/layers_3.h>
+#include <net-ng/protocols/layers_4.h>
 
-#endif				/* __LAYERS_4_H__ */
+#endif				/* __LAYERS_ALL_H__ */

@@ -25,7 +25,7 @@
 
 #include <netinet/in.h>
 
-#include "macros.h"
+#include <net-ng/macros.h>
 
 /*
  *	IPv6 fixed header

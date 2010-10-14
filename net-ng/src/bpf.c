@@ -46,8 +46,8 @@
 
 #include <arpa/inet.h>
 
-#include "bpf.h"
-#include "macros.h"
+#include <net-ng/bpf.h>
+#include <net-ng/macros.h>
 
 /*
  * The instruction encodings.

@@ -25,7 +25,7 @@
 
 #include <linux/tcp.h>
 
-#include "macros.h"
+#include <net-ng/macros.h>
 
 static inline struct tcphdr *get_tcphdr(uint8_t ** pkt, uint32_t * pkt_len)
 {

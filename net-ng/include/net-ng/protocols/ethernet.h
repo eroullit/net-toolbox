@@ -25,8 +25,8 @@
 
 #include <netinet/if_ether.h>
 
-#include "macros.h"
-#include "hash.h"
+#include <net-ng/macros.h>
+#include <net-ng/hash.h>
 
 static inline struct ethhdr *get_ethhdr(uint8_t ** pkt, uint32_t * pkt_len)
 {

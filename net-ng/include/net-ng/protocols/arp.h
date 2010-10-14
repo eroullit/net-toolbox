@@ -25,7 +25,7 @@
 
 #include <netinet/in.h>
 
-#include "macros.h"
+#include <net-ng/macros.h>
 
 static inline struct arphdr *get_arphdr(uint8_t ** pkt, uint32_t * pkt_len)
 {

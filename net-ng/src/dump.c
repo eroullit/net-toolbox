@@ -31,9 +31,9 @@
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>
 
-#include "pcap.h"
-#include "dump.h"
-#include "macros.h"
+#include <net-ng/pcap.h>
+#include <net-ng/dump.h>
+#include <net-ng/macros.h>
 
 int pcap_write_header(int fd, int linktype, int thiszone, int snaplen)
 {

@@ -26,8 +26,8 @@
 #include <netinet/in.h>
 #include <linux/ip.h>
 
-#include "macros.h"
-#include "protocols/csum.h"
+#include <net-ng/macros.h>
+#include <net-ng/protocols/csum.h>
 
 #define	FRAG_OFF_RESERVED_FLAG(x)      ((x) & 0x8000)
 #define	FRAG_OFF_NO_FRAGMENT_FLAG(x)   ((x) & 0x4000)

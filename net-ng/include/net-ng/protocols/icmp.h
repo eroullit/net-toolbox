@@ -26,8 +26,8 @@
 #include <netinet/in.h>
 #include <linux/icmp.h>
 
-#include "macros.h"
-#include "protocols/csum.h"
+#include <net-ng/macros.h>
+#include <net-ng/protocols/csum.h>
 
 static inline struct icmphdr *get_icmphdr(uint8_t ** pkt, uint32_t * pkt_len)
 {
