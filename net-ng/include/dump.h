@@ -24,7 +24,7 @@
 #include <linux/if_ether.h>
 
 extern int pcap_write_header(int fd, int linktype, int thiszone, int snaplen);
-extern void pcap_dump(int fd, struct tpacket_hdr *tp_h, const struct ethhdr const *sp);
+extern void pcap_write_payload(int fd, struct tpacket_hdr *tp_h, const struct ethhdr const *sp);
 extern int prepare_pcap(const char * pcap_path);
 extern void remove_pcap(int pcap_fd, const char * pcap_path);
 

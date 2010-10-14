@@ -29,7 +29,6 @@
 #include "types.h"
 #include "thread.h"
 #include "rxtx_common.h"
-#include "config.h"
 
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_compat_context

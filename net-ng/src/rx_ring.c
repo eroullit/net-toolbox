@@ -49,8 +49,6 @@
 #include "types.h"
 #include "rx_ring.h"
 #include "netdev.h"
-#include "config.h"
-#include "nsignal.h"
 #include "bpf.h"
 #include "xmalloc.h"
 #include "strlcpy.h"
@@ -151,7 +149,7 @@ static void * rx_thread_listen(void * arg)
 			if (fm->tp_h.tp_status == TP_STATUS_KERNEL)
 			{
 				/* Force sleep here when the user wants */
-				if ((rc = poll(&pfd, 1, POLL_WAIT_INF)) < 0)
+				if ((rc = poll(&pfd, 1, -1)) < 0)
 				{
 					err("polling error %i", rc);
 					continue;

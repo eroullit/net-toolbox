@@ -42,16 +42,13 @@
 #include <linux/if_packet.h>
 #include <linux/filter.h>
 
-#include "pcap.h"
+#include "bpf.h"
 #include "cursor.h"
 #include "dump.h"
 #include "macros.h"
 #include "types.h"
 #include "rx_ring_compat.h"
 #include "netdev.h"
-#include "config.h"
-#include "nsignal.h"
-#include "bpf.h"
 #include "xmalloc.h"
 #include "strlcpy.h"
 
@@ -106,7 +103,7 @@ void * rx_thread_compat_listen(void * arg)
 
 		if (nic_ctx->pcap_fd > 0)
 		{
-			pcap_dump(nic_ctx->pcap_fd, &tp_h, (struct ethhdr *) nic_ctx->pkt_buf);
+			pcap_write_payload(nic_ctx->pcap_fd, &tp_h, (struct ethhdr *) nic_ctx->pkt_buf);
 		}
 	}
 

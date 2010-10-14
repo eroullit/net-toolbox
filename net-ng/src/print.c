@@ -40,14 +40,10 @@
 #include "macros.h"
 #include "xmalloc.h"
 #include "types.h"
-#include "read.h"
 #include "print.h"
 #include "protocols/layers_all.h"
 #include "packet.h"
-#include "system.h"
 #include "replay.h"
-#include "config.h"
-#include "nsignal.h"
 #include "bpf.h"
 
 

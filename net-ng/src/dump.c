@@ -58,7 +58,7 @@ int pcap_write_header(int fd, int linktype, int thiszone, int snaplen)
 	return (0);
 }
 
-void pcap_dump(int fd, struct tpacket_hdr *tp_h, const struct ethhdr const *sp)
+void pcap_write_payload(int fd, struct tpacket_hdr *tp_h, const struct ethhdr const *sp)
 {
 	struct pcap_sf_pkthdr sf_hdr;
 	size_t written = 0;
