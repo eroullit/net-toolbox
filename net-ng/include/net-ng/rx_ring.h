@@ -59,29 +59,4 @@ extern void destroy_rx_thread(struct netsniff_ng_rx_thread_context * thread_conf
 
 #define DEFAULT_RX_RING_SILENT_MESSAGE "Receive ring dumping ... |"
 
-/* Inline stuff */
-
-/**
- * mem_notify_user_for_rx - Checks whether kernel has written its data into our 
- *                          virtual RX_RING
- * @frame:                 ethernet frame data
- */
-static inline int mem_notify_user_for_rx(struct iovec frame)
-{
-	struct tpacket_hdr *header = frame.iov_base;
-	return (header->tp_status == TP_STATUS_USER);
-}
-
-/**
- * mem_notify_kernel_for_rx - We tell the kernel that we are done with processing 
- *                            data from our virtual RX_RING
- * @header:                  packet header with status flag
- */
-static inline void mem_notify_kernel_for_rx(struct tpacket_hdr *header)
-{
-	assert(header);
-	header->tp_status = TP_STATUS_KERNEL;
-	barrier();
-}
-
 #endif				/* _NET_RX_RING_H_ */

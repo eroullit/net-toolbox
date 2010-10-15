@@ -321,6 +321,6 @@ static const struct ether_type ether_types[] = {
 	{0xFFFF, "Reserved"},
 };
 
-char type_unknown[] = "Unknown";
+static char type_unknown[] = "Unknown";
 
 #endif				/* _NET_ETHER_TYPES_H_ */

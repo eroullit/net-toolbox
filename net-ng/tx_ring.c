@@ -50,7 +50,6 @@
 #include "tx_ring.h"
 #include "netdev.h"
 #include "config.h"
-#include "nsignal.h"
 #include "bpf.h"
 #include "xmalloc.h"
 #include "strlcpy.h"
