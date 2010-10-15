@@ -20,15 +20,9 @@
 #ifndef _NET_RX_RING_COMPAT_H_
 #define _NET_RX_RING_COMPAT_H_
 
-#include <stdlib.h>
-#include <assert.h>
 #include <net/if.h>
-#include <sys/queue.h>
-
-#include "macros.h"
-#include "types.h"
-#include "thread.h"
-#include "rxtx_common.h"
+#include <net-ng/bpf.h>
+#include <net-ng/thread.h>
 
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_compat_context
