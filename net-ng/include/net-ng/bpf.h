@@ -21,7 +21,6 @@
 #define _NET_BPF_H_
 
 #include <linux/filter.h>
-#include <linux/if_packet.h>
 
 extern void bpf_dump_all(struct sock_fprog *bpf);
 extern int bpf_validate(const struct sock_fprog *bpf);
