@@ -17,468 +17,410 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110, USA
  */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <sched.h>
-#include <signal.h>
 
 #include <net/if.h>
 #include <arpa/inet.h>
 
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <sys/poll.h>
+#include <sys/types.h>
 
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>
 #include <linux/filter.h>
-#include <linux/version.h>
 
-#include <net-ng/bpf.h>
-#include <net-ng/macros.h>
-#include <net-ng/types.h>
-#include <net-ng/replay.h>
-#include <net-ng/netdev.h>
-#include <net-ng/nsignal.h>
-#include <net-ng/cursor.h>
-#include <net-ng/xmalloc.h>
+#include "pcap.h"
+#include "cursor.h"
+#include "dump.h"
+#include "macros.h"
+#include "types.h"
+#include "tx_ring.h"
+#include "netdev.h"
+#include "config.h"
+#include "nsignal.h"
+#include "bpf.h"
+#include "xmalloc.h"
+#include "strlcpy.h"
+#include "replay.h"
 
-#define flushlock_lock(x) do{ (x) = 1; } while(0);
-#define flushlock_unlock(x) do{ (x) = 0; } while(0);
-#define flushlock_trylock(x) ((x) == 1)
+static int register_tx_ring(int sock, struct tpacket_req * req)
+{
+	/* Loop to reduce requested ring buffer is it cannot be allocated */
+	/* Break when not supported */
 
-struct packed_tx_data {
-	struct system_data *sd;
-	int sock;
-	struct ring_buff *rb;
-};
+	if (setsockopt(sock, SOL_PACKET, PACKET_TX_RING, (void *)(req), sizeof(*req)) < 0) {
+		err("setsockopt: creation of tx_ring failed");
+		return (EAGAIN);
+	}
 
-volatile sig_atomic_t ring_lock;
-volatile sig_atomic_t send_intr = 0;
+	return (0);
+}
 
-#ifdef __HAVE_TX_RING__
-static void set_packet_loss_discard(int sock)
+static void unregister_tx_ring(int sock)
+{
+	struct tpacket_req req = {0};
+	setsockopt(sock, SOL_PACKET, PACKET_TX_RING, (void *)&req, sizeof(req));
+}
+
+static int mmap_tx_ring(int sock, struct ring_buff * rb)
+{
+	assert(rb);
+
+	rb->buffer = mmap(0, rb->size, PROT_READ | PROT_WRITE, MAP_SHARED, sock, 0);
+	if (rb->buffer == MAP_FAILED) {
+		err("mmap: cannot mmap the tx_ring");
+		return (EINVAL);
+	}
+
+	return (0);
+}
+
+static void munmap_tx_ring(struct ring_buff * rb)
+{
+	assert(rb);
+
+	if (rb->buffer)
+	{
+		munmap(rb->buffer, rb->size);
+		rb->buffer = NULL;
+		rb->size = 0;
+	}
+}
+
+static int bind_dev_to_tx_ring(int sock, int ifindex)
+{
+	struct sockaddr_ll sll = {0};
+
+	sll.sll_family = AF_PACKET;
+	sll.sll_protocol = htons(ETH_P_ALL);
+	sll.sll_ifindex = ifindex;
+
+	if (bind(sock, (struct sockaddr *)&sll, sizeof(sll)) < 0) {
+		err("bind: cannot bind device");
+		return (EINVAL);
+	}
+
+	/* Check error and if dev is ready */
+
+	return (0);
+}
+
+static int set_packet_loss_discard(int sock)
 {
 	int ret;
 	int foo = 1;		/* we discard wrong packets */
 
 	ret = setsockopt(sock, SOL_PACKET, PACKET_LOSS, (void *)&foo, sizeof(foo));
+	
 	if (ret < 0) {
 		err("setsockopt: cannot set packet loss");
-		close(sock);
-		exit(EXIT_FAILURE);
 	}
+
+	return (ret);
 }
 
-/**
- * destroy_virt_tx_ring - Destroys virtual TX_RING buffer
- * @sock:                socket
- * @rb:                  ring buffer
- */
-void destroy_virt_tx_ring(int sock, struct ring_buff *rb)
+
+static void * tx_thread_listen(void * arg)
 {
-	assert(rb);
+	struct pollfd pfd = {0};
+	struct tpacket_hdr *header = NULL;
+	int ret = 0;
+	size_t pkt_len = 0;
+	uint8_t * pkt_buf = NULL;
+	uint32_t pkt_put = 0;
+	uint32_t i = 0;
+	struct netsniff_ng_tx_thread_context * thread_ctx = (struct netsniff_ng_tx_thread_context *) arg;
+	struct netsniff_ng_tx_nic_context * nic_ctx = NULL;
+	struct ring_buff * rb = NULL;
 
-	memset(&(rb->layout), 0, sizeof(rb->layout));
-	setsockopt(sock, SOL_PACKET, PACKET_TX_RING, (void *)&(rb->layout), sizeof(rb->layout));
-
-	if (rb->buffer) {
-		munmap(rb->buffer, rb->len);
-		rb->buffer = 0;
-		rb->len = 0;
+	if (thread_ctx == NULL)
+	{
+		pthread_exit(NULL);
 	}
 
-	xfree(rb->frames);
-}
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	
+	nic_ctx = &thread_ctx->nic_ctx;
+	rb = &nic_ctx->nic_rb;
+	
+	pfd.fd = nic_ctx->dev_fd;
+	pfd.events = POLLOUT;
+	pfd.revents = 0;
 
-/**
- * create_virt_tx_ring - Creates virtual TX_RING buffer
- * @sock:               socket
- * @rb:                 ring buffer
- */
-void create_virt_tx_ring(int sock, struct ring_buff *rb, char *ifname, unsigned int usize)
-{
-	short nic_flags;
-	int ret, dev_speed;
+	info("--- Transmitting ---\n\n");
 
-	assert(rb);
-	assert(ifname);
+	do {
+		for (i = 0; i < rb->layout.tp_block_nr; i++) {
+			header = (struct tpacket_hdr *)rb->frames[i].iov_base;
+			pkt_buf = (uint8_t *) ((uintptr_t) header + TPACKET_HDRLEN - sizeof(struct sockaddr_ll));
 
-	nic_flags = get_nic_flags(ifname);
-
-	if ((nic_flags & IFF_UP) != IFF_UP) {
-		warn("The interface %s is not up\n\n", ifname);
-		exit(EXIT_FAILURE);
-	}
-
-	if ((nic_flags & IFF_RUNNING) != IFF_RUNNING) {
-		warn("The interface %s is not running\n\n", ifname);
-		exit(EXIT_FAILURE);
-	}
-
-	dev_speed = get_device_bitrate_generic_fallback(ifname);
-	memset(&(rb->layout), 0, sizeof(rb->layout));
-
-	set_packet_loss_discard(sock);
-
-	/* max: getpagesize() << 11 for i386 */
-	rb->layout.tp_block_size = getpagesize() << 2;
-	rb->layout.tp_frame_size = TPACKET_ALIGNMENT << 7;
-
-	/* max: 15 for i386, old default: 1 << 13, now: approximated bandwidth size */
-	if (usize == 0) {
-		rb->layout.tp_block_nr = ((dev_speed * 1024 * 1024) / rb->layout.tp_block_size);
-	} else {
-		rb->layout.tp_block_nr = usize / (rb->layout.tp_block_size / 1024);
-	}
-
-	rb->layout.tp_frame_nr = rb->layout.tp_block_size / rb->layout.tp_frame_size * rb->layout.tp_block_nr;
-
- __retry_sso:
-	ret = setsockopt(sock, SOL_PACKET, PACKET_TX_RING, (void *)&(rb->layout), sizeof(rb->layout));
-
-	if (errno == ENOMEM && rb->layout.tp_block_nr > 1) {
-		rb->layout.tp_block_nr >>= 1;
-		rb->layout.tp_frame_nr = rb->layout.tp_block_size / rb->layout.tp_frame_size * rb->layout.tp_block_nr;
-
-		goto __retry_sso;
-	}
-
-	if (ret < 0) {
-		err("setsockopt: creation of tx ring failed");
-		close(sock);
-		exit(EXIT_FAILURE);
-	}
-
-	rb->len = rb->layout.tp_block_size * rb->layout.tp_block_nr;
-
-	info("%.2f MB allocated for transmit ring \n", 1.f * rb->len / (1024 * 1024));
-	info(" [ %d blocks, %d frames ] \n", rb->layout.tp_block_nr, rb->layout.tp_frame_nr);
-	info(" [ %d frames per block ]\n", rb->layout.tp_block_size / rb->layout.tp_frame_size);
-	info(" [ framesize: %d bytes, blocksize: %d bytes ]\n\n", rb->layout.tp_frame_size, rb->layout.tp_block_size);
-}
-
-/**
- * mmap_virt_tx_ring - Memory maps virtual TX_RING kernel buffer into userspace 
- *                     in order to avoid syscalls for transmitting packet buffers
- * @sock:             socket
- * @rb:               ring buffer
- */
-void mmap_virt_tx_ring(int sock, struct ring_buff *rb)
-{
-	assert(rb);
-
-	rb->buffer = mmap(0, rb->len, PROT_READ | PROT_WRITE, MAP_SHARED, sock, 0);
-	if (rb->buffer == MAP_FAILED) {
-		err("mmap: cannot mmap the tx ring");
-
-		destroy_virt_tx_ring(sock, rb);
-		close(sock);
-
-		exit(EXIT_FAILURE);
-	}
-}
-
-/**
- * bind_dev_to_tx_ring - Binds virtual TX_RING to network device
- * @sock:               socket
- * @ifindex:            device number
- * @rb:                 ring buffer
- */
-void bind_dev_to_tx_ring(int sock, int ifindex, struct ring_buff *rb)
-{
-	int ret;
-
-	assert(rb);
-
-	memset(&(rb->params), 0, sizeof(rb->params));
-
-	rb->params.sll_family = AF_PACKET;
-	rb->params.sll_protocol = htons(ETH_P_ALL);
-	rb->params.sll_ifindex = ifindex;
-	rb->params.sll_hatype = 0;
-	rb->params.sll_halen = 0;
-	rb->params.sll_pkttype = 0;
-
-	ret = bind(sock, (struct sockaddr *)&(rb->params), sizeof(struct sockaddr_ll));
-	if (ret < 0) {
-		err("bind: cannot bind device");
-		close(sock);
-		exit(EXIT_FAILURE);
-	}
-}
-
-/**
- * flush_virt_tx_ring - Send payload of tx_ring in non-blocking mode
- * @sock:              socket
- * @rb:                ring buffer
- */
-int flush_virt_tx_ring(int sock, struct ring_buff *rb)
-{
-	int rc;
-
-	/* Flush buffers with TP_STATUS_SEND_REQUEST */
-	rc = sendto(sock, NULL, 0, 0 /*MSG_DONTWAIT */ , NULL, 0);
-	if (rc < 0) {
-		err("Cannot flush tx_ring with sendto");
-	}
-
-	return rc;
-}
-
-/**
- * fill_virt_tx_ring_thread - Fills payload of tx_ring
- * @packed:                  packed system data
- */
-static void *fill_virt_tx_ring_thread(void *packed)
-{
-	int loop, i;
-
-	uint8_t *buff;
-	unsigned long long packets = 0;
-
-	struct frame_map *fm;
-	struct tpacket_hdr *header;
-	struct packed_tx_data *ptd;
-
-	ptd = (struct packed_tx_data *)packed;
-
-	for (i = 0; likely(!sigint); loop = 1) {
-		do {
-			int success;
-
-			fm = ptd->rb->frames[i].iov_base;
-			header = (struct tpacket_hdr *)&fm->tp_h;
-			buff =
-			    (uint8_t *) ((uintptr_t) ptd->rb->frames[i].iov_base + TPACKET_HDRLEN -
-					 sizeof(struct sockaddr_ll));
+			info("Slot %u/%u %lx\n", i + 1, rb->layout.tp_block_nr, header->tp_status);
 
 			switch ((volatile uint32_t)header->tp_status) {
-			default:
-				sched_yield();
-				break;
-
-			case TP_STATUS_SEND_REQUEST:
-				/* Notify kernel to pull */
-				flushlock_unlock(ring_lock);
-				usleep(0);
-				break;
-
 			case TP_STATUS_AVAILABLE:
-				success = 0;
-				while (pcap_fetch_next_packet(ptd->sd->pcap_fd, header, (struct ethhdr *)buff)) {
-					printf("Fetched pkt %p\n", (void *)buff);
-
-					/* Filter packet if user wants so */
-					if (bpf_filter(&ptd->sd->bpf, buff, header->tp_len)) {
-						success = 1;
+				while ((pkt_len =
+					pcap_fetch_next_packet(nic_ctx->pcap_fd, header, (struct ethhdr *)pkt_buf)) != 0) {
+					/* If the fetch packet does not match the BPF, take the next one */
+					if (bpf_filter(&nic_ctx->bpf, pkt_buf, header->tp_len)) {
 						break;
 					}
-
-					versatile_print(buff, header);
 				}
-				printf("Success? %u\n", success);
-				if (success == 0)
-					goto out;
-				loop = 0;
-				versatile_print(buff, header);
+
+				/* No packets to replay or error, time to exit */
+				if (pkt_len == 0)
+					goto flush_pkt;
+
+				/* Mark packet as ready to send */
+				header->tp_status = TP_STATUS_SEND_REQUEST;
+				pkt_put++;
 				break;
 
 			case TP_STATUS_WRONG_FORMAT:
 				warn("An error during transfer!\n");
 				exit(EXIT_FAILURE);
 				break;
-			}
-		} while (loop == 1 && likely(!sigint));
-
-		/* We're done! */
-		mem_notify_kernel_for_tx(header);
-		packets++;
-		/* Next frame */
-		i = (i + 1) % ptd->rb->layout.tp_frame_nr;
-	}
-
-	/* Pull the rest */
-	flushlock_unlock(ring_lock);
-	/* XXX: Thread may exit */
-	send_intr = 1;
-
- out:
-	info("Transmit ring has pushed %llu packets!\n", packets);
-	pthread_exit(0);
-}
-
-/**
- * flush_virt_tx_ring_thread - Sends payload of tx_ring
- * @packed:                   packed system data
- */
-static void *flush_virt_tx_ring_thread(void *packed)
-{
-	int i, ret, errors = 0;
-
-	struct frame_map *fm;
-	struct tpacket_hdr *header;
-	struct packed_tx_data *ptd;
-	struct spinner_thread_context spinner_ctx = { 0 };
-
-	spinner_set_msg(&spinner_ctx, DEFAULT_TX_RING_SILENT_MESSAGE);
-
-	ptd = (struct packed_tx_data *)packed;
-
-	for (; likely(!send_intr); errors = 0) {
-		ret = spinner_create(&spinner_ctx);
-		if (ret) {
-			err("Cannot create spinner thread");
-			exit(EXIT_FAILURE);
-		}
-
-		ret = flush_virt_tx_ring(ptd->sock, ptd->rb);
-		if (ret < 0) {
-			exit(EXIT_FAILURE);
-		}
-
-		spinner_trigger_event(&spinner_ctx);
-
-		for (i = 0; i < ptd->rb->layout.tp_frame_nr; i++) {
-			fm = ptd->rb->frames[i].iov_base;
-			header = (struct tpacket_hdr *)&fm->tp_h;
-
-			switch ((volatile uint32_t)header->tp_status) {
-			case TP_STATUS_SEND_REQUEST:
-				warn("Frame has not been sent %p!\n", (void *)header);
-				fflush(stdout);
-				errors++;
-				break;
-
-			case TP_STATUS_LOSING:
-				warn("Transfer error of frame!\n");
-				fflush(stdout);
-				errors++;
-				break;
 
 			default:
 				break;
 			}
 		}
 
-		if (errors > 0) {
-			warn("%d errors occured during tx_ring flush!\n", errors);
-		} else {
-			info("Transmit ring has been flushed.\n\n");
+flush_pkt:
+		ret = send(nic_ctx->dev_fd, NULL, 0, MSG_DONTWAIT);
+
+		info("send() returned %i: %s\n", ret, strerror(errno));
+
+		if (ret < 0) {
+			err("Cannot flush tx_ring with send");
+		}
+
+		/* Now we wait that the kernel place all packet on the medium */
+		ret = poll(&pfd, 1, -1);
+		
+		if (ret < 0)
+			err("An error occured while polling on %s\n", nic_ctx->tx_dev);
+
+	} while (pkt_len);
+
+	info("Placed %u packets\n", pkt_put);
+
+	pthread_exit(NULL);
+}
+
+
+static int create_tx_ring(int sock, struct ring_buff * rb, const char *ifname)
+{
+	struct tpacket_req req = {0};
+
+	assert(rb);
+	assert(ifname);
+
+	/* max: getpagesize() << 11 for i386 */
+	req.tp_block_size = getpagesize() << 2;
+
+	/* tp_frame_size should be carefully chosen to fit closely to snapshot len */
+	req.tp_frame_size = TPACKET_ALIGNMENT << 7;
+
+	req.tp_block_nr = ((1024 * 1024) / req.tp_block_size);
+	req.tp_frame_nr = req.tp_block_size / req.tp_frame_size * req.tp_block_nr;
+
+	if (register_tx_ring(sock, &req))
+	{
+		err("Cannot register TX ring buffer for %s", ifname);
+		return (EAGAIN);
+	}
+
+	rb->size = req.tp_block_size * req.tp_block_nr;
+
+	if (mmap_tx_ring(sock, rb))
+	{
+		unregister_tx_ring(sock);
+		err("Cannot prepare TX ring buffer for interface %s for userspace", ifname);
+		return (EAGAIN);
+	}
+
+	if (create_frame_buffer(rb, req))
+	{
+		munmap_tx_ring(rb);
+		unregister_tx_ring(sock);
+		err("Cannot allocate TX ring buffer frame buffer for %s", ifname);
+		return (ENOMEM);
+	}
+
+	if (bind_dev_to_tx_ring(sock, ethdev_to_ifindex(ifname)))
+	{
+		destroy_frame_buffer(rb);
+		munmap_tx_ring(rb);
+		unregister_tx_ring(sock);
+		err("Cannot bind %s to TX ring buffer frame buffer", ifname);
+		return (EAGAIN);
+	}
+
+	rb->layout = req;
+
+	/* XXX Make it human readable */
+	info("%.2f MB allocated for receive ring \n", 1.f * rb->size / (1024 * 1024));
+	info(" [ %d blocks, %d frames ] \n", req.tp_block_nr, req.tp_frame_nr);
+	info(" [ %d frames per block ]\n", req.tp_block_size / req.tp_frame_size);
+	info(" [ framesize: %d bytes, blocksize: %d bytes ]\n\n", req.tp_frame_size, req.tp_block_size);
+
+	return (0);
+}
+
+static void destroy_tx_ring(int sock, struct ring_buff * rb)
+{
+	assert(rb);
+
+	munmap_tx_ring(rb);
+	unregister_tx_ring(sock);
+	destroy_frame_buffer(rb);
+}
+
+
+static void destroy_tx_nic_ctx(struct netsniff_ng_tx_nic_context * nic_ctx)
+{
+	assert(nic_ctx);
+
+	destroy_tx_ring(nic_ctx->dev_fd, &nic_ctx->nic_rb);
+
+	/* 
+	 * If there is a BPF filter loaded, then it
+	 * must be unbound from the device and freed
+	 */
+
+	if (nic_ctx->bpf.filter)
+	{
+		reset_kernel_bpf(nic_ctx->dev_fd);
+		free(nic_ctx->bpf.filter);
+	}
+
+	close(nic_ctx->dev_fd);
+	close(nic_ctx->pcap_fd);
+}
+
+static int init_tx_nic_ctx(struct netsniff_ng_tx_thread_context * thread_ctx, const char * tx_dev, const char * bpf_path, const char * pcap_path)
+{
+	struct netsniff_ng_tx_nic_context * nic_ctx = NULL;
+	int rc = 0;
+
+	assert(thread_ctx);
+	assert(tx_dev);
+
+	nic_ctx = &thread_ctx->nic_ctx;
+
+	if (!is_device_ready(tx_dev))
+	{
+		warn("Device %s is not ready\n", tx_dev);
+		return (EAGAIN);
+	}
+
+	strlcpy(nic_ctx->tx_dev, tx_dev, IFNAMSIZ);
+	nic_ctx->dev_fd = get_pf_socket();
+	
+	if (nic_ctx->dev_fd < 0)
+	{
+		warn("Could not open PF_PACKET socket\n");
+		rc = EPERM;
+		goto error;
+	}
+	
+	if ((rc = set_packet_loss_discard(nic_ctx->dev_fd)) != 0)
+	{
+		goto error;
+	}
+
+	if (bpf_path)
+	{
+		if(parse_rules(bpf_path, &nic_ctx->bpf) == 0)
+		{
+			warn("Could not parse BPF file %s\n", bpf_path);
+			rc = EINVAL;
+			goto error;
+		}
+
+		inject_kernel_bpf(nic_ctx->dev_fd, &nic_ctx->bpf);
+	}
+
+	if (pcap_path)
+	{
+		if ((nic_ctx->pcap_fd = open_pcap_ro(pcap_path)) < 0)
+		{
+			warn("Failed to prepare pcap : %s\n", pcap_path);
+			rc = EINVAL;
+			goto error;
 		}
 	}
 
-	spinner_cancel(&spinner_ctx);
-	pthread_exit(0);
-}
-
-/**
- * transmit_packets - TX_RING critical path
- * @sd:              config data
- * @sock:            socket
- * @rb:              ring buffer
- */
-void transmit_packets(struct system_data *sd, int sock, struct ring_buff *rb)
-{
-	assert(rb);
-	assert(sd);
-
-	int ret;
-
-	pthread_t send, fill;
-	pthread_attr_t attr_send, attr_fill;
-
-	struct sched_param para_send, para_fill;
-	struct packed_tx_data ptd = {
-		.sd = sd,
-		.sock = sock,
-		.rb = rb,
-	};
-
-	info("--- Transmitting ---\n");
-	info("!!! Experimental !!!\n\n");
-
-	//flushlock_lock(ring_lock);
-
-	pthread_attr_init(&attr_send);
-	pthread_attr_init(&attr_fill);
-
-	pthread_attr_setschedpolicy(&attr_send, SCHED_RR);
-	pthread_attr_setschedpolicy(&attr_fill, SCHED_RR);
-
-	para_send.sched_priority = 20;
-	pthread_attr_setschedparam(&attr_send, &para_send);
-
-	para_fill.sched_priority = 20;
-	pthread_attr_setschedparam(&attr_fill, &para_fill);
-
-	ret = pthread_create(&fill, &attr_fill, fill_virt_tx_ring_thread, &ptd);
-	if (ret) {
-		err("Cannot create fill thread");
-		exit(EXIT_FAILURE);
+	if ((rc = create_tx_ring(nic_ctx->dev_fd, &nic_ctx->nic_rb, tx_dev)) != 0)
+	{
+		goto error;
 	}
 
-	ret = pthread_create(&send, &attr_send, flush_virt_tx_ring_thread, &ptd);
-	if (ret) {
-		err("Cannot create send thread");
-		exit(EXIT_FAILURE);
+
+	return(0);
+
+error:
+	destroy_tx_nic_ctx(nic_ctx);
+	return (rc);
+}
+
+void destroy_tx_thread(struct netsniff_ng_tx_thread_context * thread_config)
+{
+	assert(thread_config);
+
+	if (thread_config->thread_ctx.thread)
+		pthread_cancel(thread_config->thread_ctx.thread);
+
+	destroy_thread_context(&thread_config->thread_ctx);
+	destroy_tx_nic_ctx(&thread_config->nic_ctx);
+	xfree(thread_config);
+}
+
+struct netsniff_ng_tx_thread_context * create_tx_thread(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path)
+{
+	int rc;
+	struct netsniff_ng_tx_thread_context * thread_config = NULL;
+
+	if ((thread_config = xzmalloc(sizeof(*thread_config))) == NULL)
+	{
+		warn("Cannot allocate tx thread configuration\n");
+		return (NULL);
 	}
 
-	pthread_join(fill, NULL);
-	pthread_join(send, NULL);
+	if ((rc = init_thread_context(&thread_config->thread_ctx, run_on, sched_prio, sched_policy, TX_THREAD)) != 0)
+	{
+		goto error;
+	}
+
+	if ((rc = init_tx_nic_ctx(thread_config, tx_dev, bpf_path, pcap_path)) != 0)
+	{
+		warn("Cannot initialize TX NIC context\n");
+		goto error;
+	}
+
+	if ((rc = pthread_create(&thread_config->thread_ctx.thread, &thread_config->thread_ctx.thread_attr, tx_thread_listen, thread_config)))
+	{
+		warn("Could not start TX thread\n")
+		goto error;
+	}
+
+	return (thread_config);
+
+error:
+	destroy_tx_thread(thread_config);
+	return (NULL);
 }
 
-#else
-
-/* 
- * XXX: do the same stuff but only with sendmsg or similar 
- */
-
-void bind_dev_to_tx_ring(int sock, int ifindex, struct ring_buff *rb)
-{
-	/* NOP */
-}
-
-void mmap_virt_tx_ring(int sock, struct ring_buff *rb)
-{
-	/* NOP */
-}
-
-void create_virt_tx_ring(int sock, struct ring_buff *rb, char *ifname, unsigned int usize)
-{
-	/* NOP */
-}
-
-void destroy_virt_tx_ring(int sock, struct ring_buff *rb)
-{
-	/* NOP */
-}
-
-int flush_virt_tx_ring(int sock, struct ring_buff *rb)
-{
-	return 0;
-}
-
-void transmit_packets(struct system_data *sd, int sock, struct ring_buff *rb)
-{
-	assert(rb);
-	assert(sd);
-#if 0
-	struct packed_tx_data ptd = {
-		.sd = sd,
-		.sock = sock,
-		.rb = rb,
-	};
-#endif
-	info("--- Transmitting ---\n\n");
-
-	/* Dummy function */
-
-	warn("Not yet implemented!\n\n");
-}
-#endif				/* __HAVE_TX_RING__ */

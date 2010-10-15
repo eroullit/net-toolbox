@@ -22,44 +22,41 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <net/if.h>
+#include <sys/queue.h>
 
-#include <linux/version.h>
-
-#include <net-ng/macros.h>
-#include <net-ng/types.h>
-#include <net-ng/rxtx_common.h>
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 31)
-# define __HAVE_TX_RING__
-#else
-# undef __HAVE_TX_RING__
-#endif				/* LINUX_VERSION_CODE */
-
-#define DEFAULT_TX_RING_SILENT_MESSAGE	"Transmit ring flushing ... |"
+#include "macros.h"
+#include "types.h"
+#include "thread.h"
+#include "rxtx_common.h"
+#include "config.h"
 
 /* Function signatures */
-
-#if 0
-extern void destroy_virt_tx_ring(int sock, struct ring_buff *rb);
-extern void create_virt_tx_ring(int sock, struct ring_buff *rb, char *ifname, unsigned int usize);
-extern void mmap_virt_tx_ring(int sock, struct ring_buff *rb);
-extern void bind_dev_to_tx_ring(int sock, int ifindex, struct ring_buff *rb);
-extern int flush_virt_tx_ring(int sock, struct ring_buff *rb);
-extern void transmit_packets(struct system_data *sd, int sock, struct ring_buff *rb);
-
-/* Inline stuff */
-
-#ifdef __HAVE_TX_RING__
-/**
- * mem_notify_kernel_for_tx - We tell the kernel that we are done with setting up 
- *                            data.
- * @header:                  packet header with status flag
- */
-static inline void mem_notify_kernel_for_tx(struct tpacket_hdr *header)
+/* a tx ring must only belong to one entity */
+struct netsniff_ng_tx_nic_context
 {
-	assert(header);
-	header->tp_status = TP_STATUS_SEND_REQUEST;
-}
-#endif				/* __HAVE_TX_RING__ */
-#endif
+	struct pollfd 				pfd;
+	/* Structure which describe a nic instead? */
+	char 					tx_dev[IFNAMSIZ];
+	/* Maybe multiple ring buffer for one device */
+	uint32_t				flags;
+	int					dev_fd;
+	int 					pcap_fd;
+	struct sock_fprog 			bpf;
+	struct ring_buff			nic_rb;
+};
+
+struct netsniff_ng_tx_thread_context
+{
+	struct netsniff_ng_thread_context	thread_ctx;
+	struct netsniff_ng_tx_nic_context	nic_ctx;
+};
+
+/* Function signatures */
+extern struct netsniff_ng_tx_thread_context * create_tx_thread(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path);
+extern void destroy_tx_thread(struct netsniff_ng_tx_thread_context * thread_config);
+
+
+#define DEFAULT_TX_RING_SILENT_MESSAGE "Transmitting ... |"
+
 #endif				/* _NET_TX_RING_H_ */
