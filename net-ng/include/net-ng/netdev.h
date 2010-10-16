@@ -52,5 +52,7 @@ extern int get_pf_socket(void);
 extern int parse_rules(const char * rulefile, struct sock_fprog *bpf);
 extern int get_mtu(const char *dev);
 extern int is_device_ready(const char * dev);
+extern int get_af_socket(int af);
+extern int get_pf_socket(void);
 
 #endif				/* _NET_NETDEV_H_ */

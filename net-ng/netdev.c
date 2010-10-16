@@ -76,7 +76,7 @@ static inline void assert_dev_name(const char *dev)
 	assert(strlen(dev) < IFNAMSIZ);
 }
 
-static int get_af_socket(int af)
+int get_af_socket(int af)
 {
 	int sock;
 
