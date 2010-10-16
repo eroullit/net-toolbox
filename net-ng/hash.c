@@ -239,10 +239,8 @@ const char *ieee_vendors_find(const uint8_t * mac_addr)
 	key = ntohl(key);
 
 	vendor = hashtable_find(ieee_vendor_db, (void *)key);
-	if (!vendor)
-		vendor = vendor_unknown;
 
-	return vendor;
+	return vendor ? vendor : vendor_unknown;
 }
 
 /*
@@ -284,6 +282,7 @@ void ports_udp_destroy(void)
 
 const char *ports_udp_find(uint16_t port)
 {
+	char * udp_str;
 	uintptr_t key = 0;
 	uint8_t *keyp = (uint8_t *) & key;
 
@@ -291,7 +290,9 @@ const char *ports_udp_find(uint16_t port)
 	keyp[2] = (port) & 0xFF;
 	key = ntohl(key);
 
-	return hashtable_find(ports_udp_db, (void *)key);
+	udp_str = hashtable_find(ports_udp_db, (void *)key);
+
+	return udp_str ? udp_str : port_udp_unknown;
 }
 
 /*
@@ -333,6 +334,7 @@ void ports_tcp_destroy(void)
 
 const char *ports_tcp_find(uint16_t port)
 {
+	char *tcp_str;
 	uintptr_t key = 0;
 	uint8_t *keyp = (uint8_t *) & key;
 
@@ -340,7 +342,9 @@ const char *ports_tcp_find(uint16_t port)
 	keyp[2] = (port) & 0xFF;
 	key = ntohl(key);
 
-	return hashtable_find(ports_tcp_db, (void *)key);
+	tcp_str = hashtable_find(ports_tcp_db, (void *) key);
+
+	return tcp_str ? tcp_str : port_tcp_unknown;
 }
 
 /*
@@ -391,10 +395,8 @@ const char *ether_types_find(uint16_t type)
 	key = ntohl(key);
 
 	type_str = hashtable_find(ether_types_db, (void *)key);
-	if (!type_str)
-		type_str = type_unknown;
 
-	return type_str;
+	return type_str ? type_str : type_unknown;
 }
 
 const char *ether_types_find_less(uint16_t type)

@@ -20,8 +20,9 @@
 #ifndef _DUMP_H_
 #define	_DUMP_H_
 
+#include <netinet/ether.h>
+#include <netinet/ip.h>
 #include <linux/if_packet.h>
-#include <linux/if_ether.h>
 
 extern int pcap_write_header(int fd, int linktype, int thiszone, int snaplen);
 extern void pcap_write_payload(int fd, struct tpacket_hdr *tp_h, const struct ethhdr const *sp);

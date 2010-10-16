@@ -20,10 +20,6 @@
 #ifndef _PCAP_H_
 #define	_PCAP_H_
 
-#include <sys/time.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>
-
 #define TCPDUMP_MAGIC               0xa1b2c3d4
 #define PCAP_VERSION_MAJOR          2
 #define PCAP_VERSION_MINOR          4
@@ -78,12 +74,6 @@ struct pcap_timeval {
  * should supply the appropriate version of "struct timeval", even if
  * that's not what the underlying packet capture mechanism supplies.
  */
-struct pcap_pkthdr {
-	struct timeval ts;	/* time stamp */
-	uint32_t caplen;	/* length of portion present */
-	uint32_t len;		/* length this packet (off wire) */
-};
-
 struct pcap_sf_pkthdr {
 	struct pcap_timeval ts;	/* time stamp */
 	uint32_t caplen;	/* length of portion present */

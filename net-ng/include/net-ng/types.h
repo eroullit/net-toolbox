@@ -22,9 +22,6 @@
 
 #include <stdint.h>
 
-#include <sys/socket.h>
-#include <sys/poll.h>
-
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>
 
@@ -40,17 +37,6 @@ struct ring_buff {
 	uint8_t *buffer;
 };
 
-#if 0
-typedef uint8_t ring_buff_bytes_t;
-
-typedef struct ring_buff_private {
-	struct tpacket_req	layout;
-	size_t			size;
-	size_t			cur_frame;
-	struct iovec *		frames;
-	uint8_t *		buffer;
-} ring_buff_t;
-#endif
 struct frame_map {
 	struct tpacket_hdr tp_h __attribute__ ((aligned(TPACKET_ALIGNMENT)));
 	struct sockaddr_ll s_ll __attribute__ ((aligned(TPACKET_ALIGNMENT)));

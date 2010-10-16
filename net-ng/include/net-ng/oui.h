@@ -13383,6 +13383,6 @@ static const struct vendor_id vendor_db[] = {
 	{0xCF0000, "Ethernet Configuration Test protocol (Loopback)"},
 };
 
-char vendor_unknown[] = "Unknown";
+static char vendor_unknown[] = "Unknown";
 
 #endif				/* _NET_OUI_H_ */

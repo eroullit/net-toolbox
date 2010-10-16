@@ -24,7 +24,7 @@
 #include <assert.h>
 
 #include <netinet/in.h>
-#include <linux/ip.h>
+//#include <linux/ip.h>
 
 #include <net-ng/macros.h>
 #include <net-ng/protocols/csum.h>

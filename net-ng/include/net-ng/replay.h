@@ -20,10 +20,8 @@
 #ifndef _REPLAY_H_
 #define	_REPLAY_H_
 
-#include <stdint.h>
-
 #include <linux/if_packet.h>
-#include <linux/if_ether.h>
+#include <netinet/ether.h>
 
 extern int pcap_validate_header(int fd);
 extern int pcap_has_packets(int fd);

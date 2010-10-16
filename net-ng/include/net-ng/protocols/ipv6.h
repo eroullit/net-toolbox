@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <assert.h>
 
+#include <asm/byteorder.h>
 #include <netinet/in.h>
 
 #include <net-ng/macros.h>

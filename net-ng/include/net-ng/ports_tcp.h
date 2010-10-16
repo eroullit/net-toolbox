@@ -1129,6 +1129,6 @@ static const struct port_tcp ports_tcp[] = {
 	{65301, "pcanywhere"},
 };
 
-char port_tcp_unknown[] = "Unknown";
+static char port_tcp_unknown[] = "Unknown";
 
 #endif				/* _NET_PORTS_TCP_H_ */

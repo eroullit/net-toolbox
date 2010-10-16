@@ -28,14 +28,6 @@
 #include <strings.h>
 
 #include <arpa/inet.h>
-#include <netinet/in.h>
-
-#include <linux/if.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
-#include <linux/tcp.h>
-#include <linux/if_ether.h>
-#include <linux/if_packet.h>
 
 #include <net-ng/macros.h>
 #include <net-ng/xmalloc.h>

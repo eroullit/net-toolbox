@@ -20,9 +20,9 @@
 #ifndef _NET_PRINT_H_
 #define _NET_PRINT_H_
 
-#include <linux/ip.h>
-
-#include <net-ng/types.h>
+#include <netinet/ether.h>
+#include <netinet/ip.h>
+#include <linux/if_packet.h>
 
 /* Function signatures */
 extern void print_packet_buffer_mode_1(uint8_t * rbb, const struct tpacket_hdr *tp);

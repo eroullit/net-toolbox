@@ -1084,6 +1084,6 @@ static const struct port_udp ports_udp[] = {
 	{54321, "bo2k"},
 };
 
-char *port_udp_unknown = "Unknown";
+static char port_udp_unknown[] = "Unknown";
 
 #endif				/* _NET_PORTS_UDP_H_ */

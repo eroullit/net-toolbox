@@ -21,7 +21,6 @@
 #define _NET_RXTX_COMMON_H_
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
 
@@ -73,40 +72,4 @@ static inline void destroy_frame_buffer(struct ring_buff * rb)
 	free(rb->frames);
 }
 
-#if 0
- /**
- * prepare_polling - Sets params for ringbuff polling
- * @sock:           socket
- * @pfd:            file descriptor for polling
- */
-static inline void prepare_polling(int sock, struct pollfd *pfd)
-{
-	assert(pfd);
-
-	memset(pfd, 0, sizeof(*pfd));
-
-	pfd->fd = sock;
-	pfd->revents = 0;
-	pfd->events = POLLIN | POLLRDNORM | POLLOUT | POLLWRNORM | POLLERR;
-}
-
-/**
- * alloc_frame_buffer - Allocates frame buffer
- * @rb:                ring buff struct
- */
-static inline void alloc_frame_buffer(struct ring_buff *rb)
-{
-	int i = 0;
-
-	assert(rb);
-
-	rb->frames = xzmalloc(rb->layout.tp_frame_nr * sizeof(*rb->frames));
-
-	for (i = 0; i < rb->layout.tp_frame_nr; ++i) {
-		rb->frames[i].iov_base = (uint8_t *) ((long)rb->buffer) + 
-					 (i * rb->layout.tp_frame_size);
-		rb->frames[i].iov_len = rb->layout.tp_frame_size;
-	}
-}
-#endif
 #endif				/* _NET_RXTX_COMMON_H_ */

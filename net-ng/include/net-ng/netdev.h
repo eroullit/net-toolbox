@@ -53,30 +53,4 @@ extern int parse_rules(const char * rulefile, struct sock_fprog *bpf);
 extern int get_mtu(const char *dev);
 extern int is_device_ready(const char * dev);
 
-/* Inline stuff */
-
-/**
- * get_device_bitrate_generic_fallback - Returns bitrate of device in Mb/s
- * @ifname:                             interface name
- */
-static inline int get_device_bitrate_generic_fallback(const char *ifname)
-{
-	int speed = get_device_bitrate_generic(ifname);
-	/* If speed is 0 interface could be down or user has choosen a loopback device?!
-	   Furthermore the wireless device show speedrates about 1 or 2 MBit/s, so we fallback 
-	   here too, otherwise the map will fail */
-	return (speed > 10 ? speed : FAILSAFE_BITRATE);
-}
-
-/**
- * get_device_bitrate_generic_fallback2 - Returns bitrate of device in Mb/s
- * @ifname:                             interface name
- */
-static inline int get_device_bitrate_generic_fallback2(const char *ifname)
-{
-	int speed = get_device_bitrate_generic_cable(ifname);
-	/* If speed is 0 interface could be down or user has choosen a loopback device?! */
-	return (speed > 100 ? speed : FAILSAFE_BITRATE);
-}
-
 #endif				/* _NET_NETDEV_H_ */
