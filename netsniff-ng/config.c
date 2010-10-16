@@ -34,7 +34,7 @@
 #include <net-ng/macros.h>
 #include <net-ng/netdev.h>
 #include <net-ng/xmalloc.h>
-#include <netsniff-ng/system.h>
+#include <net-ng/system.h>
 #include <netsniff-ng/config.h>
 
 void help(void);

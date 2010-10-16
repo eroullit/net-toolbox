@@ -19,20 +19,14 @@
 
 #define _GNU_SOURCE
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sched.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <assert.h>
-#include <pthread.h>
-#include <errno.h>
-
-#include <sys/resource.h>
 
 #include <net-ng/macros.h>
-#include <netsniff-ng/system.h>
+#include <net-ng/system.h>
 
 /**
  * nexttoken - Fetches next param token
@@ -100,100 +94,6 @@ int parse_cpu_set(const char *str, cpu_set_t * res)
 			CPU_SET(a, res);
 			a += s;
 		}
-	}
-
-	return (0);
-}
-
-/**
- * get_cpu_affinity - Returns CPU affinity bitstring
- * @cpu_string:      allocated string
- * @len:             len of cpu_string
- */
-char *get_cpu_affinity(char *cpu_string, size_t len)
-{
-	int i, ret;
-	int cpu;
-
-	cpu_set_t cpu_bitmask;
-
-	assert(cpu_string);
-	assert(len == sysconf(_SC_NPROCESSORS_CONF) + 1);
-
-	memset(cpu_string, 0, len);
-	CPU_ZERO(&cpu_bitmask);
-
-	ret = sched_getaffinity(getpid(), sizeof(cpu_bitmask), &cpu_bitmask);
-	if (ret) {
-		err("Can't fetch cpu affinity");
-		return (NULL);
-	}
-
-	for (i = 0; i < len - 1; ++i) {
-		cpu = CPU_ISSET(i, &cpu_bitmask);
-		cpu_string[i] = (cpu ? '1' : '0');
-	}
-
-	return (cpu_string);
-}
-
-/**
- * set_proc_prio - Sets nice value
- * @prio:         nice
- */
-int set_proc_prio(int priority)
-{
-	int ret;
-
-	/*
-	 * setpriority() is clever, even if you put a nice value which 
-	 * is out of range it corrects it to the closest valid nice value
-	 */
-	ret = setpriority(PRIO_PROCESS, getpid(), priority);
-	if (ret) {
-		err("Can't set nice val %i", priority);
-		exit(EXIT_FAILURE);
-	}
-
-	return (0);
-}
-
-/**
- * set_sched_status - Sets process scheduler type and priority
- * @policy:          type of scheduling
- * @priority:        scheduling priority (!nice)
- */
-int set_sched_status(int policy, int priority)
-{
-	int ret;
-	int min_prio, max_prio;
-
-	struct sched_param sp;
-
-	max_prio = sched_get_priority_max(policy);
-	min_prio = sched_get_priority_min(policy);
-
-	if (max_prio == -1 || min_prio == -1) {
-		err("Cannot determine max/min scheduler prio");
-	} else if (priority < min_prio) {
-		priority = min_prio;
-	} else if (priority > max_prio) {
-		priority = max_prio;
-	}
-
-	memset(&sp, 0, sizeof(sp));
-	sp.sched_priority = priority;
-
-	ret = sched_setscheduler(getpid(), policy, &sp);
-	if (ret) {
-		err("Cannot set scheduler policy");
-		return (1);
-	}
-
-	ret = sched_setparam(getpid(), &sp);
-	if (ret) {
-		err("Cannot set scheduler prio");
-		return (1);
 	}
 
 	return (0);

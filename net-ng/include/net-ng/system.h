@@ -23,23 +23,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <sched.h>
-#include <assert.h>
 
-#include <sys/resource.h>
 #include <sys/ioctl.h>
 
 #define DEFAULT_SCHED_POLICY	SCHED_FIFO
 #define DEFAULT_SCHED_PRIO	sched_get_priority_max(DEFAULT_SCHED_POLICY)
-#define DEFAULT_PROCESS_PRIO	(-20)
 
 #define DEFAULT_TERM_SIZE	(80)
 
 /* Function signatures */
 
 extern int parse_cpu_set(const char *str, cpu_set_t * res);
-extern char *get_cpu_affinity(char *cpu_string, size_t len);
-extern int set_proc_prio(int prio);
-extern int set_sched_status(int policy, int priority);
 extern void check_for_root(void);
 
 /* Inline stuff */

@@ -19,15 +19,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
 
 #include <net-ng/macros.h>
-#include <net-ng/netdev.h>
-#include <net-ng/tx_ring.h>
-#include <netsniff-ng/system.h>
+#include <net-ng/system.h>
 #include <netsniff-ng/version.h>
 
 /**

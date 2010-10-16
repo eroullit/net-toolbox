@@ -19,23 +19,15 @@
 
 #define	_GNU_SOURCE
 
-/* XXX Only temporary here */
 #include <sched.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <pthread.h>
-#include <signal.h>
 
-#include <net-ng/types.h>
 #include <net-ng/rx_ring.h>
 #include <net-ng/rx_ring_compat.h>
 #include <net-ng/tx_ring.h>
 #include <net-ng/netdev.h>
+#include <net-ng/system.h>
 #include <netsniff-ng/config.h>
-#include <netsniff-ng/system.h>
-
-/* XXX HACK this is unused */
-volatile sig_atomic_t sigint = 0;
 
 void start_single_rx_thread(struct system_data * sd)
 {

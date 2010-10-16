@@ -20,11 +20,7 @@
 #ifndef	_NET_CONFIG_H_
 #define	_NET_CONFIG_H_
 
-#include <net-ng/types.h>
-#include <net-ng/print.h>
 #include <net-ng/thread.h>
-#include <linux/filter.h>
-
 
 /* Internals */
 #define DEFAULT_INTERFACE "lo"
@@ -58,30 +54,6 @@ struct system_data {
 	char * dev;
 	char * cpu_set_str;
 	enum netsniff_ng_thread_type mode;
-#if 0
-	int sysdaemon;
-	int compatibility_mode;
-	int blocking_mode;
-	int no_prioritization;
-	int no_touch_irq;
-	int bypass_bpf;
-	int packet_type;
-	int mode;
-	/* Daemon mode settings */
-	char *pidfile;
-	/* Berkeley Packet Filter rules */
-	char *rulefile;
-	/* Ethernet device */
-	char *dev;
-	char *cpu_set_str;
-	short prev_nic_flags;
-	int promisc_mode;
-	int pcap_fd;
-	struct sock_fprog bpf;
-	void (*print_pkt) (uint8_t *, const struct tpacket_hdr *, uint8_t pkttype);
-	int bind_cpu;
-	unsigned int ring_size;
-#endif
 };
 
 extern void init_configuration(struct system_data *config);
