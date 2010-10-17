@@ -37,12 +37,12 @@ int pcap_has_packets(const int fd)
 
 	if (fd < 0) {
 		warn("Invalid file descriptor.\n");
-		return (0);
+		return (-1);
 	}
 
 	if ((pos = lseek(fd, (off_t) 0, SEEK_CUR)) < 0) {
 		err("Cannot seek offset of pcap file");
-		return (0);
+		return (-1);
 	}
 
 	/* Test pcap header */
@@ -58,7 +58,7 @@ int pcap_has_packets(const int fd)
 	/* Rewind the offset */
 	if (lseek(fd, pos, SEEK_SET) < 0) {
 		err("Cannot rewind pcap file");
-		return (0);
+		return (-1);
 	}
 
 	return (1);
@@ -122,7 +122,7 @@ int pcap_write_header(const int fd, const int linktype, const int thiszone, cons
 {
 	struct pcap_file_header hdr = { 0 };
 
-	assert(fd < 0);
+	assert(fd > 0);
 
 	hdr.magic = TCPDUMP_MAGIC;
 	hdr.version_major = PCAP_VERSION_MAJOR;
@@ -199,19 +199,20 @@ int pcap_create(const char * const pcap_path)
 
 	int fd;
 
-	fd = creat(pcap_path, DEFFILEMODE);
-		
-	if (fd != -1) {
-		/* TODO make it configurable instead of using default values */
-		if (pcap_write_header(fd, LINKTYPE_EN10MB, 0, PCAP_DEFAULT_SNAPSHOT_LEN))
-		{
-			/* When the PCAP header cannot be written the file
-			 * must be closed and then deleted
-			 */
-
-			pcap_destroy(fd, pcap_path);
-			fd = -1;
-		}
+	if ((fd = creat(pcap_path, DEFFILEMODE)) < 0)
+	{
+		err("Cannot create pcap %s\n", pcap_path);
+		return (-1);
+	}
+	
+	/* TODO make it configurable instead of using default values */
+	if (pcap_write_header(fd, LINKTYPE_EN10MB, 0, PCAP_DEFAULT_SNAPSHOT_LEN))
+	{
+		/* When the PCAP header cannot be written the file
+		 * must be closed and then deleted
+		 */
+		pcap_destroy(fd, pcap_path);
+		fd = -1;
 	}
 	
 	return (fd);
@@ -219,7 +220,7 @@ int pcap_create(const char * const pcap_path)
 
 int pcap_open(const char * const pcap_path, int flags)
 {
-	int append;
+	int append = 0;
 	int fd;
 
 	assert(pcap_path);
@@ -234,13 +235,14 @@ int pcap_open(const char * const pcap_path, int flags)
 	if ((fd = open(pcap_path, flags)) < 0)
 	{
 		err("Could not open pcap file");
-		return (fd);
+		return (-1);
 	}
 
 	if (pcap_validate_header(fd))
 	{
 		err("Failed to validate PCAP");
-		return (fd);
+		close(fd);
+		return (-1);
 	}
 
 	if (append)
@@ -248,6 +250,7 @@ int pcap_open(const char * const pcap_path, int flags)
 		/* Go to EOF */
 		if (lseek(fd, 0, SEEK_END) < 0) {
 			err("Cannot seek end of pcap file");
+			close(fd);
 			return (-1);
 		}
 	}

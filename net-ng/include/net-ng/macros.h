@@ -22,6 +22,7 @@
 
 /* Standardized info/warning/error printing routines that should be used source-wide */
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 
 #define info(...)                                             \
@@ -36,7 +37,8 @@
 /* Do not a perror() after this and do not end string with '\n'! */
 #define err(...)                                                                    \
                                 do {                                                \
-                                        fprintf(stderr, "E: " __VA_ARGS__);         \
+                                        fprintf(stderr, "E: %s,%u: ", __FUNCTION__, __LINE__);         \
+                                        fprintf(stderr, __VA_ARGS__);         \
                                         fprintf(stderr, ": %s\n", strerror(errno)); \
                                         fflush(stderr);                             \
                                 } while(0);

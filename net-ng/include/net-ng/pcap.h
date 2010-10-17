@@ -20,6 +20,7 @@
 #ifndef _PCAP_H_
 #define	_PCAP_H_
 
+#include <stdint.h>
 #include <netinet/if_ether.h>
 #include <linux/if_packet.h>
 
