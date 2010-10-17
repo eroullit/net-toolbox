@@ -44,7 +44,6 @@
 
 #include <net-ng/pcap.h>
 #include <net-ng/cursor.h>
-#include <net-ng/dump.h>
 #include <net-ng/macros.h>
 #include <net-ng/types.h>
 #include <net-ng/rx_ring.h>
@@ -306,7 +305,7 @@ static int init_rx_nic_ctx(struct netsniff_ng_rx_thread_context * thread_ctx, co
 
 	if (pcap_path)
 	{
-		if ((nic_ctx->pcap_fd = prepare_pcap(pcap_path)) < 0)
+		if ((nic_ctx->pcap_fd = pcap_create(pcap_path)) < 0)
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
 			rc = EINVAL;
@@ -317,7 +316,7 @@ static int init_rx_nic_ctx(struct netsniff_ng_rx_thread_context * thread_ctx, co
 	if ((rc = create_rx_ring(nic_ctx->dev_fd, &nic_ctx->nic_rb, rx_dev)) != 0)
 	{
 		/* If something goes wrong here, the create PCAP must be deleted */
-		remove_pcap(nic_ctx->pcap_fd, pcap_path);
+		pcap_destroy(nic_ctx->pcap_fd, pcap_path);
 		goto error;
 	}
 

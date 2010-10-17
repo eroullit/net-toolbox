@@ -35,7 +35,7 @@
 #include <net-ng/print.h>
 #include <net-ng/protocols/layers_all.h>
 #include <net-ng/packet.h>
-#include <net-ng/replay.h>
+#include <net-ng/pcap.h>
 #include <net-ng/bpf.h>
 
 

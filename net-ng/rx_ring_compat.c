@@ -46,7 +46,7 @@
 
 #include <net-ng/bpf.h>
 #include <net-ng/cursor.h>
-#include <net-ng/dump.h>
+#include <net-ng/pcap.h>
 #include <net-ng/macros.h>
 #include <net-ng/types.h>
 #include <net-ng/rx_ring_compat.h>
@@ -178,10 +178,9 @@ int init_rx_nic_compat_ctx(struct netsniff_ng_rx_thread_compat_context * thread_
 
 	if (pcap_path)
 	{
-		if ((nic_ctx->pcap_fd = prepare_pcap(pcap_path)) < 0)
+		if ((nic_ctx->pcap_fd = pcap_create(pcap_path)) < 0)
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
-			remove_pcap(nic_ctx->pcap_fd, pcap_path);
 			rc = EINVAL;
 			goto error;
 		}

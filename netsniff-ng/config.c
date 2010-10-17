@@ -30,7 +30,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <net-ng/dump.h>
+#include <net-ng/pcap.h>
 #include <net-ng/macros.h>
 #include <net-ng/netdev.h>
 #include <net-ng/xmalloc.h>
