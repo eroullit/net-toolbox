@@ -38,6 +38,7 @@
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
@@ -120,7 +121,7 @@
  *            with the above copyright.
  * @bpf:     bpf program
  */
-static char *bpf_dump(const struct sock_filter bpf, int n)
+static char *bpf_dump(const struct sock_filter * bpf, int n)
 {
 	int v;
 	const char *fmt, *op;
@@ -128,13 +129,13 @@ static char *bpf_dump(const struct sock_filter bpf, int n)
 	static char image[256];
 	char operand[64];
 
-	v = bpf.k;
+	v = bpf->k;
 
-	switch (bpf.code) {
+	switch (bpf->code) {
 	default:
 		op = "unimp";
 		fmt = "0x%x";
-		v = bpf.code;
+		v = bpf->code;
 		break;
 
 	case BPF_RET | BPF_K:
@@ -220,7 +221,7 @@ static char *bpf_dump(const struct sock_filter bpf, int n)
 	case BPF_JMP | BPF_JA:
 		op = "ja";
 		fmt = "%d";
-		v = n + 1 + bpf.k;
+		v = n + 1 + bpf->k;
 		break;
 
 	case BPF_JMP | BPF_JGT | BPF_K:
@@ -361,9 +362,9 @@ static char *bpf_dump(const struct sock_filter bpf, int n)
 
 	snprintf(operand, sizeof(operand), fmt, v);
 	snprintf(image, sizeof(image),
-		 (BPF_CLASS(bpf.code) == BPF_JMP &&
-		  BPF_OP(bpf.code) != BPF_JA) ?
-		 "(%03d) %-8s %-16s jt %d\tjf %d" : "(%03d) %-8s %s", n, op, operand, n + 1 + bpf.jt, n + 1 + bpf.jf);
+		 (BPF_CLASS(bpf->code) == BPF_JMP &&
+		  BPF_OP(bpf->code) != BPF_JA) ?
+		 "(%03d) %-8s %-16s jt %d\tjf %d" : "(%03d) %-8s %s", n, op, operand, n + 1 + bpf->jt, n + 1 + bpf->jf);
 	return image;
 }
 
@@ -372,14 +373,14 @@ static char *bpf_dump(const struct sock_filter bpf, int n)
  * @bpf:         bpf program
  * @len:         len of bpf
  */
-void bpf_dump_all(struct sock_fprog *bpf)
+void bpf_dump_all(const struct sock_fprog * const bpf)
 {
 	int i;
 
 	assert(bpf);
 
 	for (i = 0; i < bpf->len; ++i) {
-		info(" %s\n", bpf_dump(bpf->filter[i], i));
+		info(" %s\n", bpf_dump(&bpf->filter[i], i));
 	}
 
 	info("\n");
@@ -390,7 +391,7 @@ void bpf_dump_all(struct sock_fprog *bpf)
  * @bpf:         bpf program
  * @len:         len of bpf
  */
-int bpf_validate(const struct sock_fprog *bpf)
+int bpf_validate(const struct sock_fprog * const bpf)
 {
 	uint32_t i, from;
 	const struct sock_filter *p;
@@ -523,7 +524,7 @@ int bpf_validate(const struct sock_fprog *bpf)
  * @plen:      len of packet
  */
 
-uint32_t bpf_filter(struct sock_fprog * fcode, uint8_t * packet, size_t plen)
+uint32_t bpf_filter(const struct sock_fprog * const fcode, uint8_t * packet, size_t plen)
 {
 	/* XXX: caplen == len */
 	uint32_t A, X;
@@ -751,4 +752,58 @@ uint32_t bpf_filter(struct sock_fprog * fcode, uint8_t * packet, size_t plen)
 		}
 
 	}
+}
+
+int bpf_parse(const char * const bpf_path, struct sock_fprog *bpf)
+{
+	int ret;
+	char buff[128] = { 0 };
+
+	struct sock_filter sf_single;
+
+	assert(bpf);
+	assert(bpf_path);
+
+	FILE *fp = fopen(bpf_path, "r");
+	if (!fp) {
+		err("Cannot read rulefile");
+		return (-1);
+	}
+
+	memset(buff, 0, sizeof(buff));
+
+	info("Parsing BPF %s\n", bpf_path);
+
+	while (fgets(buff, sizeof(buff), fp) != NULL) {
+		/* We're using evil sscanf, so we have to assure
+		   that we don't get into a buffer overflow ... */
+		buff[sizeof(buff) - 1] = 0;
+
+		/* A comment. Skip this line */
+		if (buff[0] != '{') {
+			continue;
+		}
+
+		memset(&sf_single, 0, sizeof(sf_single));
+
+		ret = sscanf(buff, "{ 0x%x, %d, %d, 0x%08x },",
+			     (unsigned int *)((void *)&(sf_single.code)),
+			     (int *)((void *)&(sf_single.jt)), (int *)((void *)&(sf_single.jf)), &(sf_single.k));
+		if (ret != 4) {
+			/* No valid bpf opcode format or a syntax error */
+			return 0;
+		}
+
+		bpf->len++;
+		bpf->filter = (struct sock_filter *)realloc(bpf->filter, bpf->len * sizeof(sf_single));
+
+		memcpy(&bpf->filter[bpf->len - 1], &sf_single, sizeof(sf_single));
+
+		memset(buff, 0, sizeof(buff));
+	}
+
+	fclose(fp);
+
+	/* bpf_validate() returns 0 on failure */
+	return (bpf_validate(bpf));
 }

@@ -293,7 +293,7 @@ static int init_rx_nic_ctx(struct netsniff_ng_rx_thread_context * thread_ctx, co
 
 	if (bpf_path)
 	{
-		if(parse_rules(bpf_path, &nic_ctx->bpf) == 0)
+		if(bpf_parse(bpf_path, &nic_ctx->bpf) == 0)
 		{
 			warn("Could not parse BPF file %s\n", bpf_path);
 			rc = EINVAL;
