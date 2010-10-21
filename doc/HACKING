@@ -1,4 +1,4 @@
-netsniff-ng HACKING
+ntsniff-ng HACKING
 ===================
 
 Some information about potential netsniff-ng hackers!
@@ -58,6 +58,10 @@ Code Style
 
 Before submitting your patch make sure to indent your code appropriate.
 See CODING.
+
+Function names should be constitued of the object they manipulate and the action 
+they perform (e.g The function parsing a BPF is call bpf_parse, a function which
+destroy an RX ring should be called rx_ring_destroy)
 
 Credits
 =======
