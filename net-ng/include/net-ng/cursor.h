@@ -33,7 +33,6 @@ struct spinner_thread_context {
 
 /* Function signatures */
 
-extern void *print_progress_spinner(void *arg);
 extern void spinner_trigger_event(struct spinner_thread_context *ctx);
 extern void spinner_set_msg(struct spinner_thread_context *ctx, const char *msg);
 extern void spinner_cancel(struct spinner_thread_context *ctx);

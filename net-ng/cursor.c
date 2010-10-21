@@ -49,21 +49,7 @@ void spinner_cancel(struct spinner_thread_context *ctx)
 		pthread_cancel(ctx->thread);
 }
 
-int spinner_create(struct spinner_thread_context *ctx)
-{
-	int rc;
-
-	rc = pthread_create(&ctx->thread, NULL, print_progress_spinner, ctx);
-
-	if (rc != 0)
-		return (rc);
-
-	rc = pthread_detach(ctx->thread);
-
-	return (rc);
-}
-
-void *print_progress_spinner(void *arg)
+void *spinner_print_progress(void *arg)
 {
 	uint8_t spin_count = 0;
 	uint64_t prev_events = 0;
@@ -85,3 +71,18 @@ void *print_progress_spinner(void *arg)
 		}
 	}
 }
+
+int spinner_create(struct spinner_thread_context *ctx)
+{
+	int rc;
+
+	rc = pthread_create(&ctx->thread, NULL, spinner_print_progress, ctx);
+
+	if (rc != 0)
+		return (rc);
+
+	rc = pthread_detach(ctx->thread);
+
+	return (rc);
+}
+
