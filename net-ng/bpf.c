@@ -387,11 +387,11 @@ void bpf_dump_all(const struct sock_fprog * const bpf)
 }
 
 /**
- * bpf_validate - Does basic validation of the user-defined BPF input
+ * bpf_is_valid - Does basic validation of the user-defined BPF input
  * @bpf:         bpf program
  * @len:         len of bpf
  */
-int bpf_validate(const struct sock_fprog * const bpf)
+int bpf_is_valid(const struct sock_fprog * const bpf)
 {
 	uint32_t i, from;
 	const struct sock_filter *p;
@@ -804,6 +804,5 @@ int bpf_parse(const char * const bpf_path, struct sock_fprog *bpf)
 
 	fclose(fp);
 
-	/* bpf_validate() returns 0 on failure */
-	return (bpf_validate(bpf));
+	return (bpf_is_valid(bpf));
 }
