@@ -45,7 +45,7 @@ static inline const char *nexttoken(const char *q, int sep)
 	return (q);
 }
 
-int parse_cpu_set(const char *str, cpu_set_t * res)
+int cpu_set_parse(const char *str, cpu_set_t * res)
 {
 	const char *p, *q;
 

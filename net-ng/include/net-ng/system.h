@@ -33,7 +33,7 @@
 
 /* Function signatures */
 
-extern int parse_cpu_set(const char *str, cpu_set_t * res);
+extern int cpu_set_parse(const char * str, cpu_set_t * res);
 extern void check_for_root(void);
 
 /* Inline stuff */

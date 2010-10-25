@@ -45,8 +45,8 @@ struct netsniff_ng_rx_thread_compat_context
 };
 
 /* Function signatures */
-extern struct netsniff_ng_rx_thread_compat_context * create_rx_thread_compat(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path);
-extern void destroy_rx_thread_compat(struct netsniff_ng_rx_thread_compat_context * thread_config);
+extern struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * const rx_dev, const char * const bpf_path, const char * const pcap_path);
+extern void rx_thread_compat_destroy(struct netsniff_ng_rx_thread_compat_context * thread_config);
 
 #define DEFAULT_RX_RING_COMPAT_SILENT_MESSAGE "Receive ring dumping (Compatibility mode)... |"
 

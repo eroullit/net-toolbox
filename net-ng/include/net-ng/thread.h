@@ -50,13 +50,13 @@ struct netsniff_ng_thread_context
 	enum netsniff_ng_thread_status	status;
 };
 
-int init_thread_context(struct netsniff_ng_thread_context * thread_ctx, const cpu_set_t run_on, const int sched_prio, const int sched_policy, const enum netsniff_ng_thread_type thread_type);
-void destroy_thread_context(struct netsniff_ng_thread_context * thread_ctx);
+int thread_context_init(struct netsniff_ng_thread_context * thread_ctx, const cpu_set_t run_on, const int sched_prio, const int sched_policy, const enum netsniff_ng_thread_type thread_type);
+void thread_context_destroy(struct netsniff_ng_thread_context * thread_ctx);
 
-enum netsniff_ng_thread_status get_thread_status(struct netsniff_ng_thread_context * thread_ctx);
-void set_thread_status(struct netsniff_ng_thread_context * thread_ctx, enum netsniff_ng_thread_status new_status);
+enum netsniff_ng_thread_status thread_status_get(struct netsniff_ng_thread_context * thread_ctx);
+void thread_status_set(struct netsniff_ng_thread_context * thread_ctx, enum netsniff_ng_thread_status new_status);
 
 int thread_should_stop(struct netsniff_ng_thread_context * thread_ctx);
-void stop_thread(struct netsniff_ng_thread_context * thread_ctx);
+void thread_stop(struct netsniff_ng_thread_context * thread_ctx);
 
 #endif	/* _NET_THREAD_H_ */

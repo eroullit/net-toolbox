@@ -43,7 +43,7 @@
  * alloc_frame_buffer - Allocates frame buffer
  * @rb:                ring buff struct
  */
-static inline int create_frame_buffer(struct ring_buff * rb, struct tpacket_req req)
+static inline int frame_buffer_create(struct ring_buff * rb, struct tpacket_req req)
 {
 	int i = 0;
 
@@ -65,7 +65,7 @@ static inline int create_frame_buffer(struct ring_buff * rb, struct tpacket_req 
 	return (0);
 }
 
-static inline void destroy_frame_buffer(struct ring_buff * rb)
+static inline void frame_buffer_destroy(struct ring_buff * rb)
 {
 	assert(rb);
 

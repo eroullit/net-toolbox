@@ -53,7 +53,7 @@
 #include <net-ng/xmalloc.h>
 #include <net-ng/strlcpy.h>
 
-static int register_rx_ring(int sock, struct tpacket_req * req)
+static int rx_ring_register(int sock, struct tpacket_req * req)
 {
 	/* Loop to reduce requested ring buffer is it cannot be allocated */
 	/* Break when not supported */
@@ -66,13 +66,13 @@ static int register_rx_ring(int sock, struct tpacket_req * req)
 	return (0);
 }
 
-static void unregister_rx_ring(int sock)
+static void rx_ring_unregister(int sock)
 {
 	struct tpacket_req req = {0};
 	setsockopt(sock, SOL_PACKET, PACKET_RX_RING, (void *)&req, sizeof(req));
 }
 
-static int mmap_rx_ring(int sock, struct ring_buff * rb)
+static int rx_ring_mmap(int sock, struct ring_buff * rb)
 {
 	assert(rb);
 
@@ -85,7 +85,7 @@ static int mmap_rx_ring(int sock, struct ring_buff * rb)
 	return (0);
 }
 
-static void munmap_rx_ring(struct ring_buff * rb)
+static void rx_ring_munmap(struct ring_buff * rb)
 {
 	assert(rb);
 
@@ -97,7 +97,7 @@ static void munmap_rx_ring(struct ring_buff * rb)
 	}
 }
 
-static int bind_dev_to_rx_ring(int sock, int ifindex)
+static int rx_ring_bind(int sock, int ifindex)
 {
 	struct sockaddr_ll sll = {0};
 
@@ -175,7 +175,7 @@ static void * rx_thread_listen(void * arg)
 }
 
 
-static int create_rx_ring(int sock, struct ring_buff * rb, const char *ifname)
+static int rx_ring_create(int sock, struct ring_buff * rb, const char *ifname)
 {
 	struct tpacket_req req = {0};
 
@@ -191,7 +191,7 @@ static int create_rx_ring(int sock, struct ring_buff * rb, const char *ifname)
 	req.tp_block_nr = ((1024 * 1024) / req.tp_block_size);
 	req.tp_frame_nr = req.tp_block_size / req.tp_frame_size * req.tp_block_nr;
 
-	if (register_rx_ring(sock, &req))
+	if (rx_ring_register(sock, &req))
 	{
 		err("Cannot register RX ring buffer for %s", ifname);
 		return (EAGAIN);
@@ -199,26 +199,26 @@ static int create_rx_ring(int sock, struct ring_buff * rb, const char *ifname)
 
 	rb->size = req.tp_block_size * req.tp_block_nr;
 
-	if (mmap_rx_ring(sock, rb))
+	if (rx_ring_mmap(sock, rb))
 	{
-		unregister_rx_ring(sock);
+		rx_ring_unregister(sock);
 		err("Cannot prepare RX ring buffer for interface %s for userspace", ifname);
 		return (EAGAIN);
 	}
 
-	if (create_frame_buffer(rb, req))
+	if (frame_buffer_create(rb, req))
 	{
-		munmap_rx_ring(rb);
-		unregister_rx_ring(sock);
+		rx_ring_munmap(rb);
+		rx_ring_unregister(sock);
 		err("Cannot allocate RX ring buffer frame buffer for %s", ifname);
 		return (ENOMEM);
 	}
 
-	if (bind_dev_to_rx_ring(sock, ethdev_to_ifindex(ifname)))
+	if (rx_ring_bind(sock, ethdev_to_ifindex(ifname)))
 	{
-		destroy_frame_buffer(rb);
-		munmap_rx_ring(rb);
-		unregister_rx_ring(sock);
+		frame_buffer_destroy(rb);
+		rx_ring_munmap(rb);
+		rx_ring_unregister(sock);
 		err("Cannot bind %s to RX ring buffer frame buffer", ifname);
 		return (EAGAIN);
 	}
@@ -234,21 +234,21 @@ static int create_rx_ring(int sock, struct ring_buff * rb, const char *ifname)
 	return (0);
 }
 
-static void destroy_rx_ring(int sock, struct ring_buff * rb)
+static void rx_ring_destroy(int sock, struct ring_buff * rb)
 {
 	assert(rb);
 
-	munmap_rx_ring(rb);
-	unregister_rx_ring(sock);
-	destroy_frame_buffer(rb);
+	rx_ring_munmap(rb);
+	rx_ring_unregister(sock);
+	frame_buffer_destroy(rb);
 }
 
 
-static void destroy_rx_nic_ctx(struct netsniff_ng_rx_nic_context * nic_ctx)
+static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 {
 	assert(nic_ctx);
 
-	destroy_rx_ring(nic_ctx->dev_fd, &nic_ctx->nic_rb);
+	rx_ring_destroy(nic_ctx->dev_fd, &nic_ctx->nic_rb);
 
 	/* 
 	 * If there is a BPF filter loaded, then it
@@ -257,7 +257,7 @@ static void destroy_rx_nic_ctx(struct netsniff_ng_rx_nic_context * nic_ctx)
 
 	if (nic_ctx->bpf.filter)
 	{
-		reset_kernel_bpf(nic_ctx->dev_fd);
+		bpf_kernel_reset(nic_ctx->dev_fd);
 		free(nic_ctx->bpf.filter);
 	}
 
@@ -265,7 +265,7 @@ static void destroy_rx_nic_ctx(struct netsniff_ng_rx_nic_context * nic_ctx)
 	close(nic_ctx->pcap_fd);
 }
 
-static int init_rx_nic_ctx(struct netsniff_ng_rx_thread_context * thread_ctx, const char * rx_dev, const char * bpf_path, const char * pcap_path)
+static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, const char * rx_dev, const char * bpf_path, const char * pcap_path)
 {
 	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
 	int rc = 0;
@@ -300,7 +300,7 @@ static int init_rx_nic_ctx(struct netsniff_ng_rx_thread_context * thread_ctx, co
 			goto error;
 		}
 
-		inject_kernel_bpf(nic_ctx->dev_fd, &nic_ctx->bpf);
+		bpf_kernel_inject(nic_ctx->dev_fd, &nic_ctx->bpf);
 	}
 
 	if (pcap_path)
@@ -313,7 +313,7 @@ static int init_rx_nic_ctx(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		}
 	}
 
-	if ((rc = create_rx_ring(nic_ctx->dev_fd, &nic_ctx->nic_rb, rx_dev)) != 0)
+	if ((rc = rx_ring_create(nic_ctx->dev_fd, &nic_ctx->nic_rb, rx_dev)) != 0)
 	{
 		/* If something goes wrong here, the create PCAP must be deleted */
 		pcap_destroy(nic_ctx->pcap_fd, pcap_path);
@@ -323,23 +323,23 @@ static int init_rx_nic_ctx(struct netsniff_ng_rx_thread_context * thread_ctx, co
 	return(0);
 
 error:
-	destroy_rx_nic_ctx(nic_ctx);
+	rx_nic_ctx_destroy(nic_ctx);
 	return (rc);
 }
 
-void destroy_rx_thread(struct netsniff_ng_rx_thread_context * thread_config)
+void rx_thread_destroy(struct netsniff_ng_rx_thread_context * thread_config)
 {
 	assert(thread_config);
 
 	if (thread_config->thread_ctx.thread)
 		pthread_cancel(thread_config->thread_ctx.thread);
 
-	destroy_thread_context(&thread_config->thread_ctx);
-	destroy_rx_nic_ctx(&thread_config->nic_ctx);
+	thread_context_destroy(&thread_config->thread_ctx);
+	rx_nic_ctx_destroy(&thread_config->nic_ctx);
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_context * create_rx_thread(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
+struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
 	struct netsniff_ng_rx_thread_context * thread_config = NULL;
@@ -350,12 +350,12 @@ struct netsniff_ng_rx_thread_context * create_rx_thread(const cpu_set_t run_on, 
 		return (NULL);
 	}
 
-	if ((rc = init_thread_context(&thread_config->thread_ctx, run_on, sched_prio, sched_policy, RX_THREAD)) != 0)
+	if ((rc = thread_context_init(&thread_config->thread_ctx, run_on, sched_prio, sched_policy, RX_THREAD)) != 0)
 	{
 		goto error;
 	}
 
-	if ((rc = init_rx_nic_ctx(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
+	if ((rc = rx_nic_ctx_init(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize RX NIC context\n");
 		goto error;
@@ -370,7 +370,7 @@ struct netsniff_ng_rx_thread_context * create_rx_thread(const cpu_set_t run_on, 
 	return (thread_config);
 
 error:
-	destroy_rx_thread(thread_config);
+	rx_thread_destroy(thread_config);
 	return (NULL);
 }
 

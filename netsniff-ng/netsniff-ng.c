@@ -41,7 +41,7 @@ void start_single_rx_thread(struct system_data * sd)
 	
 	if (sd->cpu_set_str)
 	{
-		if (parse_cpu_set(sd->cpu_set_str, &cpu_bitmask))
+		if (cpu_set_parse(sd->cpu_set_str, &cpu_bitmask))
 		{
 			err("Cpu set string is malformed\n");
 			exit(EXIT_FAILURE);
@@ -60,14 +60,14 @@ void start_single_rx_thread(struct system_data * sd)
 	switch(sd->mode)
 	{
 		case RX_THREAD:
-			thread_ctx.rx = create_rx_thread(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
+			thread_ctx.rx = rx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
 
 			if (thread_ctx.rx == NULL)
 				goto out;
 		break;
 
 		case RX_THREAD_COMPAT:
-			thread_ctx.rx_compat = create_rx_thread_compat(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
+			thread_ctx.rx_compat = rx_thread_compat_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
 			
 			if (thread_ctx.rx_compat == NULL)
 				goto out;
@@ -85,12 +85,12 @@ void start_single_rx_thread(struct system_data * sd)
 		case RX_THREAD:
 			pthread_cancel(thread_ctx.rx->thread_ctx.thread);
 			net_stat(thread_ctx.rx->nic_ctx.dev_fd);
-			destroy_rx_thread(thread_ctx.rx);
+			rx_thread_destroy(thread_ctx.rx);
 		break;
 
 		case RX_THREAD_COMPAT:
 			pthread_cancel(thread_ctx.rx_compat->thread_ctx.thread);
-			destroy_rx_thread_compat(thread_ctx.rx_compat);
+			rx_thread_compat_destroy(thread_ctx.rx_compat);
 		break;
 
 		default:

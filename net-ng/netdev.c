@@ -774,11 +774,11 @@ void print_device_info(void)
 }
 
 /**
- * inject_kernel_bpf - Binds filter code to socket
+ * bpf_kernel_inject - Binds filter code to socket
  * @sock:             socket
  * @bpf:              Berkeley Packet Filter code
  */
-void inject_kernel_bpf(int sock, struct sock_fprog *bpf)
+void bpf_kernel_inject(int sock, struct sock_fprog *bpf)
 {
 	int ret;
 
@@ -793,10 +793,10 @@ void inject_kernel_bpf(int sock, struct sock_fprog *bpf)
 }
 
 /**
- * reset_kernel_bpf - Resets filter code from socket
+ * bpf_kernel - Resets filter code from socket
  * @sock:            socket
  */
-void reset_kernel_bpf(int sock)
+void bpf_kernel_reset(int sock)
 {
 	int ret;
 	int foo = 0;

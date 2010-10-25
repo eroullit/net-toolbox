@@ -28,7 +28,7 @@
 #include <net-ng/macros.h>
 #include <net-ng/thread.h>
 
-static int init_thread_attr(struct netsniff_ng_thread_context * thread_ctx, const int sched_prio, const int sched_policy, const cpu_set_t * run_on)
+static int thread_attr_init(struct netsniff_ng_thread_context * thread_ctx, const int sched_prio, const int sched_policy, const cpu_set_t * const run_on)
 {
 	struct sched_param sp = { .sched_priority = sched_prio };
 	int rc = 0;
@@ -56,7 +56,7 @@ static int init_thread_attr(struct netsniff_ng_thread_context * thread_ctx, cons
 	return (rc);
 }
 
-int init_thread_context(struct netsniff_ng_thread_context * thread_ctx, const cpu_set_t run_on, const int sched_prio, const int sched_policy, const enum netsniff_ng_thread_type thread_type)
+int thread_context_init(struct netsniff_ng_thread_context * thread_ctx, const cpu_set_t run_on, const int sched_prio, const int sched_policy, const enum netsniff_ng_thread_type thread_type)
 {
 	int rc;
 	assert(thread_ctx);
@@ -69,7 +69,7 @@ int init_thread_context(struct netsniff_ng_thread_context * thread_ctx, const cp
 		return (rc);
 	}
 
-	if ((rc = init_thread_attr(thread_ctx, sched_prio, sched_policy, &run_on)) != 0)
+	if ((rc = thread_attr_init(thread_ctx, sched_prio, sched_policy, &run_on)) != 0)
 	{
 		pthread_attr_destroy(&thread_ctx->thread_attr);
 		warn("Cannot set thread attributes\n");
@@ -107,7 +107,7 @@ int init_thread_context(struct netsniff_ng_thread_context * thread_ctx, const cp
 	return(rc);
 }
 
-void destroy_thread_context(struct netsniff_ng_thread_context * thread_ctx)
+void thread_context_destroy(struct netsniff_ng_thread_context * thread_ctx)
 {
 	assert(thread_ctx);
 
@@ -117,7 +117,7 @@ void destroy_thread_context(struct netsniff_ng_thread_context * thread_ctx)
 	pthread_spin_destroy(&thread_ctx->config_lock);
 }
 
-enum netsniff_ng_thread_status get_thread_status(struct netsniff_ng_thread_context * thread_ctx)
+enum netsniff_ng_thread_status thread_status_get(struct netsniff_ng_thread_context * thread_ctx)
 {
 	enum netsniff_ng_thread_status ret = STOPPED;
 
@@ -130,7 +130,7 @@ enum netsniff_ng_thread_status get_thread_status(struct netsniff_ng_thread_conte
 	return (thread_ctx->status);
 }
 
-void set_thread_status(struct netsniff_ng_thread_context * thread_ctx, enum netsniff_ng_thread_status new_status)
+void thread_status_set(struct netsniff_ng_thread_context * thread_ctx, enum netsniff_ng_thread_status new_status)
 {
 	assert(thread_ctx);
 
@@ -141,11 +141,11 @@ void set_thread_status(struct netsniff_ng_thread_context * thread_ctx, enum nets
 
 int thread_should_stop(struct netsniff_ng_thread_context * thread_ctx)
 {
-	return (get_thread_status(thread_ctx) == SHOULD_STOP);
+	return (thread_status_get(thread_ctx) == SHOULD_STOP);
 }
 
-void stop_thread(struct netsniff_ng_thread_context * thread_ctx)
+void thread_stop(struct netsniff_ng_thread_context * thread_ctx)
 {
-	set_thread_status(thread_ctx, SHOULD_STOP);
+	thread_status_set(thread_ctx, SHOULD_STOP);
 }
 

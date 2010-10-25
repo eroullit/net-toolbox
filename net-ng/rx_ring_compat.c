@@ -54,7 +54,7 @@
 #include <net-ng/xmalloc.h>
 #include <net-ng/strlcpy.h>
 
-static int bind_dev_to_sock(const char * dev, int sock)
+static int sock_dev_bind(const char * dev, int sock)
 {
 	struct sockaddr saddr = { 0 };
         int rc;
@@ -112,13 +112,13 @@ void * rx_thread_compat_listen(void * arg)
 	pthread_exit(NULL);
 }
 
-void destroy_rx_nic_compat_ctx(struct netsniff_ng_rx_nic_compat_context * nic_ctx)
+void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ctx)
 {
 	assert(nic_ctx);
 	
 	if (nic_ctx->bpf.filter)
 	{
-		reset_kernel_bpf(nic_ctx->dev_fd);
+		bpf_kernel_reset(nic_ctx->dev_fd);
 		free(nic_ctx->bpf.filter);
 	}
 
@@ -129,7 +129,7 @@ void destroy_rx_nic_compat_ctx(struct netsniff_ng_rx_nic_compat_context * nic_ct
 	close(nic_ctx->pcap_fd);
 }
 
-int init_rx_nic_compat_ctx(struct netsniff_ng_rx_thread_compat_context * thread_ctx, const char * rx_dev, const char * bpf_path, const char * pcap_path)
+int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_ctx, const char * rx_dev, const char * bpf_path, const char * pcap_path)
 {
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
 	int rc;
@@ -157,7 +157,7 @@ int init_rx_nic_compat_ctx(struct netsniff_ng_rx_thread_compat_context * thread_
 		goto error;
 	}
 
-	if (bind_dev_to_sock(rx_dev, nic_ctx->dev_fd))
+	if (sock_dev_bind(rx_dev, nic_ctx->dev_fd))
 	{
 		warn("Could not dev %s to socket\n", nic_ctx->rx_dev);
 		rc = EAGAIN;
@@ -173,7 +173,7 @@ int init_rx_nic_compat_ctx(struct netsniff_ng_rx_thread_compat_context * thread_
 			goto error;
 		}
 
-		inject_kernel_bpf(nic_ctx->dev_fd, &nic_ctx->bpf);
+		bpf_kernel_inject(nic_ctx->dev_fd, &nic_ctx->bpf);
 	}
 
 	if (pcap_path)
@@ -188,23 +188,23 @@ int init_rx_nic_compat_ctx(struct netsniff_ng_rx_thread_compat_context * thread_
 
 	return(0);
 error:
-	destroy_rx_nic_compat_ctx(nic_ctx);
+	rx_nic_compat_ctx_destroy(nic_ctx);
 	return(rc);
 }
 
-void destroy_rx_thread_compat(struct netsniff_ng_rx_thread_compat_context * thread_config)
+void rx_thread_compat_destroy(struct netsniff_ng_rx_thread_compat_context * thread_config)
 {
 	assert(thread_config);
 
 	if (thread_config->thread_ctx.thread)
 		pthread_cancel(thread_config->thread_ctx.thread);
 	
-	destroy_thread_context(&thread_config->thread_ctx);
-	destroy_rx_nic_compat_ctx(&thread_config->nic_ctx);
+	thread_context_destroy(&thread_config->thread_ctx);
+	rx_nic_compat_ctx_destroy(&thread_config->nic_ctx);
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_compat_context * create_rx_thread_compat(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
+struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
 	struct netsniff_ng_rx_thread_compat_context * thread_config = NULL;
@@ -213,13 +213,13 @@ struct netsniff_ng_rx_thread_compat_context * create_rx_thread_compat(const cpu_
 
 	memset(thread_config, 0, sizeof(*thread_config));
 
-	if ((rc = init_thread_context(&thread_config->thread_ctx, run_on, sched_prio, sched_policy, RX_THREAD_COMPAT)) != 0)
+	if ((rc = thread_context_init(&thread_config->thread_ctx, run_on, sched_prio, sched_policy, RX_THREAD_COMPAT)) != 0)
 	{
 		warn("Cannot initialize thread\n");
 		goto error;
 	}
 
-	if ((rc = init_rx_nic_compat_ctx(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
+	if ((rc = rx_nic_compat_ctx_init(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize RX NIC context\n");
 		goto error;
@@ -229,7 +229,7 @@ struct netsniff_ng_rx_thread_compat_context * create_rx_thread_compat(const cpu_
 
 	return (thread_config);
 error:
-	destroy_rx_thread_compat(thread_config);
+	rx_thread_compat_destroy(thread_config);
 	return (NULL);
 }
 
