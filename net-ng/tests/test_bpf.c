@@ -81,9 +81,9 @@ static const char short_options[] = "p:h";
 
 static void help(void)
 {
-	info("	BPF test case\n")
-	info("	Options:\n")
-	info("		-p	path to HTTP BPF\n")
+	info("	BPF test case\n");
+	info("	Options:\n");
+	info("		-p	path to HTTP BPF\n");
 }
 
 int main (int argc, char ** argv)

@@ -363,7 +363,7 @@ struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, 
 
 	if ((rc = pthread_create(&thread_config->thread_ctx.thread, &thread_config->thread_ctx.thread_attr, rx_thread_listen, thread_config)))
 	{
-		warn("Could not start RX thread\n")
+		warn("Could not start RX thread\n");
 		goto error;
 	}
 

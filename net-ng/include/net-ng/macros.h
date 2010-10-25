@@ -26,13 +26,13 @@
 #include <string.h>
 
 #define info(...)                                             \
-                                fprintf(stdout, __VA_ARGS__);
+                                fprintf(stdout, __VA_ARGS__)
 
 #define warn(...)                                                           \
                                 do {                                        \
                                         fprintf(stderr, "W: " __VA_ARGS__); \
                                         fflush(stderr);                     \
-                                } while(0);
+                                } while(0)
 
 /* Do not a perror() after this and do not end string with '\n'! */
 #define err(...)                                                                    \
@@ -41,7 +41,7 @@
                                         fprintf(stderr, __VA_ARGS__);         \
                                         fprintf(stderr, ": %s\n", strerror(errno)); \
                                         fflush(stderr);                             \
-                                } while(0);
+                                } while(0)
 
 /* Calc macros for Byte conversion */
 #define DIV_KBYTES(x)           ((x) / (1024LLU))
