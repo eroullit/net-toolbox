@@ -1,11 +1,21 @@
-What is netsniff-ng?
+What is nettoolbox-ng?
 ====================
 
-netsniff-ng is a high performance Linux network sniffer for packet
-inspection.
+nettoolbox-ng is a set of network tools for Linux.
 
-Basically it is similar to analyzers like tcpdump, but without the
-need to perform system calls for fetching network packets. A memory
+It contains libnet-ng which is a library of networking feature such as
+	- Zero-Copy RX/TX ring
+	- Multithreaded RX/TX tasks
+	- RX/TX compatibility mode
+	- PCAP support (w/o using libpcap)
+	- BPF support
+	- Packet dissection
+	- Network interface control
+
+What is netsniff-ng?
+====================
+netsniff-ng is a tool based on libnet-ng which is like tcpdump, 
+but without the need to perform system calls for fetching network packets. A memory
 mapped area within kernelspace will be used for accessing packets,
 thus there is no requirement for copying them to userspace ('zero-copy'
 mechanism). For this purpose netsniff-ng is libpcap independent, but
@@ -53,10 +63,10 @@ For installation instructions, have a look at INSTALL.
 Development
 ===========
 
-There's a public Git repository at http://github.com/danborkmann/netsniff-ng/
+There's a public Git repository at http://github.com/eroullit/nettoolbox-ng
 where you can check out the latest code base.
 
-git clone git://github.com/danborkmann/netsniff-ng.git
+git clone git://github.com/eroullit/nettoolbox-ng.git
 
 Note that there is also a HACKING and TODO file for further readings. Next to 
 this we've set up a FAQ page with development questions at 
