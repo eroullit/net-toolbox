@@ -1,4 +1,4 @@
-# Project name is not mandatory, but you should use it
+#Project name is not mandatory, but you should use it
 PROJECT(nettools-ng C)
 
 # States that CMake required version must be >= 2.6
@@ -22,5 +22,5 @@ SET(LIBHASHISH "libhashish")
 LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/${NET-NG})
 ADD_SUBDIRECTORY(${NET-NG})
 ADD_SUBDIRECTORY(${NETSNIFF-NG})
-#ADD_SUBDIRECTORY(${LIBHASHISH})
+ADD_SUBDIRECTORY(${LIBHASHISH})
 
