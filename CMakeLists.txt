@@ -12,13 +12,13 @@ SET(BUILD_SHARED_LIBS ON)
 SET(CMAKE_BUILD_TYPE profile)
 
 #SET(CMAKE_C_FLAGS "-Wall -Werror -pedantic -std=gnu99 -O2 -lrt -lpthread")
-SET(CMAKE_C_FLAGS "-Wall -Werror -std=gnu99 -O2 -lrt -lpthread")
+SET(CMAKE_C_FLAGS "-Wall -Werror -std=gnu99 -O2 -lrt -lpthread -lm")
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g")
 SET(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS} -pg")
 
 SET(NET-NG "net-ng")
 SET(NETSNIFF-NG "netsniff-ng")
-SET(LIBHASHISH "libhashish")
+SET(LIBHASHISH "hashish")
 
 LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/${NET-NG})
 ADD_SUBDIRECTORY(${LIBHASHISH})
