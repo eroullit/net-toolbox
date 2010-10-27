@@ -345,7 +345,7 @@ int lhi_get_rbtree(const hi_handle_t *hi_handle,
 		int diff;
 		struct lhi_rb_entry *lhi_entry;
 		struct rb_node *parent = *rbnode;
-                lhi_entry = rb_entry(parent, struct lhi_rb_entry, node);
+                rb_entry(lhi_entry, parent, struct lhi_rb_entry, node);
 
 		diff = hi_handle->key_cmp(key, lhi_entry->key);
 		if (diff == 0) {
@@ -377,7 +377,7 @@ static size_t hi_rbtree_traverse(struct rb_node *rbnode, size_t pos,  struct lhi
 	right = rbnode->rb_right;
 	if (right)
 		pos = hi_rbtree_traverse(right, pos, a);
-	lhi_entry = rb_entry(rbnode, struct lhi_rb_entry, node);
+	rb_entry(lhi_entry, rbnode, struct lhi_rb_entry, node);
 	//printf("save key %s at %u\n", lhi_entry->key, p);
 	if (p < a->nmemb) {
 		a->data[p] = (void *) lhi_entry->data;
@@ -434,7 +434,7 @@ int lhi_remove_rbtree(hi_handle_t *hi_handle,
 		int diff;
 		struct lhi_rb_entry *lhi_entry;
 		struct rb_node *parent = *rbnode;
-                lhi_entry = rb_entry(parent, struct lhi_rb_entry, node);
+                rb_entry(lhi_entry, parent, struct lhi_rb_entry, node);
 
 		diff = hi_handle->key_cmp(key, lhi_entry->key);
 		if (diff == 0) {
@@ -483,7 +483,7 @@ int lhi_insert_rbtree(hi_handle_t *hi_handle, const void *key,
 		int diff;
 		struct lhi_rb_entry *lhi_entry;
 		parent = *rbnode;
-                lhi_entry = rb_entry(parent, struct lhi_rb_entry, node);
+                rb_entry(lhi_entry, parent, struct lhi_rb_entry, node);
 
 		diff = hi_handle->key_cmp(key, lhi_entry->key);
 		if (diff == 0)
