@@ -18,9 +18,7 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include "libhashish.h"
-#include "locallib.h"
-#include "libhashish-local.h"
+#include <libhashish.h>
 #include "tests.h"
 
 #include <assert.h>
@@ -84,11 +82,14 @@ int main(int argc, char **argv)
 	char *png_filename = NULL;
 	unsigned int entries = DEFAULT_ENTRIES;
 	unsigned int table_size = DEFAULT_HASHTABLE_SIZE;
+	struct drand48_data r_d;
 	hi_handle_t *hi_handle;
 	uint32_t (*hashf)(const uint8_t *, uint32_t);
 	const char *hashfname;
 
 	hashf = NULL;
+
+	srand48_r((long int)time(NULL), &r_d);
 
 	while ((opt = getopt(argc, argv, "hqn:l:p:t:a:g:f:v")) != -1) {
 		switch (opt) {
@@ -164,7 +165,7 @@ int main(int argc, char **argv)
 	fputs("# String Distribution Hash Test\n", stderr);
 
 	/* initialize secure[tm] rand() seed */
-	init_seed();
+	//init_seed();
 
 	/* initialize hash table */
 	ret = hi_init_str(&hi_handle, table_size);
@@ -184,7 +185,7 @@ int main(int argc, char **argv)
 		if (len == 0) {
 			len = (rand() % (MAX_STRING_LEN - MIN_STRING_LEN + 1)) + MIN_STRING_LEN;
 		}
-		if (random_string(len, &tmp_key) < 0)
+		if (random_string(len, &tmp_key, &r_d) < 0)
 			exit(EXIT_FAILURE);
 
 		if (prefix)
