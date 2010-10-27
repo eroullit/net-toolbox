@@ -45,7 +45,7 @@
  */
 static inline int frame_buffer_create(struct ring_buff * rb, struct tpacket_req req)
 {
-	int i = 0;
+	uint32_t i = 0;
 
 	assert(rb);
 

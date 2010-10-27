@@ -19,13 +19,14 @@ static const uint8_t icmp_dns[] =
 
 static const char test_path[] = "res.pcap";
 
-int test_pcap_write(const int fd, const uint8_t * const payload, const size_t len)
+int test_pcap_write(const int fd, const uint8_t * const payload, const ssize_t len)
 {
-	struct tpacket_hdr header = { 0 };
+	struct tpacket_hdr header;
 	struct timeval ts;
 
 	gettimeofday(&ts, NULL);
 
+	memset(&header, 0, sizeof(header));
 	header.tp_sec = ts.tv_sec;
 	header.tp_usec = ts.tv_usec;
 	header.tp_snaplen = len;

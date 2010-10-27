@@ -68,7 +68,8 @@ static int rx_ring_register(int sock, struct tpacket_req * req)
 
 static void rx_ring_unregister(int sock)
 {
-	struct tpacket_req req = {0};
+	struct tpacket_req req;
+	memset(&req, 0, sizeof(req));
 	setsockopt(sock, SOL_PACKET, PACKET_RX_RING, (void *)&req, sizeof(req));
 }
 
@@ -99,7 +100,9 @@ static void rx_ring_munmap(struct ring_buff * rb)
 
 static int rx_ring_bind(int sock, int ifindex)
 {
-	struct sockaddr_ll sll = {0};
+	struct sockaddr_ll sll;
+
+	memset(&sll, 0, sizeof(sll));
 
 	sll.sll_family = AF_PACKET;
 	sll.sll_protocol = htons(ETH_P_ALL);
@@ -117,7 +120,7 @@ static int rx_ring_bind(int sock, int ifindex)
 
 static void * rx_thread_listen(void * arg)
 {
-	struct pollfd pfd = {0};
+	struct pollfd pfd;
 	int rc;
 	uint8_t * pkt_buf = NULL;
 	struct frame_map * fm = NULL;
@@ -131,10 +134,12 @@ static void * rx_thread_listen(void * arg)
 	}
 
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-	pfd.events = POLLIN|POLLRDNORM|POLLERR;
 	
 	nic_ctx = &thread_ctx->nic_ctx;
 	rb = &nic_ctx->nic_rb;
+	
+	memset(&pfd, 0, sizeof(pfd));
+	pfd.events = POLLIN|POLLRDNORM|POLLERR;
 	pfd.fd = nic_ctx->dev_fd;
 
 
@@ -177,11 +182,12 @@ static void * rx_thread_listen(void * arg)
 
 static int rx_ring_create(int sock, struct ring_buff * rb, const char *ifname)
 {
-	struct tpacket_req req = {0};
+	struct tpacket_req req;
 
 	assert(rb);
 	assert(ifname);
 
+	memset(&req, 0, sizeof(req));
 	/* max: getpagesize() << 11 for i386 */
 	req.tp_block_size = getpagesize() << 2;
 

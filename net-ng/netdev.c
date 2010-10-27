@@ -668,7 +668,8 @@ int is_device_ready(const char *dev)
  */
 void print_device_info(void)
 {
-	int i = 0, ret = 0, speed = 0, txp = 0;
+	uint32_t i;
+	int ret = 0, speed = 0, txp = 0;
 	short nic_flags = 0;
 
 	char essid[IW_ESSID_MAX_SIZE] = { 0 };
@@ -676,16 +677,19 @@ void print_device_info(void)
 
 	struct ifreq *ifr_elem = NULL;
 	struct ifreq *ifr_buffer = NULL;
-	struct ifconf ifc = { 0 };
+	struct ifconf ifc;
 	struct in_addr ipv4 = { 0 };
 	struct in6_addr ipv6 = IN6ADDR_ANY_INIT;
-	struct ethtool_drvinfo di = { 0 };
-	struct iw_statistics ws = { 0 };
+	struct ethtool_drvinfo di;
+	struct iw_statistics ws;
 
 	size_t if_buffer_len = sizeof(*ifr_buffer) * MAX_NUMBER_OF_NICS;
 
 	ifr_buffer = xzmalloc(if_buffer_len);
 
+	memset(&ws, 0, sizeof(ws));
+	memset(&di, 0, sizeof(di));
+	memset(&ifc, 0, sizeof(ifc));
 	ifc.ifc_len = if_buffer_len;
 	ifc.ifc_req = ifr_buffer;
 

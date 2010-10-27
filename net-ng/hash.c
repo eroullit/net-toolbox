@@ -59,7 +59,7 @@ int hashtable_init(struct hashtable **ht, size_t size, struct hashtable_callback
 
 void hashtable_destroy(struct hashtable *ht)
 {
-	int i;
+	uint32_t i;
 	struct hashtable_bucket *hb, *hb_prev;
 
 	assert(ht);
@@ -150,7 +150,7 @@ void *hashtable_delete(struct hashtable *ht, void *key)
 
 int hashtable_foreach(struct hashtable *ht, void (*callback) (void *key, void *data))
 {
-	int i;
+	uint32_t i;
 	struct hashtable_bucket *hb;
 
 	assert(ht);
@@ -174,6 +174,7 @@ void *no_copy(void *key)
 
 void no_free(void *key)
 {
+	key = key;
 	return;
 }
 
@@ -205,7 +206,8 @@ static struct hashtable_callbacks ieee_vendor_cbs = {
 
 int ieee_vendors_init(void)
 {
-	int i, ret;
+	uint32_t i;
+	int ret;
 	size_t len;
 
 	ret = hashtable_init(&ieee_vendor_db, 14000, &ieee_vendor_cbs);
@@ -257,7 +259,8 @@ static struct hashtable_callbacks ports_udp_cbs = {
 
 int ports_udp_init(void)
 {
-	int i, ret;
+	uint32_t i;
+	int ret;
 	size_t len;
 
 	ret = hashtable_init(&ports_udp_db, 14000, &ports_udp_cbs);
@@ -309,7 +312,8 @@ static struct hashtable_callbacks ports_tcp_cbs = {
 
 int ports_tcp_init(void)
 {
-	int i, ret;
+	uint32_t i;
+	int ret;
 	size_t len;
 
 	ret = hashtable_init(&ports_tcp_db, 14000, &ports_tcp_cbs);
@@ -361,7 +365,8 @@ static struct hashtable_callbacks ether_types_cbs = {
 
 int ether_types_init(void)
 {
-	int i, ret;
+	uint32_t i;
+	int ret;
 	size_t len;
 
 	ret = hashtable_init(&ether_types_db, 14000, &ether_types_cbs);

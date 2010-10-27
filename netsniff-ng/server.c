@@ -110,6 +110,8 @@ static void *start_server(void *null)
 
 	struct netsniff_msg msg;
 
+	null = null;
+
 	q_in_id = init_qmsg('O');	/* Client: I */
 	q_out_id = init_qmsg('I');	/* Client: O */
 

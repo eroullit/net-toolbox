@@ -112,7 +112,9 @@ out:
  */
 int main(int argc, char **argv)
 {
-	struct system_data sd = { 0 };
+	struct system_data sd;
+
+	memset(&sd, 0, sizeof(sd));
 	
 	init_configuration(&sd);
 	set_configuration(argc, argv, &sd);

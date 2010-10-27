@@ -120,14 +120,15 @@ size_t pcap_fetch_next_packet(const int fd, struct tpacket_hdr * tp_h, struct et
 
 int pcap_write_header(const int fd, const int linktype, const int thiszone, const int snaplen)
 {
-	struct pcap_file_header hdr = { 0 };
+	struct pcap_file_header hdr;
 
 	assert(fd > 0);
+
+	memset(&hdr, 0, sizeof(hdr));
 
 	hdr.magic = TCPDUMP_MAGIC;
 	hdr.version_major = PCAP_VERSION_MAJOR;
 	hdr.version_minor = PCAP_VERSION_MINOR;
-
 	hdr.thiszone = thiszone;
 	hdr.snaplen = snaplen;
 	hdr.sigfigs = 0;
@@ -143,7 +144,7 @@ int pcap_write_header(const int fd, const int linktype, const int thiszone, cons
 
 ssize_t pcap_write_payload(const int fd, const struct tpacket_hdr * const tp_h, const struct ethhdr const *sp)
 {
-	struct pcap_sf_pkthdr sf_hdr = { { 0 } };
+	struct pcap_sf_pkthdr sf_hdr;
 	ssize_t written = 0;
 
 	assert(tp_h);

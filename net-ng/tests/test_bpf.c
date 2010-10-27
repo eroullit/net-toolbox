@@ -88,10 +88,12 @@ static void help(void)
 
 int main (int argc, char ** argv)
 {
-	struct sock_fprog bpf = { 0 };
+	struct sock_fprog bpf;
 	const char * path = NULL;
 	int c, opt_idx;
 	int rc = EXIT_FAILURE;
+
+	memset(&bpf, 0, sizeof(bpf));
 
 	while((c = getopt_long(argc, argv, short_options, long_options, &opt_idx)) != EOF)
 	{

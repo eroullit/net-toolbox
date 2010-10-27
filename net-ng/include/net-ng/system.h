@@ -46,11 +46,13 @@ static inline int get_tty_length(void)
 	int ret;
 
 #ifdef TIOCGSIZE
-	struct ttysize ts = { 0 };
+	struct ttysize ts;
+	memset(&ts, 0, sizeof(ts));
 	ret = ioctl(0, TIOCGSIZE, &ts);
 	return ((ret == 0) ? ts.ts_cols : DEFAULT_TERM_SIZE);
 #elif defined(TIOCGWINSZ)
-	struct winsize ts = { 0 };
+	struct winsize ts;
+	memset(&ts, 0, sizeof(ts));
 	ret = ioctl(0, TIOCGWINSZ, &ts);
 	return ((ret == 0) ? ts.ws_col : DEFAULT_TERM_SIZE);
 #else
