@@ -56,9 +56,10 @@
 
 static int sock_dev_bind(const char * dev, int sock)
 {
-	struct sockaddr saddr = { 0 };
+	struct sockaddr saddr;
         int rc;
 
+	memset(&saddr, 0, sizeof(saddr));
         strlcpy(saddr.sa_data, dev, sizeof(saddr.sa_data));
 
         rc = bind(sock, &saddr, sizeof(saddr));
@@ -76,8 +77,8 @@ void * rx_thread_compat_listen(void * arg)
 	struct netsniff_ng_rx_thread_compat_context * thread_ctx = (struct netsniff_ng_rx_thread_compat_context *) arg;
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
 	struct timeval          now;
-	struct sockaddr_ll      from = {0};
-	struct tpacket_hdr tp_h = {0};
+	struct sockaddr_ll      from;
+	struct tpacket_hdr 	tp_h;
         socklen_t               from_len = sizeof(from);
 	ssize_t pkt_len;
 
@@ -85,6 +86,9 @@ void * rx_thread_compat_listen(void * arg)
 	{
 		pthread_exit(NULL);
 	}
+
+	memset(&from, 0, sizeof(from));
+	memset(&tp_h, 0, sizeof(tp_h));
 
 	nic_ctx = &thread_ctx->nic_ctx;
 
