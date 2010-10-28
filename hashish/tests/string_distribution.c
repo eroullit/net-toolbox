@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 	char *prefix = NULL;
 	int opt = 0;
 	int len = 0;
+	int fd1, fd2;
 	char *png_filename = NULL;
 	unsigned int entries = DEFAULT_ENTRIES;
 	unsigned int table_size = DEFAULT_HASHTABLE_SIZE;
@@ -103,8 +104,8 @@ int main(int argc, char **argv)
 				close(j);
 			}
 			std_fd = open("/dev/null", O_RDWR);
-			dup(std_fd);
-			dup(std_fd);
+			fd1 = dup(std_fd);
+			fd2 = dup(std_fd);
 			}
 			break;
 		case 'f':
