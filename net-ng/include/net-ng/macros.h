@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
 #define info(...)                                             \
                                 fprintf(stdout, __VA_ARGS__)
 
