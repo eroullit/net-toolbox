@@ -13,8 +13,6 @@ TARGET_LINK_LIBRARIES (test_af6_sock ${NET-NG})
 TARGET_LINK_LIBRARIES (test_pcap ${NET-NG})
 TARGET_LINK_LIBRARIES (test_bpf ${NET-NG})
 
-ENABLE_TESTING()
-
 ADD_TEST(test_pf_sock test_pf_sock)
 ADD_TEST(test_af_sock test_af_sock)
 ADD_TEST(test_af6_sock test_af6_sock)

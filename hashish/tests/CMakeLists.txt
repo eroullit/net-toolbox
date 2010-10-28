@@ -16,8 +16,6 @@ TARGET_LINK_LIBRARIES (memory_leak_inspector ${LIBHASHISH} localhash)
 #TARGET_LINK_LIBRARIES (string_distribution ${LIBHASHISH} localhash)
 TARGET_LINK_LIBRARIES (unit_test ${LIBHASHISH})
 
-ENABLE_TESTING()
-
 ADD_TEST(bloom_filter_test bloom_filter_test)
 ADD_TEST(concurrent_test concurrent_test)
 ADD_TEST(memory_leak_inspector memory_leak_inspector)
