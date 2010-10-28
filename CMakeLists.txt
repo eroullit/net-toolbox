@@ -18,6 +18,11 @@ ADD_DEFINITIONS(
 	-O2
 )
 
+IF (CMAKE_BUILD_TYPE STREQUAL profile)
+	ADD_DEFINITIONS(-g -pg)
+ENDIF (CMAKE_BUILD_TYPE STREQUAL profile)
+
+
 SET(CMAKE_C_FLAGS "-lm -lpthread")
 
 SET(NET-NG "net-ng")
