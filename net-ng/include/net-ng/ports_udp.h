@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 struct port_udp {
-	uintptr_t id;
+	uint16_t id;
 	char *port;
 };
 
@@ -1085,5 +1085,9 @@ static const struct port_udp ports_udp[] = {
 };
 
 static char port_udp_unknown[] = "Unknown";
+
+void udp_ports_hash_destroy(void);
+int udp_ports_hash_init(void);
+const char * udp_ports_hash_search(const uint16_t udp);
 
 #endif				/* _NET_PORTS_UDP_H_ */

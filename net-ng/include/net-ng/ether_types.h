@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 struct ether_type {
-	uintptr_t id;
+	uint16_t id;
 	char *type;
 };
 
@@ -322,5 +322,9 @@ static const struct ether_type ether_types[] = {
 };
 
 static char type_unknown[] = "Unknown";
+
+void ether_types_hash_destroy(void);
+int ether_types_hash_init(void);
+const char * ether_types_hash_search(const uint16_t ether_type);
 
 #endif				/* _NET_ETHER_TYPES_H_ */

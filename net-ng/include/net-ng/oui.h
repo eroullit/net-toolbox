@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 struct vendor_id {
-	uintptr_t id;
+	uint32_t id;
 	char *vendor;
 };
 
@@ -13384,5 +13384,9 @@ static const struct vendor_id vendor_db[] = {
 };
 
 static char vendor_unknown[] = "Unknown";
+
+void oui_hash_destroy(void);
+int oui_hash_init(void);
+const char * oui_hash_search(const uint32_t oui);
 
 #endif				/* _NET_OUI_H_ */

@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 struct port_tcp {
-	uintptr_t id;
+	uint16_t id;
 	char *port;
 };
 
@@ -1130,5 +1130,9 @@ static const struct port_tcp ports_tcp[] = {
 };
 
 static char port_tcp_unknown[] = "Unknown";
+
+void tcp_ports_hash_destroy(void);
+int tcp_ports_hash_init(void);
+const char * tcp_ports_hash_search(const uint16_t tcp);
 
 #endif				/* _NET_PORTS_TCP_H_ */
