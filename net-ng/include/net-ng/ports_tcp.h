@@ -287,7 +287,6 @@ static const struct port_tcp ports_tcp[] = {
 	{472, "ljk-login"},
 	{473, "hybrid-pop"},
 	{475, "tcpnethaspsrv"},
-	{475, "tcpnethaspsrv"},
 	{479, "iafserver"},
 	{480, "loadsrv"},
 	{481, "dvs"},
@@ -382,14 +381,10 @@ static const struct port_tcp ports_tcp[] = {
 	{704, "elcsd"},
 	{706, "silc"},
 	{709, "entrustmanager"},
-	{709, "entrustmanager"},
 	{723, "omfs"},
 	{729, "netviewdm1"},
 	{730, "netviewdm2"},
-	{730, "netviewdm2"},
 	{731, "netviewdm3"},
-	{731, "netviewdm3"},
-	{740, "netcp"},
 	{740, "netcp"},
 	{741, "netgw"},
 	{742, "netrcs"},
@@ -711,13 +706,11 @@ static const struct port_tcp ports_tcp[] = {
 	{1991, "stun-p2"},
 	{1992, "stun-p3"},
 	{1993, "snmp-tcp-port"},
-	{1993, "snmp-tcp-port"},
 	{1994, "stun-port"},
 	{1995, "perf-port"},
 	{1996, "tr-rsrb-port"},
 	{1997, "gdp-port"},
 	{1998, "x25-svc-port"},
-	{1999, "tcp-id-port"},
 	{1999, "tcp-id-port"},
 	{2000, "cisco-sccp"},
 	{2001, "dc"},
@@ -1129,10 +1122,10 @@ static const struct port_tcp ports_tcp[] = {
 	{65301, "pcanywhere"},
 };
 
-static char port_tcp_unknown[] = "Unknown";
+const char port_tcp_unknown[] = "Unknown";
 
 void tcp_ports_hash_destroy(void);
 int tcp_ports_hash_init(void);
-const char * tcp_ports_hash_search(const uint16_t tcp);
+int tcp_ports_hash_search(const uint16_t tcp, const char ** port_name);
 
 #endif				/* _NET_PORTS_TCP_H_ */

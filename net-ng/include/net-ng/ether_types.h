@@ -321,10 +321,10 @@ static const struct ether_type ether_types[] = {
 	{0xFFFF, "Reserved"},
 };
 
-static char type_unknown[] = "Unknown";
+const char type_unknown[] = "Unknown";
 
 void ether_types_hash_destroy(void);
 int ether_types_hash_init(void);
-const char * ether_types_hash_search(const uint16_t ether_type);
+int ether_types_hash_search(const uint16_t type, const char ** type_name);
 
 #endif				/* _NET_ETHER_TYPES_H_ */

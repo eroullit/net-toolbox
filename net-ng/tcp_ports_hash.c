@@ -47,8 +47,9 @@ int tcp_ports_hash_init(void)
 
 	for (a = 0; a < ARRAY_SIZE(ports_tcp); a++)
 	{
-		if ((rc = hi_insert_uint32_t(tcp_hash_handle, ports_tcp[a].id, ports_tcp[a].port)) != 0)
+		if ((rc = hi_insert_uint16_t(tcp_hash_handle, &ports_tcp[a].id, ports_tcp[a].port)) != 0)
 		{
+			info("Could not insert key %u data %s\n", ports_tcp[a].id, ports_tcp[a].port);
 			tcp_ports_hash_destroy();
 			err("Could not create TCP port hash table");
 			return (rc);
@@ -58,15 +59,16 @@ int tcp_ports_hash_init(void)
 	return(0);
 }
 
-const char * tcp_ports_hash_search(const uint16_t tcp)
+int tcp_ports_hash_search(const uint16_t tcp, const char ** port_name)
 {
-	const char * port_name = NULL;
+	assert(port_name);
 
-	if (hi_get_uint16_t(tcp_hash_handle, tcp, (void **)&port_name) != 0)
+	if (hi_get_uint16_t(tcp_hash_handle, tcp, (void **)port_name) != 0)
 	{
-		port_name = port_tcp_unknown;
+		*port_name = port_tcp_unknown;
+		return (0);
 	}
 
-	return (port_name);
+	return (1);
 }
 

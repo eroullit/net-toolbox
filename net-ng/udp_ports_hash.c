@@ -47,7 +47,7 @@ int udp_ports_hash_init(void)
 
 	for (a = 0; a < ARRAY_SIZE(ports_udp); a++)
 	{
-		if ((rc = hi_insert_uint32_t(udp_hash_handle, ports_udp[a].id, ports_udp[a].port)) != 0)
+		if ((rc = hi_insert_uint16_t(udp_hash_handle, &ports_udp[a].id, ports_udp[a].port)) != 0)
 		{
 			udp_ports_hash_destroy();
 			err("Could not create UDP port hash table");
@@ -58,15 +58,16 @@ int udp_ports_hash_init(void)
 	return(0);
 }
 
-const char * udp_ports_hash_search(const uint16_t udp)
+int udp_ports_hash_search(const uint16_t udp, const char ** port_name)
 {
-	const char * port_name = NULL;
+	assert(port_name);
 
-	if (hi_get_uint16_t(udp_hash_handle, udp, (void **)&port_name) != 0)
+	if (hi_get_uint16_t(udp_hash_handle, udp, (void **)port_name) != 0)
 	{
-		port_name = port_udp_unknown;
+		*port_name = port_udp_unknown;
+		return (0);
 	}
 
-	return (port_name);
+	return (1);
 }
 

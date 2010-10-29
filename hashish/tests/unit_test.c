@@ -557,7 +557,7 @@ static void check_uint16_wrapper(void)
 	ret = hi_init_uint16_t(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_uint16_t(hi_handle, key, &data);
+	ret = hi_insert_uint16_t(hi_handle, &key, &data);
 	assert(ret == 0);
 
 	ret = hi_get_uint16_t(hi_handle, key, &data_ptr);

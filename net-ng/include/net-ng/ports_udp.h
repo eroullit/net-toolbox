@@ -1084,10 +1084,10 @@ static const struct port_udp ports_udp[] = {
 	{54321, "bo2k"},
 };
 
-static char port_udp_unknown[] = "Unknown";
+const char port_udp_unknown[] = "Unknown";
 
 void udp_ports_hash_destroy(void);
 int udp_ports_hash_init(void);
-const char * udp_ports_hash_search(const uint16_t udp);
+int udp_ports_hash_search(const uint16_t udp, const char ** port_name);
 
 #endif				/* _NET_PORTS_UDP_H_ */

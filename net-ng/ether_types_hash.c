@@ -47,7 +47,7 @@ int ether_types_hash_init(void)
 
 	for (a = 0; a < ARRAY_SIZE(ether_types); a++)
 	{
-		if ((rc = hi_insert_uint32_t(ether_types_hash_handle, ether_types[a].id, ether_types[a].type)) != 0)
+		if ((rc = hi_insert_uint16_t(ether_types_hash_handle, &ether_types[a].id, ether_types[a].type)) != 0)
 		{
 			ether_types_hash_destroy();
 			err("Could not create ethernet types hash table");
@@ -58,15 +58,16 @@ int ether_types_hash_init(void)
 	return(0);
 }
 
-const char * ether_types_hash_search(const uint16_t ether_type)
+int ether_types_hash_search(const uint16_t type, const char ** type_name)
 {
-	const char * ether_type_name = NULL;
+	assert(type_name);
 
-	if (hi_get_uint16_t(ether_types_hash_handle, ether_type, (void **)&ether_type_name) != 0)
+	if (hi_get_uint16_t(ether_types_hash_handle, type, (void **)type_name) != 0)
 	{
-		ether_type_name = type_unknown;
+		*type_name = type_unknown;
+		return (0);
 	}
 
-	return (ether_type_name);
+	return (1);
 }
 
