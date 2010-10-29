@@ -484,7 +484,7 @@ static const struct vendor_id vendor_db[] = {
 	{0x0001C6, "Quarry Technologies"},
 	{0x0001C7, "Cisco Systems, Inc."},
 	{0x0001C8, "THOMAS CONRAD CORP."},
-	{0x0001C8, "CONRAD CORP."},
+/*	{0x0001C8, "CONRAD CORP."}, Duplicate */
 	{0x0001C9, "Cisco Systems, Inc."},
 	{0x0001CA, "Geocast Network Systems, Inc."},
 	{0x0001CB, "EVR"},
@@ -12670,9 +12670,9 @@ static const struct vendor_id vendor_db[] = {
 	{0x08002D, "LAN-TEC INC."},
 	{0x08002E, "METAPHOR COMPUTER SYSTEMS"},
 	{0x08002F, "PRIME COMPUTER INC."},
-	{0x080030, "NETWORK RESEARCH CORPORATION"},
-	{0x080030, "CERN"},
-	{0x080030, "ROYAL MELBOURNE INST OF TECH"},
+/*	{0x080030, "NETWORK RESEARCH CORPORATION"}, Duplicate */
+/*	{0x080030, "ROYAL MELBOURNE INST OF TECH"}, Duplicate */
+	{0x080030, "CERN | NETWORK RESEARCH CORPORATION | ROYAL MELBOURNE INST OF TECH"},
 	{0x080031, "LITTLE MACHINES INC."},
 	{0x080032, "TIGAN INCORPORATED"},
 	{0x080033, "BAUSCH & LOMB"},
@@ -13383,10 +13383,10 @@ static const struct vendor_id vendor_db[] = {
 	{0xCF0000, "Ethernet Configuration Test protocol (Loopback)"},
 };
 
-static char vendor_unknown[] = "Unknown";
+const char vendor_unknown[] = "Unknown";
 
 void oui_hash_destroy(void);
 int oui_hash_init(void);
-const char * oui_hash_search(const uint32_t oui);
+int oui_hash_search(const uint32_t oui, const char ** vendor_id);
 
 #endif				/* _NET_OUI_H_ */

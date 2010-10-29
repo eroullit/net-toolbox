@@ -283,9 +283,9 @@ int hi_get_uint16_t(hi_handle_t *, const uint16_t, void **);
 int hi_remove_uint16_t(hi_handle_t *, const uint16_t, void **);
 
 int hi_init_uint32_t(hi_handle_t **, const uint32_t);
-int hi_insert_uint32_t(hi_handle_t *, const uint32_t, const void *);
-int hi_get_uint32_t(hi_handle_t *, const uint32_t, void **);
-int hi_remove_uint32_t(hi_handle_t *, const uint32_t, void **);
+int hi_insert_uint32_t(hi_handle_t *, const uint32_t * , const void *);
+int hi_get_uint32_t(hi_handle_t *, const uint32_t , void **);
+int hi_remove_uint32_t(hi_handle_t *, const uint32_t , void **);
 
 
 

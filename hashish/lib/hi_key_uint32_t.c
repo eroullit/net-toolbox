@@ -41,9 +41,9 @@ int hi_init_uint32_t(hi_handle_t **hi_hndl, const uint32_t table_size)
 	return hi_create(hi_hndl, &hi_set);
 }
 
-int hi_insert_uint32_t(hi_handle_t *hi_hndl, const uint32_t key, const void *data)
+int hi_insert_uint32_t(hi_handle_t *hi_hndl, const uint32_t * key, const void *data)
 {
-	return hi_insert(hi_hndl, (uint8_t *) &key, sizeof(uint32_t), (void *)data);
+	return hi_insert(hi_hndl, (uint8_t *) key, sizeof(uint32_t), (void *)data);
 }
 
 int hi_get_uint32_t(hi_handle_t *hi_hndl, const uint32_t key, void **data)
