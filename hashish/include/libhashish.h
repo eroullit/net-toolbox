@@ -268,12 +268,12 @@ int hi_remove_str(hi_handle_t *, const char *, void **);
 
 /* (u)int{16,32}_t specific functions */
 int hi_init_int16_t(hi_handle_t **, const uint32_t);
-int hi_insert_int16_t(hi_handle_t *, const int16_t, const void *);
+int hi_insert_int16_t(hi_handle_t *, const int16_t *, const void *);
 int hi_get_int16_t(hi_handle_t *, const int16_t, void **);
 int hi_remove_int16_t(hi_handle_t *, const int16_t, void **);
 
 int hi_init_int32_t(hi_handle_t **, const uint32_t);
-int hi_insert_int32_t(hi_handle_t *, const int32_t, const void *);
+int hi_insert_int32_t(hi_handle_t *, const int32_t *, const void *);
 int hi_get_int32_t(hi_handle_t *, const int32_t, void **);
 int hi_remove_int32_t(hi_handle_t *, const int32_t, void **);
 

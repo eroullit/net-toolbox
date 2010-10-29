@@ -530,7 +530,7 @@ static void check_int16_wrapper(void)
 	ret = hi_init_int16_t(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_int16_t(hi_handle, key, &data);
+	ret = hi_insert_int16_t(hi_handle, &key, &data);
 	assert(ret == 0);
 
 	ret = hi_get_int16_t(hi_handle, key, &data_ptr);
@@ -585,7 +585,7 @@ static void check_int32_wrapper(void)
 	ret = hi_init_int32_t(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_int32_t(hi_handle, key, &data);
+	ret = hi_insert_int32_t(hi_handle, &key, &data);
 	assert(ret == 0);
 
 	ret = hi_get_int32_t(hi_handle, key, &data_ptr);
