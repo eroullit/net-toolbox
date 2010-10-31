@@ -81,7 +81,7 @@ struct pcap_timeval {
 struct pcap_sf_pkthdr {
 	struct pcap_timeval ts;	/* time stamp */
 	uint32_t caplen;	/* length of portion present */
-	uint32_t len;		/* length this packet (off wire) */
+	int32_t len;		/* length this packet (off wire) */
 };
 
 int pcap_has_packets(const int fd);
