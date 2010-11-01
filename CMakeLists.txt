@@ -16,6 +16,12 @@ ADD_DEFINITIONS(
 	-pedantic
 	-std=gnu99
 	-O2
+	-z relo
+	-pie
+	-fPIE
+	-fstack-protector
+	-D_REENTRANT
+	-D_FORTIFY_SOURCE=2
 )
 
 IF (CMAKE_BUILD_TYPE STREQUAL profile)
