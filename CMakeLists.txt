@@ -18,7 +18,6 @@ ADD_DEFINITIONS(
 	-O2
 	-z relo
 	-pie
-	-fPIE
 	-fstack-protector
 	-D_REENTRANT
 	-D_FORTIFY_SOURCE=2
