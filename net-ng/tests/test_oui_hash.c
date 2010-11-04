@@ -42,6 +42,7 @@ int main (void)
 	{
 		if (match_oui_array(key, &vendor_array))
 		{
+
 			if (oui_hash_search(key, &vendor_hash))
 			{
 				info("Testing OUI 0x%X. Expected vendor %s got %s\n", key, vendor_array, vendor_hash);

@@ -70,7 +70,7 @@ int lhi_get_array(const hi_handle_t *hi_handle, const void *key,
 				}
 
 				/* now do the trivial key compare */
-				diff = hi_handle->key_cmp((uintptr_t) key,
+				diff = hi_handle->key_cmp(key,
 							hi_handle->eng.eng_array.bucket_array[bucket][i].key);
 				if (diff == 0) {
 					*data = (void *) hi_handle->eng.eng_array.bucket_array[bucket][i].data;
@@ -148,7 +148,7 @@ int lhi_remove_array(hi_handle_t *hi_handle, const void *key,
 				}
 
 				/* now do the trivial key compare */
-				diff = hi_handle->key_cmp((uintptr_t) key,
+				diff = hi_handle->key_cmp(key,
 							hi_handle->eng.eng_array.bucket_array[bucket][i].key);
 				if (diff == 0) {
 					*data = (void *) hi_handle->eng.eng_array.bucket_array[bucket][i].data;
@@ -276,7 +276,7 @@ int lhi_insert_array(hi_handle_t *hi_handle, const void *key,
 		if (hi_handle->eng.eng_array.bucket_array[bucket][i].allocation == BA_NOT_ALLOCATED) {
 
 			/* add key/data add next free slot */
-			hi_handle->eng.eng_array.bucket_array[bucket][i].key = (uintptr_t) key;
+			hi_handle->eng.eng_array.bucket_array[bucket][i].key = key;
 			hi_handle->eng.eng_array.bucket_array[bucket][i].key_len = keylen;
 			hi_handle->eng.eng_array.bucket_array[bucket][i].data = data;
 			hi_handle->eng.eng_array.bucket_array[bucket][i].allocation = BA_ALLOCATED;

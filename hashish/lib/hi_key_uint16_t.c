@@ -19,41 +19,41 @@
 #include "privlibhashish.h"
 
 /**
- * This is the default initialize function for datatype uint32_t. It takes
+ * This is the default initialize function for datatype uint16_t. It takes
  * HI_HASH_DEFAULT as the default hash function, set the compare function for
- * uint32_t and select as the collision engine the list (COLL_ENG_LIST) based
+ * uint16_t and select as the collision engine the list (COLL_ENG_LIST) based
  * one.
  *
  * @arg hi_hndl	this become out new hashish handle
  * @arg table_size dedicates the table size
  * @returns negativ error value or zero on success
  */
-int hi_init_uint(hi_handle_t **hi_hndl, const uint32_t table_size)
+int hi_init_uint16_t(hi_handle_t **hi_hndl, const uint32_t table_size)
 {
 	struct hi_init_set hi_set;
 
 	hi_set_zero(&hi_set);
 	hi_set_bucket_size(&hi_set, table_size);
-	hi_set_hash_alg(&hi_set, HI_HASH_DEFAULT, HASH_KEY_NUMBER);
+	hi_set_hash_alg(&hi_set, HI_HASH_DEFAULT);
 	hi_set_coll_eng(&hi_set, COLL_ENG_LIST);
-	hi_set_key_cmp_func(&hi_set, hi_cmp_uint);
+	hi_set_key_cmp_func(&hi_set, hi_cmp_uint16_t);
 
 	return hi_create(hi_hndl, &hi_set);
 }
 
-int hi_insert_uint(hi_handle_t *hi_hndl, const uintptr_t key, const void *data)
+int hi_insert_uint16_t(hi_handle_t *hi_hndl, const uint16_t * key, const void *data)
 {
-	return hi_insert(hi_hndl, (uint8_t *) key, sizeof(key), (void *)data);
+	return hi_insert(hi_hndl, (uint8_t *) key, sizeof(uint16_t), (void *)data);
 }
 
-int hi_get_uint(hi_handle_t *hi_hndl, const uintptr_t key, void **data)
+int hi_get_uint16_t(hi_handle_t *hi_hndl, const uint16_t key, void **data)
 {
-	return hi_get(hi_hndl, (void *) key, sizeof(key), data);
+	return hi_get(hi_hndl, (void *)&key, sizeof(uint16_t), data);
 }
 
-int hi_remove_uint(hi_handle_t *hi_hndl, const uintptr_t key, void **data)
+int hi_remove_uint16_t(hi_handle_t *hi_hndl, const uint16_t key, void **data)
 {
-	return hi_remove(hi_hndl, (void *) key, sizeof(key), data);
+	return hi_remove(hi_hndl, (void *)&key, sizeof(uint16_t), data);
 }
 
 /* vim:set ts=4 sw=4 sts=4 tw=78 ff=unix noet: */

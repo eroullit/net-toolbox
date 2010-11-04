@@ -72,7 +72,7 @@ int hi_set_coll_eng_array_size(struct hi_init_set *hi_set, uint32_t size)
 	return SUCCESS;
 }
 
-int hi_set_hash_alg(struct hi_init_set *hi_set, enum hash_alg hash_alg, enum hash_key_type)
+int hi_set_hash_alg(struct hi_init_set *hi_set, enum hash_alg hash_alg)
 {
 	int i;
 
@@ -80,19 +80,6 @@ int hi_set_hash_alg(struct hi_init_set *hi_set, enum hash_alg hash_alg, enum has
 	for (i = 0; i <= HI_HASH_MAX; ++i) {
 		if (hash_alg == lhi_hashfunc_map[i].no) {
 			hi_set->hash_func = lhi_hashfunc_map[i].hashfunc;
-
-			switch (hash_key_type)
-			{
-				case HASH_KEY_NUMBER:
-					hi_set->hash_key = hash_var;
-					break;
-				case HASH_KEY_PTR:
-					hi_set->hash_key = hash_ptr;
-					break;
-				default;
-					return HI_ERR_NOFUNC;
-			}
-
 			return SUCCESS;
 		}
 	}
@@ -152,7 +139,7 @@ void hi_set_rehash_auto(struct hi_init_set *hi_set, int choice)
 }
 
 int hi_set_key_cmp_func(struct hi_init_set *hi_set,
-		int (*cmp)(const uintptr_t, const uintptr_t))
+		int (*cmp)(const uint8_t *, const uint8_t *))
 {
 	if (cmp == NULL)
 		return HI_ERR_NODATA;

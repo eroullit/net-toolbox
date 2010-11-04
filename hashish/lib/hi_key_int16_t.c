@@ -1,4 +1,6 @@
 /*
+** $Id$
+**
 ** Copyright (C) 2008 - Hagen Paul Pfeifer <hagen@jauu.net>
 **
 ** This program is free software; you can redistribute it and/or modify
@@ -16,20 +18,19 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include <string.h>
 #include "privlibhashish.h"
 
 /**
- * This is the default initialize function for strings. It takes
+ * This is the default initialize function for datatype int16_t. It takes
  * HI_HASH_DEFAULT as the default hash function, set the compare function for
- * strings and select as the collision engine the list (COLL_ENG_LIST) based
+ * int16_t and select as the collision engine the list (COLL_ENG_LIST) based
  * one.
  *
  * @arg hi_hndl	this become out new hashish handle
  * @arg table_size dedicates the table size
  * @returns negativ error value or zero on success
  */
-int hi_init_str(hi_handle_t **hi_hndl, const uint32_t table_size)
+int hi_init_int16_t(hi_handle_t **hi_hndl, const uint32_t table_size)
 {
 	struct hi_init_set hi_set;
 
@@ -37,25 +38,24 @@ int hi_init_str(hi_handle_t **hi_hndl, const uint32_t table_size)
 	hi_set_bucket_size(&hi_set, table_size);
 	hi_set_hash_alg(&hi_set, HI_HASH_DEFAULT);
 	hi_set_coll_eng(&hi_set, COLL_ENG_LIST);
-	hi_set_key_cmp_func(&hi_set, hi_cmp_str);
+	hi_set_key_cmp_func(&hi_set, hi_cmp_int16_t);
 
 	return hi_create(hi_hndl, &hi_set);
 }
 
-int hi_insert_str(hi_handle_t *hi_hndl, const char *key, const void *data)
+int hi_insert_int16_t(hi_handle_t *hi_hndl, const int16_t * key, const void *data)
 {
-	return hi_insert(hi_hndl, (uint8_t *) key, strlen(key), (void *)data);
+	return hi_insert(hi_hndl, (uint8_t *) key, sizeof(int16_t), (void *)data);
 }
 
-int hi_get_str(hi_handle_t *hi_hndl, const char *key, void **data)
+int hi_get_int16_t(hi_handle_t *hi_hndl, const int16_t key, void **data)
 {
-	return hi_get(hi_hndl, (void *)key, strlen(key), data);
-
+	return hi_get(hi_hndl, (void *)&key, sizeof(int16_t), data);
 }
 
-int hi_remove_str(hi_handle_t *hi_hndl, const char *key, void **data)
+int hi_remove_int16_t(hi_handle_t *hi_hndl, const int16_t key, void **data)
 {
-	return hi_remove(hi_hndl, (void *)key, strlen(key), data);
+	return hi_remove(hi_hndl, (void *)&key, sizeof(int16_t), data);
 }
 
 /* vim:set ts=4 sw=4 sts=4 tw=78 ff=unix noet: */

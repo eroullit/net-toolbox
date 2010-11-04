@@ -38,7 +38,7 @@
 struct lhi_rb_entry {
 	struct rb_node node;
 	uint32_t keylen;
-	uintptr_t key;
+	const void *key;
 	const void *data;
 };
 
@@ -50,7 +50,7 @@ static struct lhi_rb_entry* lhi_rb_entry_new(const void *k, const void *d, uint3
 		return NULL;
 
 	node_new->keylen = keylen;
-	node_new->key = (uintptr_t) k;
+	node_new->key = k;
 	node_new->data = d;
 
 	return node_new;
@@ -347,7 +347,7 @@ int lhi_get_rbtree(const hi_handle_t *hi_handle,
 		struct rb_node *parent = *rbnode;
                 rb_entry(lhi_entry, parent, struct lhi_rb_entry, node);
 
-		diff = hi_handle->key_cmp((uintptr_t) key, lhi_entry->key);
+		diff = hi_handle->key_cmp(key, lhi_entry->key);
 		if (diff == 0) {
 			*res = (void *) lhi_entry->data;
 			lhi_pthread_rwlock_unlock(hi_handle->eng.eng_rbtree.trees[tree].rwlock);
@@ -436,7 +436,7 @@ int lhi_remove_rbtree(hi_handle_t *hi_handle,
 		struct rb_node *parent = *rbnode;
                 rb_entry(lhi_entry, parent, struct lhi_rb_entry, node);
 
-		diff = hi_handle->key_cmp((uintptr_t) key, lhi_entry->key);
+		diff = hi_handle->key_cmp(key, lhi_entry->key);
 		if (diff == 0) {
 			*res = (void *) lhi_entry->data;
 			rb_erase(parent, root);
@@ -485,7 +485,7 @@ int lhi_insert_rbtree(hi_handle_t *hi_handle, const void *key,
 		parent = *rbnode;
                 rb_entry(lhi_entry, parent, struct lhi_rb_entry, node);
 
-		diff = hi_handle->key_cmp((uintptr_t) key, lhi_entry->key);
+		diff = hi_handle->key_cmp(key, lhi_entry->key);
 		if (diff == 0)
 			goto out;
 		if (diff < 0)
