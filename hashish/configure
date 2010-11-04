@@ -266,6 +266,7 @@ create_make_rules()
 	
 	if [ "$threadclean" = yes ] ; then
 		echo "THREADFLAGS=-lpthread -DTHREADSAFE"  >> Make.Rules
+		echo "#define THREADSAFE 1" >> ${config_path}
 	else
 		echo "THREADFLAGS="            >> Make.Rules
 	fi
