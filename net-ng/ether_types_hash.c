@@ -47,7 +47,7 @@ int ether_types_hash_init(void)
 
 	for (a = 0; a < ARRAY_SIZE(ether_types); a++)
 	{
-		if ((rc = hi_insert_uint16_t(ether_types_hash_handle, &ether_types[a].id, ether_types[a].type)) != 0)
+		if ((rc = hi_insert_uint16_t(ether_types_hash_handle, ether_types[a].id, ether_types[a].type)) != 0)
 		{
 			ether_types_hash_destroy();
 			err("Could not create ethernet types hash table");

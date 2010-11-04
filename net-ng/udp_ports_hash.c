@@ -47,7 +47,7 @@ int udp_ports_hash_init(void)
 
 	for (a = 0; a < ARRAY_SIZE(ports_udp); a++)
 	{
-		if ((rc = hi_insert_uint16_t(udp_hash_handle, &ports_udp[a].id, ports_udp[a].port)) != 0)
+		if ((rc = hi_insert_uint16_t(udp_hash_handle, ports_udp[a].id, ports_udp[a].port)) != 0)
 		{
 			udp_ports_hash_destroy();
 			err("Could not create UDP port hash table");

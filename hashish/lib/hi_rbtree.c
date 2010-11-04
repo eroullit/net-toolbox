@@ -45,12 +45,23 @@ struct lhi_rb_entry {
 
 static struct lhi_rb_entry* lhi_rb_entry_new(const void *k, const void *d, uint32_t keylen)
 {
+	void * dupkey;
 	struct lhi_rb_entry *node_new = malloc(sizeof(*node_new));
 	if (!node_new)
 		return NULL;
 
+	dupkey = malloc(keylen);
+
+	if(!dupkey)
+	{
+		free(node_new);
+		return NULL;
+	}
+
+	memcpy(dupkey, k, keylen);
+
 	node_new->keylen = keylen;
-	node_new->key = k;
+	node_new->key = dupkey;
 	node_new->data = d;
 
 	return node_new;

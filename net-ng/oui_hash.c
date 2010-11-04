@@ -48,7 +48,7 @@ int oui_hash_init(void)
 
 	for (a = 0; a < ARRAY_SIZE(vendor_db); a++)
 	{
-		if ((rc = hi_insert_uint32_t(oui_hash_handle, &vendor_db[a].id, vendor_db[a].vendor)) != 0)
+		if ((rc = hi_insert_uint32_t(oui_hash_handle, vendor_db[a].id, vendor_db[a].vendor)) != 0)
 		{
 			oui_hash_destroy();
 			err("Could not insert OUI hash table");

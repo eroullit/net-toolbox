@@ -47,7 +47,7 @@ int tcp_ports_hash_init(void)
 
 	for (a = 0; a < ARRAY_SIZE(ports_tcp); a++)
 	{
-		if ((rc = hi_insert_uint16_t(tcp_hash_handle, &ports_tcp[a].id, ports_tcp[a].port)) != 0)
+		if ((rc = hi_insert_uint16_t(tcp_hash_handle, ports_tcp[a].id, ports_tcp[a].port)) != 0)
 		{
 			info("Could not insert key %u data %s\n", ports_tcp[a].id, ports_tcp[a].port);
 			tcp_ports_hash_destroy();
