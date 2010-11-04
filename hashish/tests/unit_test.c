@@ -517,78 +517,23 @@ static void check_str_wrapper(void)
 	puts(" passed");
 }
 
-static void check_int16_wrapper(void)
+static void check_int_wrapper(void)
 {
 	int ret;
 	hi_handle_t *hi_handle;
-	int16_t key = 23;
-	int data = 666, *val;
-	void *data_ptr;
-
-	fputs(" o check int16_t wrapper functions tests ...", stdout);
-
-	ret = hi_init_int16_t(&hi_handle, 23);
-	assert(ret == 0);
-
-	ret = hi_insert_int16_t(hi_handle, &key, &data);
-	assert(ret == 0);
-
-	ret = hi_get_int16_t(hi_handle, key, &data_ptr);
-	assert(ret == 0);
-	val = data_ptr;
-	assert(*val == data);
-
-	ret = hi_fini(hi_handle);
-	assert(ret == 0);
-
-	puts(" passed");
-}
-
-static void check_uint16_wrapper(void)
-{
-	int ret;
-	hi_handle_t *hi_handle;
-	uint16_t key = 23;
-	int data = 666, *val;
-	void *data_ptr;
-
-	fputs(" o check int16_t wrapper functions tests ...", stdout);
-
-	ret = hi_init_uint16_t(&hi_handle, 23);
-	assert(ret == 0);
-
-	ret = hi_insert_uint16_t(hi_handle, &key, &data);
-	assert(ret == 0);
-
-	ret = hi_get_uint16_t(hi_handle, key, &data_ptr);
-	assert(ret == 0);
-	val = data_ptr;
-	assert(*val == data);
-
-	ret = hi_fini(hi_handle);
-	assert(ret == 0);
-
-	puts(" passed");
-}
-
-
-static void check_int32_wrapper(void)
-{
-	int ret;
-	hi_handle_t *hi_handle;
-	int32_t key = 23;
+	intptr_t key = 23;
 	int data = 666, *val;
 	void *data_ptr;
 
 	fputs(" o check int32_t wrapper functions tests ...", stdout);
 
-	ret = hi_init_int32_t(&hi_handle, 23);
+	ret = hi_init_int(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_int32_t(hi_handle, &key, &data);
+	ret = hi_insert_int(hi_handle, key, &data);
 	assert(ret == 0);
 
-	ret = hi_get_int32_t(hi_handle, key, &data_ptr);
+	ret = hi_get_int(hi_handle, key, &data_ptr);
 	assert(ret == 0);
 	val = data_ptr;
 	assert(*val == data);
@@ -599,23 +544,23 @@ static void check_int32_wrapper(void)
 	puts(" passed");
 }
 
-static void check_uint32_wrapper(void)
+static void check_uint_wrapper(void)
 {
 	int ret;
 	hi_handle_t *hi_handle;
-	uint32_t key = 23;
+	uintptr_t key = 23;
 	int data = 666, *val;
 	void *data_ptr;
 
 	fputs(" o check uint32_t wrapper functions tests ...", stdout);
 
-	ret = hi_init_uint32_t(&hi_handle, 23);
+	ret = hi_init_uint(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_uint32_t(hi_handle, &key, &data);
+	ret = hi_insert_uint(hi_handle, key, &data);
 	assert(ret == 0);
 
-	ret = hi_get_uint32_t(hi_handle, key, &data_ptr);
+	ret = hi_get_uint(hi_handle, key, &data_ptr);
 	assert(ret == 0);
 	val = data_ptr;
 	assert(*val == data);
@@ -671,10 +616,8 @@ main(void)
 	}
 
 	check_str_wrapper();
-	check_int16_wrapper();
-	check_uint16_wrapper();
-	check_int32_wrapper();
-	check_uint32_wrapper();
+	check_int_wrapper();
+	check_uint_wrapper();
 	check_hi_load_factor();
 
 	puts("\nall tests passed - great!");

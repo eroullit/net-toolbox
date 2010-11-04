@@ -93,7 +93,7 @@ int lhi_lookup_list(hi_handle_t *hi_handle,
 		hi_bucket_obj_t *b_obj = hi_handle->eng.eng_list.bucket_table[bucket];
 
 		for (; b_obj; b_obj = b_obj->next) {
-			if (hi_handle->key_cmp(key, b_obj->key) == 0)
+			if (hi_handle->key_cmp((uintptr_t) key, b_obj->key) == 0)
 				return SUCCESS;
 		}
 	}
@@ -105,7 +105,7 @@ int lhi_lookup_list(hi_handle_t *hi_handle,
 
 		for (; b_obj; b_obj = b_obj->next) {
 			if (key_hash == b_obj->key_hash &&
-				hi_handle->key_cmp(key, b_obj->key) == 0)
+				hi_handle->key_cmp((uintptr_t) key, b_obj->key) == 0)
 					return SUCCESS;
 		}
 	}
@@ -142,7 +142,7 @@ int lhi_remove_list(hi_handle_t *hi_handle, const void *key,
 		hi_bucket_obj_t *p, *b_obj = hi_handle->eng.eng_list.bucket_table[bucket];
 
 		for (p = b_obj; b_obj ; b_obj = b_obj->next) {
-			if (hi_handle->key_cmp(key, b_obj->key) == 0) {
+			if (hi_handle->key_cmp((uintptr_t) key, b_obj->key) == 0) {
 				*data = (void *) b_obj->data;
 				if (p == b_obj)
 					hi_handle->eng.eng_list.bucket_table[bucket] = p->next;
@@ -163,7 +163,7 @@ int lhi_remove_list(hi_handle_t *hi_handle, const void *key,
 
 		for (p = b_obj; b_obj ; b_obj = b_obj->next) {
 			if (key_hash == b_obj->key_hash &&
-				hi_handle->key_cmp(key, b_obj->key) == 0)
+				hi_handle->key_cmp((uintptr_t) key, b_obj->key) == 0)
 			{
 				*data = (void *) b_obj->data;
 				if (p == b_obj)
@@ -213,7 +213,7 @@ int lhi_get_list(const hi_handle_t *hi_handle, const void *key,
 		hi_bucket_obj_t *b_obj = hi_handle->eng.eng_list.bucket_table[bucket];
 
 		for (; b_obj ; b_obj = b_obj->next) {
-			if (hi_handle->key_cmp(key, b_obj->key) == 0) {
+			if (hi_handle->key_cmp((uintptr_t) key, b_obj->key) == 0) {
 				*data = (void *) b_obj->data;
 				lhi_pthread_mutex_unlock(hi_handle->mutex_lock);
 				return SUCCESS;
@@ -239,7 +239,7 @@ int lhi_get_list(const hi_handle_t *hi_handle, const void *key,
 		hi_bucket_obj_t *p, *b_obj = hi_handle->eng.eng_list.bucket_table[bucket];
 
 		for (p = b_obj; b_obj != NULL; b_obj = b_obj->next) {
-			if (hi_handle->key_cmp(key, b_obj->key) == 0) {
+			if (hi_handle->key_cmp((uintptr_t) key, b_obj->key) == 0) {
 				*data = (void *) b_obj->data;
 				if (p != b_obj) { /* put this one at the front */
 					p->next = b_obj->next;
@@ -262,7 +262,7 @@ int lhi_get_list(const hi_handle_t *hi_handle, const void *key,
 
 		for (;b_obj != NULL; b_obj = b_obj->next) {
 			if (key_hash == b_obj->key_hash &&
-				hi_handle->key_cmp(key, b_obj->key) == 0)
+				hi_handle->key_cmp((uintptr_t) key, b_obj->key) == 0)
 			{
 				*data = (void *) b_obj->data;
 				lhi_pthread_mutex_unlock(hi_handle->mutex_lock);
@@ -280,7 +280,7 @@ int lhi_get_list(const hi_handle_t *hi_handle, const void *key,
 
 		for (p = b_obj; b_obj != NULL; b_obj = b_obj->next) {
 			if (key_hash != b_obj->key_hash &&
-				hi_handle->key_cmp(key, b_obj->key) == 0)
+				hi_handle->key_cmp((uintptr_t) key, b_obj->key) == 0)
 			{
 				*data = (void *) b_obj->data;
 				if (p != b_obj) { /* put this one at the front */
@@ -322,7 +322,7 @@ int lhi_insert_list(hi_handle_t *hi_handle, const void *key,
 	if (ret != 0)
 		goto out;
 
-	obj->key = key;
+	obj->key = (uintptr_t) key;
 	obj->key_len = keylen;
 	obj->data = data;
 

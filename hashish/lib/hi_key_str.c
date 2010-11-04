@@ -35,7 +35,7 @@ int hi_init_str(hi_handle_t **hi_hndl, const uint32_t table_size)
 
 	hi_set_zero(&hi_set);
 	hi_set_bucket_size(&hi_set, table_size);
-	hi_set_hash_alg(&hi_set, HI_HASH_DEFAULT);
+	hi_set_hash_alg(&hi_set, HI_HASH_DEFAULT, HASH_KEY_PTR);
 	hi_set_coll_eng(&hi_set, COLL_ENG_LIST);
 	hi_set_key_cmp_func(&hi_set, hi_cmp_str);
 

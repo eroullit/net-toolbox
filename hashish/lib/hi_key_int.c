@@ -29,32 +29,32 @@
  * @arg table_size dedicates the table size
  * @returns negativ error value or zero on success
  */
-int hi_init_int32_t(hi_handle_t **hi_hndl, const uint32_t table_size)
+int hi_init_int(hi_handle_t **hi_hndl, const uint32_t table_size)
 {
 	struct hi_init_set hi_set;
 
 	hi_set_zero(&hi_set);
 	hi_set_bucket_size(&hi_set, table_size);
-	hi_set_hash_alg(&hi_set, HI_HASH_DEFAULT);
+	hi_set_hash_alg(&hi_set, HI_HASH_DEFAULT, HASH_KEY_NUMBER);
 	hi_set_coll_eng(&hi_set, COLL_ENG_LIST);
-	hi_set_key_cmp_func(&hi_set, hi_cmp_int32_t);
+	hi_set_key_cmp_func(&hi_set, hi_cmp_int);
 
 	return hi_create(hi_hndl, &hi_set);
 }
 
-int hi_insert_int32_t(hi_handle_t *hi_hndl, const int32_t * key, const void *data)
+int hi_insert_int(hi_handle_t *hi_hndl, const intptr_t key, const void *data)
 {
-	return hi_insert(hi_hndl, (uint8_t *) key, sizeof(int32_t), (void *)data);
+	return hi_insert(hi_hndl, (uint8_t *) key, sizeof(key), (void *)data);
 }
 
-int hi_get_int32_t(hi_handle_t *hi_hndl, const int32_t key, void **data)
+int hi_get_int(hi_handle_t *hi_hndl, const intptr_t key, void **data)
 {
-	return hi_get(hi_hndl, (void *)&key, sizeof(int32_t), data);
+	return hi_get(hi_hndl, (void *) key, sizeof(key), data);
 }
 
-int hi_remove_int32_t(hi_handle_t *hi_hndl, const int32_t key, void **data)
+int hi_remove_int(hi_handle_t *hi_hndl, const intptr_t key, void **data)
 {
-	return hi_remove(hi_hndl, (void *)&key, sizeof(int32_t), data);
+	return hi_remove(hi_hndl, (void *) key, sizeof(key), data);
 }
 
 /* vim:set ts=4 sw=4 sts=4 tw=78 ff=unix noet: */

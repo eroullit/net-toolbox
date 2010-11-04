@@ -22,49 +22,24 @@
 
 #include "privlibhashish.h"
 
-int hi_cmp_str(const uint8_t *key1, const uint8_t *key2)
+int hi_cmp_str(const uintptr_t key1, const uintptr_t key2)
 {
 	return strcmp((char *)key1, (char *)key2);
 }
 
-int hi_cmp_int32_t(const uint8_t *key1, const uint8_t *key2)
+int hi_cmp_int(const uintptr_t key1, const uintptr_t key2)
 {
-	int32_t *a, *b;
+	intptr_t a, b;
 
-	a = (int32_t *) key1;
-	b = (int32_t *) key2;
+	a = (intptr_t) key1;
+	b = (intptr_t) key2;
 
-	return *a - *b;
+	return a - b;
 }
 
-int hi_cmp_uint32_t(const uint8_t *key1, const uint8_t *key2)
+int hi_cmp_uint(const uintptr_t key1, const uintptr_t key2)
 {
-	uint32_t *a, *b;
-
-	a = (uint32_t *) key1;
-	b = (uint32_t *) key2;
-
-	return *a - *b;
-}
-
-int hi_cmp_int16_t(const uint8_t *key1, const uint8_t *key2)
-{
-	int16_t *a, *b;
-
-	a = (int16_t *) key1;
-	b = (int16_t *) key2;
-
-	return *a - *b;
-}
-
-int hi_cmp_uint16_t(const uint8_t *key1, const uint8_t *key2)
-{
-	uint16_t *a, *b;
-
-	a = (uint16_t *) key1;
-	b = (uint16_t *) key2;
-
-	return *a - *b;
+	return key1 - key2;
 }
 
 /* vim:set ts=4 sw=4 tw=78 noet: */

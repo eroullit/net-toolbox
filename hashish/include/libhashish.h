@@ -78,6 +78,11 @@ enum hash_alg {
 
 #define	HI_HASH_MAX (__HI_HASH_MAX - 1)
 
+enum hash_key_type {
+	HASH_KEY_NUMBER,
+	HASH_KEY_PTR
+};
+
 enum coll_eng {
 	COLL_ENG_LIST = 1,
 	COLL_ENG_LIST_HASH,
@@ -105,9 +110,10 @@ struct hi_init_set {
 	float rehash_threshold; /* < if self_resizing is true then this is the threshold */
 	uint32_t coll_eng_array_size;
 	enum coll_eng coll_eng;
+	uint32_t (*hash_key)((uint32_t)(*hash)(const uint8_t*, uint32_t), const uintptr_t);
 	uint32_t (*hash_func)(const uint8_t*, uint32_t);
 	uint32_t (*hash2_func)(const uint8_t*, uint32_t);
-	int (*key_cmp)(const uint8_t *, const uint8_t *);
+	int (*key_cmp)(const uintptr_t, const uintptr_t);
 };
 
 #define	DEFAULT_REHASHING_THRESHOLD (0.7f)
@@ -119,7 +125,7 @@ struct __hi_rb_tree {
 
  typedef struct __hi_bucket_obj {
      uint32_t                 key_len; /* key length in bytes */
-     const void              *key;
+     uintptr_t                key;
      const void              *data;
      struct __hi_bucket_obj  *next; /* next bucket, or NULL if last */
  } hi_bucket_obj_t;
@@ -127,7 +133,7 @@ struct __hi_rb_tree {
 
  typedef struct __hi_bucket_hl_obj {
      uint32_t                 key_len; /* key length in bytes */
-     const void               *key;
+     uintptr_t                key;
      const void               *data;
      struct __hi_bucket_hl_obj *next; /* next bucket, or NULL if last */
      /* everything above must be same as __hi_bucket_obj */
@@ -137,7 +143,7 @@ struct __hi_rb_tree {
  /* CHAINING_ARRAY elements */
  typedef struct __hi_bucket_a_obj {
      uint32_t                 key_len; /* key length in bytes */
-     const void              *key;
+     uintptr_t                key;
      uint32_t                 key_hash;
      const void              *data;
 	 int					  allocation; /* BA_NOT_ALLOCATED or BA_ALLOCATED */
@@ -153,7 +159,7 @@ typedef struct __hi_handle {
 	uint32_t coll_eng_array_size; /* < if collision engine is array then this indicates the size */
 	uint32_t (*hash_func)(const uint8_t*, uint32_t); /* < the primary hash function */
 	uint32_t (*hash2_func)(const uint8_t*, uint32_t); /* < *_HASH collision engines requires a second hash function */
-	int (*key_cmp)(const uint8_t *, const uint8_t *); /* < the key compare function e.g. strcmp() */
+	int (*key_cmp)(const uintptr_t, const uintptr_t); /* < the key compare function e.g. strcmp() */
 	/* statistic data */
 
 	/* the current number elements in the particular bucket */
@@ -220,12 +226,12 @@ void hi_iterator_fini(hi_iterator_t *);
 /* hi_set.c */
 void hi_set_zero(struct hi_init_set *);
 int hi_set_bucket_size(struct hi_init_set *, uint32_t);
-int hi_set_hash_alg(struct hi_init_set *, enum hash_alg);
+int hi_set_hash_alg(struct hi_init_set *, enum hash_alg, enum hash_key_type);
 int hi_set_hash_func(struct hi_init_set *, uint32_t (*hash_func)(const uint8_t*, uint32_t));
 int hi_set_hash2_alg(struct hi_init_set *, enum hash_alg);
 int hi_set_hash2_func(struct hi_init_set *, uint32_t (*hash_func)(const uint8_t*, uint32_t));
 int hi_set_coll_eng(struct hi_init_set *, enum coll_eng);
-int hi_set_key_cmp_func(struct hi_init_set *, int (*cmp)(const uint8_t *, const uint8_t *));
+int hi_set_key_cmp_func(struct hi_init_set *, int (*cmp)(const uintptr_t, const uintptr_t));
 void hi_set_rehash_auto(struct hi_init_set *, int);
 void hi_set_rehash_threshold(struct hi_init_set *, float);
 int hi_set_coll_eng_array_size(struct hi_init_set *, uint32_t);
@@ -234,11 +240,9 @@ int hi_set_coll_eng_array_size(struct hi_init_set *, uint32_t);
 const char *hi_strerror(const int);
 
 /* cmp_funcs.c */
-int hi_cmp_str(const uint8_t *, const uint8_t *);
-int hi_cmp_int16_t(const uint8_t *, const uint8_t *);
-int hi_cmp_uint16_t(const uint8_t *, const uint8_t *);
-int hi_cmp_int32_t(const uint8_t *, const uint8_t *);
-int hi_cmp_uint32_t(const uint8_t *, const uint8_t *);
+int hi_cmp_str(const uintptr_t, const uintptr_t);
+int hi_cmp_int(const uintptr_t, const uintptr_t);
+int hi_cmp_uint(const uintptr_t, const uintptr_t);
 
 /* hi_operations */
 int hi_insert(hi_handle_t *, const void *, uint32_t, const void *);
@@ -266,28 +270,16 @@ int hi_insert_str(hi_handle_t *, const char *, const void *);
 int hi_get_str(hi_handle_t *, const char *, void **);
 int hi_remove_str(hi_handle_t *, const char *, void **);
 
-/* (u)int{16,32}_t specific functions */
-int hi_init_int16_t(hi_handle_t **, const uint32_t);
-int hi_insert_int16_t(hi_handle_t *, const int16_t *, const void *);
-int hi_get_int16_t(hi_handle_t *, const int16_t, void **);
-int hi_remove_int16_t(hi_handle_t *, const int16_t, void **);
+/* (u)int_t specific functions */
+int hi_init_int(hi_handle_t **, const uint32_t);
+int hi_insert_int(hi_handle_t *, const intptr_t, const void *);
+int hi_get_int(hi_handle_t *, const intptr_t, void **);
+int hi_remove_int(hi_handle_t *, const intptr_t, void **);
 
-int hi_init_int32_t(hi_handle_t **, const uint32_t);
-int hi_insert_int32_t(hi_handle_t *, const int32_t *, const void *);
-int hi_get_int32_t(hi_handle_t *, const int32_t, void **);
-int hi_remove_int32_t(hi_handle_t *, const int32_t, void **);
-
-int hi_init_uint16_t(hi_handle_t **, const uint32_t);
-int hi_insert_uint16_t(hi_handle_t *, const uint16_t *, const void *);
-int hi_get_uint16_t(hi_handle_t *, const uint16_t, void **);
-int hi_remove_uint16_t(hi_handle_t *, const uint16_t, void **);
-
-int hi_init_uint32_t(hi_handle_t **, const uint32_t);
-int hi_insert_uint32_t(hi_handle_t *, const uint32_t * , const void *);
-int hi_get_uint32_t(hi_handle_t *, const uint32_t , void **);
-int hi_remove_uint32_t(hi_handle_t *, const uint32_t , void **);
-
-
+int hi_init_uint(hi_handle_t **, const uint32_t);
+int hi_insert_uint(hi_handle_t *, const uintptr_t, const void *);
+int hi_get_uint(hi_handle_t *, const uintptr_t, void **);
+int hi_remove_uint(hi_handle_t *, const uintptr_t, void **);
 
 /* BLOOM Filter Implementation */
 
