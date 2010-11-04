@@ -4,6 +4,8 @@ PROJECT(nettools-ng C)
 # States that CMake required version must be >= 2.6
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+FIND_PACKAGE(Threads REQUIRED)
+
 SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 # Activate this when you want to build a shared lib out the the lib/ directory
 # Bear in mind that no profiling will be available on 64-bit arch when on
@@ -26,7 +28,6 @@ ADD_DEFINITIONS(
 IF (CMAKE_BUILD_TYPE STREQUAL profile)
 	ADD_DEFINITIONS(-g -pg)
 ENDIF (CMAKE_BUILD_TYPE STREQUAL profile)
-
 
 SET(CMAKE_C_FLAGS "-lm -lpthread")
 
