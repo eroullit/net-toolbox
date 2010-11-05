@@ -38,7 +38,7 @@
 struct lhi_rb_entry {
 	struct rb_node node;
 	uint32_t keylen;
-	const void *key;
+	void       *key;
 	const void *data;
 };
 
@@ -451,6 +451,7 @@ int lhi_remove_rbtree(hi_handle_t *hi_handle,
 		if (diff == 0) {
 			*res = (void *) lhi_entry->data;
 			rb_erase(parent, root);
+			free(lhi_entry->key);
 			free(lhi_entry);
 			--hi_handle->bucket_size[tree];
 			lhi_pthread_rwlock_unlock(hi_handle->eng.eng_rbtree.trees[tree].rwlock);
