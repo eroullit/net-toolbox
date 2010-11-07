@@ -309,7 +309,6 @@ int lhi_fini_array(hi_handle_t *hi_handle)
 {
 	uint32_t i, a;
 
-	lhi_pthread_mutex_lock(hi_handle->mutex_lock);
 	for (i = 0; i < hi_handle->table_size; i++) {
 		for (a = 0; a < hi_handle->eng.eng_array.bucket_array_slot_max[i]; a++) {
 			if (hi_handle->eng.eng_array.bucket_array[i][a].allocation == BA_ALLOCATED)
@@ -321,7 +320,6 @@ int lhi_fini_array(hi_handle_t *hi_handle)
 	free(hi_handle->eng.eng_array.bucket_array);
 	free(hi_handle->eng.eng_array.bucket_array_slot_size);
 	free(hi_handle->eng.eng_array.bucket_array_slot_max);
-	lhi_pthread_mutex_unlock(hi_handle->mutex_lock);
 
 	return SUCCESS;
 }
