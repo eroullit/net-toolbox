@@ -97,7 +97,7 @@ usage()
     --disable-rbtree               disable red-black tree backend support
     --with-features=huge           enable eye candy at the moment
     --compiler=/PATH/TO/COMPILER   use specific compiler as the primary compiler
-    --config=/PATH/TO/PLACE/COFIG  use specific path to generate config_path
+    --config=/PATH/TO/PLACE/CONFIG  use specific path to generate config_path
 EOF
 }
 
