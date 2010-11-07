@@ -496,7 +496,8 @@ static void check_str_wrapper(void)
 {
 	int ret;
 	hi_handle_t *hi_handle;
-	const char *key = "23";
+	char key[32];
+	uint16_t i;
 	const char *data = "data element";
 	void *data_ptr;
 
@@ -505,11 +506,16 @@ static void check_str_wrapper(void)
 	ret = hi_init_str(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_str(hi_handle, key, data);
-	assert(ret == 0);
+	for (i = 0; i < 23; i++)
+	{
+		sprintf(key, "%u", i);
 
-	ret = hi_get_str(hi_handle, key, &data_ptr);
-	assert(ret == 0);
+		ret = hi_insert_str(hi_handle, key, data);
+		assert(ret == 0);
+
+		ret = hi_get_str(hi_handle, key, &data_ptr);
+		assert(ret == 0);
+	}
 
 	ret = hi_fini(hi_handle);
 	assert(ret == 0);
@@ -521,7 +527,7 @@ static void check_int16_wrapper(void)
 {
 	int ret;
 	hi_handle_t *hi_handle;
-	int16_t key = 23;
+	int16_t key;
 	int data = 666, *val;
 	void *data_ptr;
 
@@ -530,13 +536,16 @@ static void check_int16_wrapper(void)
 	ret = hi_init_int16_t(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_int16_t(hi_handle, key, &data);
-	assert(ret == 0);
+	for (key = 0; key < 23; key++)
+	{
+		ret = hi_insert_int16_t(hi_handle, key, &data);
+		assert(ret == 0);
 
-	ret = hi_get_int16_t(hi_handle, key, &data_ptr);
-	assert(ret == 0);
-	val = data_ptr;
-	assert(*val == data);
+		ret = hi_get_int16_t(hi_handle, key, &data_ptr);
+		assert(ret == 0);
+		val = data_ptr;
+		assert(*val == data);
+	}
 
 	ret = hi_fini(hi_handle);
 	assert(ret == 0);
@@ -548,7 +557,7 @@ static void check_uint16_wrapper(void)
 {
 	int ret;
 	hi_handle_t *hi_handle;
-	uint16_t key = 23;
+	uint16_t key;
 	int data = 666, *val;
 	void *data_ptr;
 
@@ -557,13 +566,16 @@ static void check_uint16_wrapper(void)
 	ret = hi_init_uint16_t(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_uint16_t(hi_handle, key, &data);
-	assert(ret == 0);
+	for (key = 0; key < 23; key++)
+	{
+		ret = hi_insert_uint16_t(hi_handle, key, &data);
+		assert(ret == 0);
 
-	ret = hi_get_uint16_t(hi_handle, key, &data_ptr);
-	assert(ret == 0);
-	val = data_ptr;
-	assert(*val == data);
+		ret = hi_get_uint16_t(hi_handle, key, &data_ptr);
+		assert(ret == 0);
+		val = data_ptr;
+		assert(*val == data);
+	}
 
 	ret = hi_fini(hi_handle);
 	assert(ret == 0);
@@ -585,13 +597,16 @@ static void check_int32_wrapper(void)
 	ret = hi_init_int32_t(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_int32_t(hi_handle, key, &data);
-	assert(ret == 0);
+	for (key = 0; key < 23; key++)
+	{
+		ret = hi_insert_int32_t(hi_handle, key, &data);
+		assert(ret == 0);
 
-	ret = hi_get_int32_t(hi_handle, key, &data_ptr);
-	assert(ret == 0);
-	val = data_ptr;
-	assert(*val == data);
+		ret = hi_get_int32_t(hi_handle, key, &data_ptr);
+		assert(ret == 0);
+		val = data_ptr;
+		assert(*val == data);
+	}
 
 	ret = hi_fini(hi_handle);
 	assert(ret == 0);
@@ -612,13 +627,16 @@ static void check_uint32_wrapper(void)
 	ret = hi_init_uint32_t(&hi_handle, 23);
 	assert(ret == 0);
 
-	ret = hi_insert_uint32_t(hi_handle, key, &data);
-	assert(ret == 0);
+	for (key = 0; key < 23; key++)
+	{
+		ret = hi_insert_uint32_t(hi_handle, key, &data);
+		assert(ret == 0);
 
-	ret = hi_get_uint32_t(hi_handle, key, &data_ptr);
-	assert(ret == 0);
-	val = data_ptr;
-	assert(*val == data);
+		ret = hi_get_uint32_t(hi_handle, key, &data_ptr);
+		assert(ret == 0);
+		val = data_ptr;
+		assert(*val == data);
+	}
 
 	ret = hi_fini(hi_handle);
 	assert(ret == 0);
