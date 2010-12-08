@@ -29,13 +29,8 @@ int main (void)
 	const char * port_array = NULL;
 	const char * port_hash = NULL;
 	uint32_t key;
-	int ret;
 	
-	if ((ret = udp_ports_hash_init()) != 0)
-	{
-		warn("Could not initialize UDP port hash table: %i\n", ret);
-		return (EXIT_FAILURE);
-	}
+	assert(udp_ports_hash_init() == 0);
 
 	/* XXX Can speed up the test by only testing used ports */
 	for (key = 0; key < ports_udp[ARRAY_SIZE(ports_udp) - 1].id; key++)

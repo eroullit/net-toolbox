@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <assert.h>
 #include <fcntl.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -31,7 +32,7 @@ int test_pcap_write(const int fd, const uint8_t * const payload, const ssize_t l
 	header.tp_usec = ts.tv_usec;
 	header.tp_snaplen = len;
 	header.tp_len = len;
-		
+
 	if (pcap_write_payload(fd, &header, (const struct ethhdr *)payload) != len)
 	{
 		return (-1);
@@ -42,72 +43,30 @@ int test_pcap_write(const int fd, const uint8_t * const payload, const ssize_t l
 
 int main (void)
 {
-	int ret;
 	int fd;
-	int rc = EXIT_FAILURE;
 
 	/* Create PCAP file */
-	if ((fd = pcap_create(test_path)) < 0)
-	{
-		err("Cannot create pcap");
-		goto out;
-	}
+	assert((fd = pcap_create(test_path)) > 0);
 
 	/* Write payload */
-	if (test_pcap_write(fd, icmp_dns, sizeof(icmp_dns)))
-	{
-		err("Error when writing payload");
-		goto out;
-	}
+	assert(test_pcap_write(fd, icmp_dns, sizeof(icmp_dns)) == 0);
 
-	if (pcap_close(fd))
-	{
-		err("Cannot close pcap");
-		goto out;
-	}
+	assert(pcap_close(fd) == 0);
 
-	if ((fd = pcap_open(test_path, O_RDONLY)) < 0)
-	{
-		err("Cannot open pcap");
-		goto out;
-	}
+	assert((fd = pcap_open(test_path, O_RDONLY)) > 0);
 
-	ret = pcap_has_packets(fd);
-	if (ret <= 0)
-	{
-		err("pcap should have packet");
-		goto out;
-	}
+	assert(pcap_has_packets(fd));
 
-	if (pcap_close(fd))
-	{
-		err("Cannot close pcap");
-		goto out;
-	}
+	assert(pcap_close(fd) == 0);
 
-	if ((fd = pcap_open(test_path, O_RDWR | O_APPEND)) < 0)
-	{
-		err("Cannot open/append pcap");
-		goto out;
-	}
+	assert((fd = pcap_open(test_path, O_RDWR | O_APPEND)) > 0);
 
 	/* Write payload */
-	if (test_pcap_write(fd, icmp_dns, sizeof(icmp_dns)))
-	{
-		err("Error when writing payload");
-		goto out;
-	}
+	assert(test_pcap_write(fd, icmp_dns, sizeof(icmp_dns)) == 0);
 
-	if (pcap_close(fd))
-	{
-		err("Cannot close pcap");
-		goto out;
-	}
-
-	rc = EXIT_SUCCESS;
-out:
+	assert(pcap_close(fd) == 0);
 
 	pcap_destroy(fd, test_path);
 
-	return (rc);
+	return (EXIT_SUCCESS);
 }

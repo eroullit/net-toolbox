@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <getopt.h>
 
 #include <net-ng/macros.h>
@@ -91,7 +92,6 @@ int main (int argc, char ** argv)
 	struct sock_fprog bpf;
 	const char * path = NULL;
 	int c, opt_idx;
-	int rc = EXIT_FAILURE;
 
 	memset(&bpf, 0, sizeof(bpf));
 
@@ -102,7 +102,6 @@ int main (int argc, char ** argv)
 			default:
 			case 'h':
 				help();
-				goto out;
 				break;
 			case 'p':
 				path = strdup(optarg);
@@ -110,36 +109,17 @@ int main (int argc, char ** argv)
 		}
 	}
 	
-	if (path == NULL)
-	{
-		err("BPF path not specified");
-		goto out;
-	}
-
-	if (bpf_parse(path, &bpf) == 0)
-	{
-		err("Error while parsing BPF");
-		goto out;
-	}
+	assert(path);
+	assert(bpf_parse(path, &bpf));
 
 	/* A ICMP packet should not match a HTTP BPF */
-	if (bpf_filter(&bpf, icmp_payload, sizeof(icmp_payload)) != 0)
-	{
-		err("ICMP packet should have matched");
-		goto out;
-	}
+	assert(bpf_filter(&bpf, icmp_payload, sizeof(icmp_payload)) == 0);
 
 	/* A HTTP packet should match a HTTP BPF */
-	if (bpf_filter(&bpf, http_payload, sizeof(http_payload)) == 0)
-	{
-		err("HTTP packet should have matched");
-		goto out;
-	}
+	assert(bpf_filter(&bpf, http_payload, sizeof(http_payload)) != 0);
 
 	info("BPF output check\n");
 	bpf_dump_all(&bpf);
 
-	rc = EXIT_SUCCESS;
-out:
-	return (rc);
+	return (EXIT_SUCCESS);
 }

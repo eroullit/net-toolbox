@@ -29,13 +29,8 @@ int main (void)
 	const char * type_array = NULL;
 	const char * type_hash = NULL;
 	uint32_t key;
-	int ret;
 	
-	if ((ret = ether_types_hash_init()) != 0)
-	{
-		warn("Could not initialize UDP port hash table: %i\n", ret);
-		return (EXIT_FAILURE);
-	}
+	assert(ether_types_hash_init() == 0);
 
 	/* XXX Can speed up the test by only testing used ports */
 	for (key = 0; key < ether_types[ARRAY_SIZE(ether_types) - 1].id; key++)

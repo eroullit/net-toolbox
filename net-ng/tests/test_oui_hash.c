@@ -29,20 +29,14 @@ int main (void)
 	const char * vendor_array = NULL;
 	const char * vendor_hash = NULL;
 	uint32_t key;
-	int ret;
 	
-	if ((ret = oui_hash_init()) != 0)
-	{
-		warn("Could not initialize OUI hash table: %i\n", ret);
-		return (EXIT_FAILURE);
-	}
+	assert(oui_hash_init() == 0);
 
 	/* XXX Can speed up the test by only testing used OUI */
 	for (key = 0; key < vendor_db[ARRAY_SIZE(vendor_db) - 1].id; key++)
 	{
 		if (match_oui_array(key, &vendor_array))
 		{
-
 			if (oui_hash_search(key, &vendor_hash))
 			{
 				info("Testing OUI 0x%X. Expected vendor %s got %s\n", key, vendor_array, vendor_hash);

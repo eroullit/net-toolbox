@@ -29,13 +29,8 @@ int main (void)
 	const char * port_array = NULL;
 	const char * port_hash = NULL;
 	uint32_t key;
-	int ret;
 	
-	if ((ret = tcp_ports_hash_init()) != 0)
-	{
-		warn("Could not initialize TCP port hash table: %i\n", ret);
-		return (EXIT_FAILURE);
-	}
+	assert(tcp_ports_hash_init() == 0);
 
 	/* XXX Can speed up the test by only testing used ports */
 	for (key = 0; key < ports_tcp[ARRAY_SIZE(ports_tcp) - 1].id; key++)
