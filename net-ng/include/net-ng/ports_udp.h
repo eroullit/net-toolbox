@@ -1084,7 +1084,7 @@ static const struct port_udp ports_udp[] = {
 	{54321, "bo2k"},
 };
 
-const char port_udp_unknown[] = "Unknown";
+static const char port_udp_unknown[] = "Unknown";
 
 void udp_ports_hash_destroy(void);
 int udp_ports_hash_init(void);

@@ -1122,7 +1122,7 @@ static const struct port_tcp ports_tcp[] = {
 	{65301, "pcanywhere"},
 };
 
-const char port_tcp_unknown[] = "Unknown";
+static const char port_tcp_unknown[] = "Unknown";
 
 void tcp_ports_hash_destroy(void);
 int tcp_ports_hash_init(void);

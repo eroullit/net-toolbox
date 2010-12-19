@@ -321,7 +321,7 @@ static const struct ether_type ether_types[] = {
 	{0xFFFF, "Reserved"},
 };
 
-const char type_unknown[] = "Unknown";
+static const char type_unknown[] = "Unknown";
 
 void ether_types_hash_destroy(void);
 int ether_types_hash_init(void);
