@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 
 #include <net/ethernet.h>
@@ -16,15 +17,13 @@ void ethernet_display(const uint8_t * const pkt, const size_t len)
 
 	assert(pkt);
 	assert(len >= sizeof(*hdr));
-	/* XXX Not sure if valid */
-	assert(ETHER_IS_VALID_LEN(len));
 
 	ether_types_hash_search(ntohs(hdr->ether_type), &ether_type_str);
 	oui_hash_search(hdr->ether_shost[0] << 16 | hdr->ether_shost[1] << 8 | hdr->ether_shost[2], &svendor_id);
 	oui_hash_search(hdr->ether_dhost[0] << 16 | hdr->ether_dhost[1] << 8 | hdr->ether_dhost[2], &dvendor_id);
 
 	printf(" [ Eth ");
-	printf("MAC (%s => %s), Proto (%x %s) ] \n", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ntohs(hdr->ether_type), ether_type_str);
+	printf("MAC (%s => %s), Proto (0x%4x %s) ", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ntohs(hdr->ether_type), ether_type_str);
 	printf("Vendor (%s => %s) ]\n", svendor_id, dvendor_id);
 }
 
@@ -36,8 +35,6 @@ void ethernet_display_less(const uint8_t * const pkt, const uint16_t len)
 	
 	assert(pkt);
 	assert(len >= sizeof(*hdr));
-	/* XXX Not sure if valid */
-	assert(ETHER_IS_VALID_LEN(len));
 
 	ether_types_hash_search(ntohs(hdr->ether_type), &ether_type_str);
 	
@@ -63,15 +60,17 @@ uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len)
 
 int dissector_ethernet_insert(void)
 {
-	struct protocol_dissector dis =
-	{
-		.display = NULL,
-		.get_offset = ethernet_offset_get,
-		.get_next_key = ethernet_key_get
-	};
+	struct protocol_dissector * dis = NULL;
+
+	if ((dis = malloc(sizeof(*dis))) == NULL)
+		return (ENOMEM);
+
+	memset(dis, 0, sizeof(*dis));
+	dis->get_offset = ethernet_offset_get;
+	dis->get_next_key = ethernet_key_get;
 
 	/* As the ethernet header is the first thing to come, its key ID is 0 */
-	return (ethernet_dissector_insert(0, &dis));
+	return (ethernet_dissector_insert(0, dis));
 }
 
 int dissector_ethernet_print_set(const enum display_type type)

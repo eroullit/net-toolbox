@@ -14,5 +14,6 @@
 int ethernet_dissector_insert(const uint16_t key, const struct protocol_dissector * const dis);
 int ethernet_dissector_run(uint8_t * pkt, size_t len);
 int ethernet_dissector_init(void);
+void ethernet_dissector_destroy(void);
 
 #endif	/* __ETHERNET_DISSECTOR_H__ */

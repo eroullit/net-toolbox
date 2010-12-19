@@ -52,6 +52,7 @@
 #include <net-ng/bpf.h>
 #include <net-ng/xmalloc.h>
 #include <net-ng/strlcpy.h>
+#include <net-ng/dissector/ethernet/dissector.h>
 
 static int rx_ring_register(int sock, struct tpacket_req * req)
 {
@@ -166,6 +167,8 @@ static void * rx_thread_listen(void * arg)
 			{
 				pkt_buf = ((uint8_t *)fm) + fm->tp_h.tp_mac;
 				info("Process frame %zu/%u state : %lu on %s: %u bytes %p\n", rb->cur_frame, rb->layout.tp_frame_nr, fm->tp_h.tp_status, nic_ctx->rx_dev, fm->tp_h.tp_len, pkt_buf);
+
+				ethernet_dissector_run(pkt_buf, fm->tp_h.tp_len);
 
 				if (nic_ctx->pcap_fd > 0)
 					pcap_write_payload(nic_ctx->pcap_fd, &fm->tp_h, (struct ethhdr *)pkt_buf);
@@ -340,6 +343,7 @@ void rx_thread_destroy(struct netsniff_ng_rx_thread_context * thread_config)
 	if (thread_config->thread_ctx.thread)
 		pthread_cancel(thread_config->thread_ctx.thread);
 
+	ethernet_dissector_destroy();
 	thread_context_destroy(&thread_config->thread_ctx);
 	rx_nic_ctx_destroy(&thread_config->nic_ctx);
 	xfree(thread_config);
@@ -364,6 +368,12 @@ struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, 
 	if ((rc = rx_nic_ctx_init(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize RX NIC context\n");
+		goto error;
+	}
+
+	if ((rc = ethernet_dissector_init()) != 0)
+	{
+		warn("Cannot initialize dissector\n");
 		goto error;
 	}
 

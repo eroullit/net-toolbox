@@ -1,18 +1,22 @@
 #include <assert.h>
+#include <net-ng/macros.h>
 #include <net-ng/dissector/ethernet/dissector.h>
 
 static hi_handle_t * ethernet_dissector_hash;
 
 int ethernet_dissector_insert(const uint16_t key, const struct protocol_dissector * const dis)
 {
+	int rc = 0;
 	assert(dis);
 
-	if (hi_insert_uint16_t(ethernet_dissector_hash, key, dis) != 0)
+	if ((rc = hi_insert_uint16_t(ethernet_dissector_hash, key, dis)) != 0)
 	{
-		return (0);
+		return (rc);
 	}
 
-	return (1);
+	info("Added dissector %p with key %x\n", (void *)dis, key);
+
+	return (0);
 }
 
 int ethernet_dissector_run(uint8_t * pkt, size_t len)
@@ -24,11 +28,12 @@ int ethernet_dissector_run(uint8_t * pkt, size_t len)
 	assert(pkt);
 	assert(len);
 
-	for (key = 0, off = 0; hi_get_uint16_t(ethernet_dissector_hash, key, (void **)dis) == 0; key = dis->get_next_key(pkt, len), off = dis->get_offset(pkt, len))
+	for (key = 0, off = 0; hi_get_uint16_t(ethernet_dissector_hash, key, (void **)&dis) == 0; key = dis->get_next_key(pkt, len), off = dis->get_offset(pkt, len))
 	{
 		len -= off;
 		pkt += off;
 
+		//info("dis %p key %x pkt %p len %zu\n", (void *) dis, key, (void *) pkt, len);
 		if (dis->display)
 			dis->display(pkt, len);
 
