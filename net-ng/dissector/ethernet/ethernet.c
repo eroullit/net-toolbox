@@ -38,7 +38,7 @@ void ethernet_display(const uint8_t * const pkt, const size_t len)
 	oui_hash_search(hdr->ether_dhost[0] << 16 | hdr->ether_dhost[1] << 8 | hdr->ether_dhost[2], &dvendor_id);
 
 	printf(" [ Eth ");
-	printf("MAC (%s => %s), Proto (0x%4x %s) ", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ntohs(hdr->ether_type), ether_type_str);
+	printf("MAC (%s => %s), Proto (0x%.4x %s) ", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ntohs(hdr->ether_type), ether_type_str);
 	printf("Vendor (%s => %s) ]\n", svendor_id, dvendor_id);
 }
 
