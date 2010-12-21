@@ -24,6 +24,8 @@ struct protocol_dissector
 	void (*display)(const uint8_t * const pkt, const size_t len);
 	size_t (*get_offset)(const uint8_t * const pkt, const size_t len);
 	uint16_t (*get_next_key)(const uint8_t * const pkt, const size_t len);
+	void (*display_set)(const enum display_type dtype);
+	const uint16_t key;
 };
 
 #endif	/* __DISSECTOR_GENERIC_H__ */

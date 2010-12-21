@@ -7,6 +7,19 @@
 
 #include <net-ng/dissector/ethernet/ethernet.h>
 
+size_t ethernet_offset_get(const uint8_t * const pkt, const size_t len);
+uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len);
+void ethernet_display_set(const enum display_type dtype);
+
+static struct protocol_dissector eth_dissector = 
+{
+	.display = NULL,
+	.get_offset = ethernet_offset_get,
+	.get_next_key = ethernet_key_get,
+	.display_set = ethernet_display_set,
+	.key = 0
+};
+
 void ethernet_display(const uint8_t * const pkt, const size_t len)
 {
 	char mac_str[32] = { 0 };
@@ -19,6 +32,8 @@ void ethernet_display(const uint8_t * const pkt, const size_t len)
 	assert(len >= sizeof(*hdr));
 
 	ether_types_hash_search(ntohs(hdr->ether_type), &ether_type_str);
+
+	/* Is there a prettier way to get the OUI part of a MAC addr? */
 	oui_hash_search(hdr->ether_shost[0] << 16 | hdr->ether_shost[1] << 8 | hdr->ether_shost[2], &svendor_id);
 	oui_hash_search(hdr->ether_dhost[0] << 16 | hdr->ether_dhost[1] << 8 | hdr->ether_dhost[2], &dvendor_id);
 
@@ -27,7 +42,7 @@ void ethernet_display(const uint8_t * const pkt, const size_t len)
 	printf("Vendor (%s => %s) ]\n", svendor_id, dvendor_id);
 }
 
-void ethernet_display_less(const uint8_t * const pkt, const uint16_t len)
+void ethernet_display_less(const uint8_t * const pkt, const size_t len)
 {
 	char mac_str[32] = { 0 };
 	struct ether_header * hdr = (struct ether_header *) pkt;
@@ -58,28 +73,31 @@ uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len)
 	return(ntohs(hdr->ether_type));
 }
 
+void ethernet_display_set(const enum display_type dtype)
+{
+	switch(dtype)
+	{
+		case DISPLAY_NORMAL:
+			eth_dissector.display = ethernet_display;
+		break;
+
+		case DISPLAY_LESS:
+			eth_dissector.display = ethernet_display_less;
+		break;
+
+		case DISPLAY_NONE:
+			eth_dissector.display = NULL;
+		break;
+
+		default:
+
+		break;
+	}
+}
+
 int dissector_ethernet_insert(void)
 {
-	struct protocol_dissector * dis = NULL;
-
-	if ((dis = malloc(sizeof(*dis))) == NULL)
-		return (ENOMEM);
-
-	memset(dis, 0, sizeof(*dis));
-	dis->get_offset = ethernet_offset_get;
-	dis->get_next_key = ethernet_key_get;
-
 	/* As the ethernet header is the first thing to come, its key ID is 0 */
-	return (ethernet_dissector_insert(0, dis));
+	return (ethernet_dissector_insert(eth_dissector.key, &eth_dissector));
 }
 
-int dissector_ethernet_print_set(const enum display_type type)
-{
-	switch(type)
-	{
-		default:
-			break;
-	}
-
-	return (0);
-}

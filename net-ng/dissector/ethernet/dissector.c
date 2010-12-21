@@ -4,6 +4,28 @@
 
 static hi_handle_t * ethernet_dissector_hash;
 
+int ethernet_dissector_display_set(const enum display_type dtype)
+{
+	void *key_ptr = NULL;
+	hi_iterator_t * it = NULL;
+	struct protocol_dissector * dis = NULL;
+	uint32_t keylen = 0;
+	int rc;
+
+	if ((rc = hi_iterator_create(ethernet_dissector_hash, &it)) != 0)
+	{
+		err("Could not create iterator\n");
+		return (EAGAIN);
+	}
+
+	while (hi_iterator_getnext(it, (void **) &dis, &key_ptr, &keylen) == 0 && dis != NULL)
+	{
+		dis->display_set(dtype);
+	}
+
+	return (0);
+}
+
 int ethernet_dissector_insert(const uint16_t key, const struct protocol_dissector * const dis)
 {
 	int rc = 0;
@@ -83,6 +105,11 @@ int ethernet_dissector_init(void)
 	}
 
 	if ((rc = dissector_ethernet_insert()) != 0)
+	{
+		goto error;
+	}
+
+	if ((rc = ethernet_dissector_display_set(DISPLAY_NORMAL)) != 0)
 	{
 		goto error;
 	}
