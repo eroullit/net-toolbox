@@ -23,6 +23,8 @@ int ethernet_dissector_display_set(const enum display_type dtype)
 		dis->display_set(dtype);
 	}
 
+	hi_iterator_fini(it);
+
 	return (0);
 }
 
