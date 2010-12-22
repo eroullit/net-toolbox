@@ -59,20 +59,19 @@ void ethernet_display_less(const uint8_t * const pkt, const size_t len)
 void ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
-	uint8_t * buf = (uint8_t *)pkt;
 
 	assert(pkt);
 	assert(len >= sizeof(struct ether_header));
 
 	printf("const uint8_t mac_hdr[] = {");
 
-	for (a = 0; a < sizeof(struct ether_header) - 1; a++, buf++)
+	for (a = 0; a < sizeof(struct ether_header) - 1; a++)
 	{
-		printf("0x%.2x, ", *buf);
+		printf("0x%.2x, ", pkt[a]);
 	}
 
-	buf++;
-	printf("0x%.2x };\n", *buf);
+	a++;
+	printf("0x%.2x };\n", pkt[a]);
 }
 
 size_t ethernet_offset_get(const uint8_t * const pkt, const size_t len)
