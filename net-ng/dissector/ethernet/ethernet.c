@@ -56,6 +56,22 @@ void ethernet_display_less(const uint8_t * const pkt, const size_t len)
 	printf("%s => %s, (%s)\n", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ether_type_str);
 }
 
+void ethernet_display_hex(const uint8_t * const pkt, const size_t len)
+{
+	size_t a;
+
+	assert(pkt);
+	assert(len >= sizeof(struct ether_header));
+
+	printf(" [ MAC header (");
+	for (a = 0; a < sizeof(struct ether_header); a++)
+	{
+		printf("%.2x ", pkt[a]);
+	}
+
+	printf(") ]\n");
+}
+
 void ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
@@ -105,6 +121,10 @@ void ethernet_display_set(const enum display_type dtype)
 
 		case DISPLAY_C_STYLE:
 			eth_dissector.display = ethernet_display_c_style;
+		break;
+
+		case DISPLAY_HEX:
+			eth_dissector.display = ethernet_display_hex;
 		break;
 
 		case DISPLAY_NONE:
