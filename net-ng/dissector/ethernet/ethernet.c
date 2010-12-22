@@ -56,6 +56,25 @@ void ethernet_display_less(const uint8_t * const pkt, const size_t len)
 	printf("%s => %s, (%s)\n", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ether_type_str);
 }
 
+void ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
+{
+	size_t a;
+	uint8_t * buf = (uint8_t *)pkt;
+
+	assert(pkt);
+	assert(len >= sizeof(struct ether_header));
+
+	printf("const uint8_t mac_hdr[] = {");
+
+	for (a = 0; a < sizeof(struct ether_header) - 1; a++, buf++)
+	{
+		printf("0x%.2x, ", *buf);
+	}
+
+	buf++;
+	printf("0x%.2x };\n", *buf);
+}
+
 size_t ethernet_offset_get(const uint8_t * const pkt, const size_t len)
 {
 	assert(pkt);
@@ -83,6 +102,10 @@ void ethernet_display_set(const enum display_type dtype)
 
 		case DISPLAY_LESS:
 			eth_dissector.display = ethernet_display_less;
+		break;
+
+		case DISPLAY_C_STYLE:
+			eth_dissector.display = ethernet_display_c_style;
 		break;
 
 		case DISPLAY_NONE:

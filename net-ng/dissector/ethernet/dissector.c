@@ -111,7 +111,7 @@ int ethernet_dissector_init(void)
 		goto error;
 	}
 
-	if ((rc = ethernet_dissector_display_set(DISPLAY_NORMAL)) != 0)
+	if ((rc = ethernet_dissector_display_set(DISPLAY_C_STYLE)) != 0)
 	{
 		goto error;
 	}
