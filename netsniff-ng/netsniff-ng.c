@@ -22,11 +22,11 @@
 #include <sched.h>
 #include <unistd.h>
 
-#include <net-ng/rx_ring.h>
-#include <net-ng/rx_ring_compat.h>
-#include <net-ng/tx_ring.h>
-#include <net-ng/netdev.h>
-#include <net-ng/system.h>
+#include <netcore-ng/rx_ring.h>
+#include <netcore-ng/rx_ring_compat.h>
+#include <netcore-ng/tx_ring.h>
+#include <netcore-ng/netdev.h>
+#include <netcore-ng/system.h>
 #include <netsniff-ng/config.h>
 
 void start_single_rx_thread(struct system_data * sd)

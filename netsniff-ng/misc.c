@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <net-ng/macros.h>
-#include <net-ng/system.h>
+#include <netcore-ng/macros.h>
+#include <netcore-ng/system.h>
 #include <netsniff-ng/version.h>
 
 /**

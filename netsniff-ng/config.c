@@ -30,11 +30,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <net-ng/pcap.h>
-#include <net-ng/macros.h>
-#include <net-ng/netdev.h>
-#include <net-ng/xmalloc.h>
-#include <net-ng/system.h>
+#include <netcore-ng/pcap.h>
+#include <netcore-ng/macros.h>
+#include <netcore-ng/netdev.h>
+#include <netcore-ng/xmalloc.h>
+#include <netcore-ng/system.h>
 #include <netsniff-ng/config.h>
 
 void help(void);

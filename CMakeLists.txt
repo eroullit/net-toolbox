@@ -43,7 +43,7 @@ ENDIF (CMAKE_BUILD_TYPE STREQUAL profile)
 
 SET(CMAKE_C_FLAGS "-lm")
 
-SET(NET-NG "net-ng")
+SET(NET-NG "netcore-ng")
 SET(NETSNIFF-NG "netsniff-ng")
 SET(LIBHASHISH "hashish")
 

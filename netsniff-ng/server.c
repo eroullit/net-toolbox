@@ -34,7 +34,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-#include <net-ng/macros.h>
+#include <netcore-ng/macros.h>
 #include <netsniff-ng/version.h>
 #include <netsniff-ng/netsniff-ng.h>
 

@@ -20,7 +20,7 @@
 #ifndef	_NET_CONFIG_H_
 #define	_NET_CONFIG_H_
 
-#include <net-ng/thread.h>
+#include <netcore-ng/thread.h>
 
 /* Internals */
 #define DEFAULT_INTERFACE "lo"
