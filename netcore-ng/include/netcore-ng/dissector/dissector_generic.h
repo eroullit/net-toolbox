@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <netinet/in.h>
 
+#include <netcore-ng/macros.h>
 #include <netcore-ng/ether_types.h>
 
 #define DISSECTOR_MAX	100

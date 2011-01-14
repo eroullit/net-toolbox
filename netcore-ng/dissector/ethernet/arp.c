@@ -42,22 +42,22 @@ void arp_display(const uint8_t * const pkt, const size_t len)
 
 	arp_op = ntohs(arp->ar_op);
 
-	printf(" [ ARP ");
-	printf("Format HA (%u), ", ntohs(arp->ar_hrd));
-	printf("Format Proto (%u), ", ntohs(arp->ar_pro));
-	printf("HA Len (%u), \n", ntohs(arp->ar_hln));
-	printf("   Proto Len (%u), ", ntohs(arp->ar_pln));
+	info(" [ ARP ");
+	info("Format HA (%u), ", ntohs(arp->ar_hrd));
+	info("Format Proto (%u), ", ntohs(arp->ar_pro));
+	info("HA Len (%u), \n", ntohs(arp->ar_hln));
+	info("   Proto Len (%u), ", ntohs(arp->ar_pln));
 
 	if (arp_op < ARRAY_SIZE(arp_opcode_str))
 	{
-		printf("Opcode (%s)", arp_opcode_str[arp_op]);
+		info("Opcode (%s)", arp_opcode_str[arp_op]);
 	}
 	else
 	{
-		printf("Opcode (Unknown)");
+		info("Opcode (Unknown)");
 	}
 
-	printf(" ] \n");
+	info(" ] \n");
 }
 
 void arp_display_less(const uint8_t * const pkt, const size_t len)
@@ -70,18 +70,18 @@ void arp_display_less(const uint8_t * const pkt, const size_t len)
 
 	arp_op = ntohs(arp->ar_op);
 	
-	printf(" [ ARP ");
+	info(" [ ARP ");
 	
 	if (arp_op < ARRAY_SIZE(arp_opcode_str))
 	{
-		printf("Opcode (%s)", arp_opcode_str[arp_op]);
+		info("Opcode (%s)", arp_opcode_str[arp_op]);
 	}
 	else
 	{
-		printf("Opcode (Unknown)");
+		info("Opcode (Unknown)");
 	}
 
-	printf(" ] \n");
+	info(" ] \n");
 }
 
 void arp_display_hex(const uint8_t * const pkt, const size_t len)

@@ -37,9 +37,9 @@ void ethernet_display(const uint8_t * const pkt, const size_t len)
 	oui_hash_search(hdr->ether_shost[0] << 16 | hdr->ether_shost[1] << 8 | hdr->ether_shost[2], &svendor_id);
 	oui_hash_search(hdr->ether_dhost[0] << 16 | hdr->ether_dhost[1] << 8 | hdr->ether_dhost[2], &dvendor_id);
 
-	printf(" [ Eth ");
-	printf("MAC (%s => %s), Proto (0x%.4x %s) ", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ntohs(hdr->ether_type), ether_type_str);
-	printf("Vendor (%s => %s) ]\n", svendor_id, dvendor_id);
+	info(" [ Eth ");
+	info("MAC (%s => %s), Proto (0x%.4x %s) ", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ntohs(hdr->ether_type), ether_type_str);
+	info("Vendor (%s => %s) ]\n", svendor_id, dvendor_id);
 }
 
 void ethernet_display_less(const uint8_t * const pkt, const size_t len)
@@ -53,7 +53,7 @@ void ethernet_display_less(const uint8_t * const pkt, const size_t len)
 
 	ether_types_hash_search(ntohs(hdr->ether_type), &ether_type_str);
 	
-	printf("%s => %s, (%s)\n", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ether_type_str);
+	info("%s => %s, (%s)\n", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ether_type_str);
 }
 
 void ethernet_display_hex(const uint8_t * const pkt, const size_t len)
@@ -63,13 +63,13 @@ void ethernet_display_hex(const uint8_t * const pkt, const size_t len)
 	assert(pkt);
 	assert(len >= sizeof(struct ether_header));
 
-	printf(" [ MAC header (");
+	info(" [ MAC header (");
 	for (a = 0; a < sizeof(struct ether_header); a++)
 	{
-		printf("%.2x ", pkt[a]);
+		info("%.2x ", pkt[a]);
 	}
 
-	printf(") ]\n");
+	info(") ]\n");
 }
 
 void ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
@@ -79,15 +79,15 @@ void ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
 	assert(pkt);
 	assert(len >= sizeof(struct ether_header));
 
-	printf("const uint8_t mac_hdr[] = {");
+	info("const uint8_t mac_hdr[] = {");
 
 	for (a = 0; a < sizeof(struct ether_header) - 1; a++)
 	{
-		printf("0x%.2x, ", pkt[a]);
+		info("0x%.2x, ", pkt[a]);
 	}
 
 	a++;
-	printf("0x%.2x };\n", pkt[a]);
+	info("0x%.2x };\n", pkt[a]);
 }
 
 size_t ethernet_offset_get(const uint8_t * const pkt, const size_t len)
