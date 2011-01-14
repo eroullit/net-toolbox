@@ -166,7 +166,7 @@ static void * rx_thread_listen(void * arg)
 			if (fm->tp_h.tp_status == TP_STATUS_USER)
 			{
 				pkt_buf = ((uint8_t *)fm) + fm->tp_h.tp_mac;
-				info("Process frame %zu/%u state : %lu on %s: %u bytes %p\n", rb->cur_frame, rb->layout.tp_frame_nr, fm->tp_h.tp_status, nic_ctx->rx_dev, fm->tp_h.tp_len, pkt_buf);
+				//info("Process frame %zu/%u state : %lu on %s: %u bytes %p\n", rb->cur_frame, rb->layout.tp_frame_nr, fm->tp_h.tp_status, nic_ctx->rx_dev, fm->tp_h.tp_len, pkt_buf);
 
 				ethernet_dissector_run(pkt_buf, fm->tp_h.tp_len);
 
