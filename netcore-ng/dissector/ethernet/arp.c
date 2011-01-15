@@ -12,7 +12,7 @@ size_t arp_offset_get(const uint8_t * const pkt, const size_t len);
 uint16_t arp_key_get(const uint8_t * const pkt, const size_t len);
 void arp_display_set(const enum display_type dtype);
 
-static const char * arp_opcode_str[ARPOP_NAK + 1] = 
+static const char * arp_opcode_str[] = 
 {
 	[ARPOP_REQUEST] = "ARP request",
 	[ARPOP_REPLY] = "ARP reply",

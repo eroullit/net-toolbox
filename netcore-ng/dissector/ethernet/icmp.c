@@ -16,7 +16,7 @@ size_t icmp_offset_get(const uint8_t * const pkt, const size_t len);
 uint16_t icmp_key_get(const uint8_t * const pkt, const size_t len);
 void icmp_display_set(const enum display_type dtype);
 
-static const char * icmp_types_str[NR_ICMP_TYPES + 1] = 
+static const char * icmp_types_str[] = 
 {
 	[ICMP_ECHOREPLY] = "Echo Reply",
 	[ICMP_DEST_UNREACH] = "Destination Unreachable",
@@ -33,7 +33,7 @@ static const char * icmp_types_str[NR_ICMP_TYPES + 1] =
 	[ICMP_ADDRESSREPLY] = "Address Mask Reply"
 };
 
-static const char * icmp_unreach_str[NR_ICMP_UNREACH + 1] = 
+static const char * icmp_unreach_str[] = 
 {
 	[ICMP_NET_UNREACH] = "Network Unreachable",
 	[ICMP_HOST_UNREACH] = "Host Unreachable",
@@ -53,7 +53,7 @@ static const char * icmp_unreach_str[NR_ICMP_UNREACH + 1] =
 	[ICMP_PREC_CUTOFF] = "Precedence cut off"
 };
 
-static const char * icmp_redirect_str[ICMP_REDIR_HOSTTOS + 1] = 
+static const char * icmp_redirect_str[] = 
 {
 	[ICMP_REDIR_NET] = "Redirect Net",
 	[ICMP_REDIR_HOST] = "Redirect Host",
