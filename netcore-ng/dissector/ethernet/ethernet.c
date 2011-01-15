@@ -86,8 +86,10 @@ void ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
 		info("0x%.2x, ", pkt[a]);
 	}
 
-	a++;
-	info("0x%.2x };\n", pkt[a]);
+	if (len > 0)
+		info("0x%.2x\n", pkt[sizeof(struct ether_header)]);
+
+	info("};\n");
 }
 
 size_t ethernet_offset_get(const uint8_t * const pkt, const size_t len)
