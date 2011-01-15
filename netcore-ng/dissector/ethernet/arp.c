@@ -46,7 +46,7 @@ void arp_display(const uint8_t * const pkt, const size_t len)
 	info("Format HA (%u), ", ntohs(arp->ar_hrd));
 	info("Format Proto (%u), ", ntohs(arp->ar_pro));
 	info("HA Len (%u), \n", ntohs(arp->ar_hln));
-	info("   Proto Len (%u), ", ntohs(arp->ar_pln));
+	info("Proto Len (%u), ", ntohs(arp->ar_pln));
 
 	if (arp_op < ARRAY_SIZE(arp_opcode_str))
 	{
@@ -86,15 +86,37 @@ void arp_display_less(const uint8_t * const pkt, const size_t len)
 
 void arp_display_hex(const uint8_t * const pkt, const size_t len)
 {
+	size_t a;
+	
 	assert(pkt);
 	assert(len >= sizeof(struct arphdr));
 
+	info(" [ ARP header (");
+
+	for (a = 0; a < sizeof(struct arphdr); a++)
+	{
+		info("%.2x ", pkt[a]);
+	}
+
+	info(") ]\n");
 }
 
 void arp_display_c_style(const uint8_t * const pkt, const size_t len)
 {
 	assert(pkt);
 	assert(len >= sizeof(struct arphdr));
+
+	info("const uint8_t arp_hdr[] = {");
+
+	for (a = 0; a < sizeof(struct arphdr) - 1; a++)
+	{
+		info("0x%.2x, ", pkt[a]);
+	}
+
+	if (len > 0)
+		info("0x%.2x\n", pkt[sizeof(struct arphdr)]);
+
+	info("};\n");
 
 }
 
