@@ -127,6 +127,11 @@ int ethernet_dissector_init(void)
 		goto error;
 	}
 
+	if ((rc = dissector_icmp_insert()) != 0)
+	{
+		goto error;
+	}
+
 	if ((rc = ethernet_dissector_display_set(DISPLAY_NORMAL)) != 0)
 	{
 		goto error;
