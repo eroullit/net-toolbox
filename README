@@ -3,7 +3,7 @@ What is nettoolbox-ng?
 
 nettoolbox-ng is a set of network tools for Linux.
 
-It contains libnet-ng which is a library of networking feature such as
+It contains libnetcore-ng which is a library of networking feature such as
 	- Zero-Copy RX/TX ring
 	- Multithreaded RX/TX tasks
 	- RX/TX compatibility mode
@@ -85,7 +85,6 @@ For questions:
 
 For bugs:
     <bugs@netsniff-ng.org>,
-    http://github.com/danborkmann/netsniff-ng/issues/
 
 For improvements, hacks and all the rest:
     <workgroup@netsniff-ng.org>
