@@ -65,6 +65,12 @@ int ethernet_dissector_run(uint8_t * pkt, size_t len)
 			break;
 	}
 
+	if (hi_get_uint16_t(ethernet_dissector_hash, PAYLOAD_DEFAULT_KEY, (void **)&dis) == 0)
+	{
+		if (dis->display)
+			dis->display(pkt, len);
+	}
+
 	return (0);
 }
 
@@ -102,6 +108,11 @@ int ethernet_dissector_init(void)
 	}
 
 	if ((rc = hi_init_uint16_t(&ethernet_dissector_hash, DISSECTOR_MAX)) != 0)
+	{
+		goto error;
+	}
+
+	if ((rc = dissector_payload_insert(ethernet_dissector_insert)) != 0)
 	{
 		goto error;
 	}
