@@ -50,7 +50,7 @@ void payload_display_c_style(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
 
-	info("const char payload[] = {");
+	info("const uint8_t payload[] = {");
 
 	for (a = 0; a < len - 1; a++)
 	{
@@ -58,7 +58,7 @@ void payload_display_c_style(const uint8_t * const pkt, const size_t len)
 	}
 
 	if (len > 0)
-		info("0x%.2x };\n", pkt[len]);
+		info("0x%.2x\n", pkt[len]);
 
 	info("};\n");
 }
