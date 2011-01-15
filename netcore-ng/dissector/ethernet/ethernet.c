@@ -140,6 +140,6 @@ void ethernet_display_set(const enum display_type dtype)
 int dissector_ethernet_insert(void)
 {
 	/* As the ethernet header is the first thing to come, its key ID is ETHERNET_HDR_DEFAULT_KEY */
-	return (ethernet_dissector_insert(eth_dissector.key, &eth_dissector));
+	return (ethernet_dissector_insert(&eth_dissector));
 }
 

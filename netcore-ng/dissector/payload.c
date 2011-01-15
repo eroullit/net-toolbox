@@ -90,9 +90,9 @@ void payload_display_set(const enum display_type dtype)
 	}
 }
 
-int dissector_payload_insert(int (*dissector_insert)(const uint16_t key, const struct protocol_dissector * const dis))
+int dissector_payload_insert(int (*dissector_insert)(const struct protocol_dissector * const dis))
 {
 	assert(dissector_insert);
-	return (dissector_insert(payload_dissector.key, &payload_dissector));
+	return (dissector_insert(&payload_dissector));
 }
 

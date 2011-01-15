@@ -28,17 +28,17 @@ int ethernet_dissector_display_set(const enum display_type dtype)
 	return (0);
 }
 
-int ethernet_dissector_insert(const uint16_t key, const struct protocol_dissector * const dis)
+int ethernet_dissector_insert(const struct protocol_dissector * const dis)
 {
 	int rc = 0;
 	assert(dis);
 
-	if ((rc = hi_insert_uint16_t(ethernet_dissector_hash, key, dis)) != 0)
+	if ((rc = hi_insert_uint16_t(ethernet_dissector_hash, dis->key, dis)) != 0)
 	{
 		return (rc);
 	}
 
-	info("Added dissector %p with key %x\n", (void *)dis, key);
+	info("Added dissector %p with key %x\n", (void *)dis, dis->key);
 
 	return (0);
 }

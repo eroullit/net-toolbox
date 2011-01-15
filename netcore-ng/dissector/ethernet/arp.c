@@ -146,5 +146,5 @@ void arp_display_set(const enum display_type dtype)
 
 int dissector_arp_insert(void)
 {
-	return (ethernet_dissector_insert(arp_dissector.key, &arp_dissector));
+	return (ethernet_dissector_insert(&arp_dissector));
 }
