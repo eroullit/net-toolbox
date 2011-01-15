@@ -17,7 +17,7 @@ static struct protocol_dissector eth_dissector =
 	.get_offset = ethernet_offset_get,
 	.get_next_key = ethernet_key_get,
 	.display_set = ethernet_display_set,
-	.key = 0
+	.key = ETHERNET_HDR_DEFAULT_KEY
 };
 
 void ethernet_display(const uint8_t * const pkt, const size_t len)
@@ -139,7 +139,7 @@ void ethernet_display_set(const enum display_type dtype)
 
 int dissector_ethernet_insert(void)
 {
-	/* As the ethernet header is the first thing to come, its key ID is 0 */
+	/* As the ethernet header is the first thing to come, its key ID is ETHERNET_HDR_DEFAULT_KEY */
 	return (ethernet_dissector_insert(eth_dissector.key, &eth_dissector));
 }
 

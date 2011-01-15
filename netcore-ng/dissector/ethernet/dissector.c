@@ -52,7 +52,7 @@ int ethernet_dissector_run(uint8_t * pkt, size_t len)
 	assert(pkt);
 	assert(len);
 
-	for (key = 0, off = 0; hi_get_uint16_t(ethernet_dissector_hash, key, (void **)&dis) == 0; key = dis->get_next_key(pkt, len), off = dis->get_offset(pkt, len))
+	for (key = ETHERNET_HDR_DEFAULT_KEY, off = 0; hi_get_uint16_t(ethernet_dissector_hash, key, (void **)&dis) == 0; key = dis->get_next_key(pkt, len), off = dis->get_offset(pkt, len))
 	{
 		len -= off;
 		pkt += off;
