@@ -103,6 +103,8 @@ void arp_display_hex(const uint8_t * const pkt, const size_t len)
 
 void arp_display_c_style(const uint8_t * const pkt, const size_t len)
 {
+	size_t a;
+
 	assert(pkt);
 	assert(len >= sizeof(struct arphdr));
 
