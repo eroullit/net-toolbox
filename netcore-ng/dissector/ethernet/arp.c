@@ -8,7 +8,7 @@
 #include <netcore-ng/macros.h>
 #include <netcore-ng/dissector/ethernet/arp.h>
 
-size_t arp_offset_get(const uint8_t * const pkt, const size_t len);
+size_t arp_size_get(void);
 uint16_t arp_key_get(const uint8_t * const pkt, const size_t len);
 void arp_display_set(const enum display_type dtype);
 
@@ -26,19 +26,25 @@ static const char * arp_opcode_str[] =
 static struct protocol_dissector arp_dissector = 
 {
 	.display = NULL,
-	.get_offset = arp_offset_get,
+	.get_offset = arp_size_get,
 	.get_next_key = arp_key_get,
 	.display_set = arp_display_set,
 	.key = ETHERTYPE_ARP
 };
 
-void arp_display(const uint8_t * const pkt, const size_t len)
+size_t arp_size_get(void)
+{
+	return(sizeof(struct arphdr));
+}
+
+size_t arp_display(const uint8_t * const pkt, const size_t len)
 {
 	struct arphdr * arp = (struct arphdr *) pkt;
+	size_t arp_len = arp_size_get();
 	uint16_t arp_op;
 
 	assert(pkt);
-	assert(len >= sizeof(*arp));
+	assert(len >= arp_len);
 
 	arp_op = ntohs(arp->ar_op);
 
@@ -58,15 +64,18 @@ void arp_display(const uint8_t * const pkt, const size_t len)
 	}
 
 	info(" ] \n");
+
+	return (arp_len);
 }
 
-void arp_display_less(const uint8_t * const pkt, const size_t len)
+size_t arp_display_less(const uint8_t * const pkt, const size_t len)
 {
 	struct arphdr * arp = (struct arphdr *) pkt;
+	size_t arp_len = arp_size_get();
 	uint16_t arp_op;
 	
 	assert(pkt);
-	assert(len >= sizeof(*arp));
+	assert(len >= arp_len);
 
 	arp_op = ntohs(arp->ar_op);
 	
@@ -82,52 +91,51 @@ void arp_display_less(const uint8_t * const pkt, const size_t len)
 	}
 
 	info(" ] \n");
+	
+	return (arp_len);
 }
 
-void arp_display_hex(const uint8_t * const pkt, const size_t len)
+size_t arp_display_hex(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
+	size_t arp_len = arp_size_get();
 	
 	assert(pkt);
-	assert(len >= sizeof(struct arphdr));
+	assert(len >= arp_len);
 
 	info(" [ ARP header (");
 
-	for (a = 0; a < sizeof(struct arphdr); a++)
+	for (a = 0; a < arp_len; a++)
 	{
 		info("%.2x ", pkt[a]);
 	}
 
 	info(") ]\n");
+
+	return (arp_len);
 }
 
-void arp_display_c_style(const uint8_t * const pkt, const size_t len)
+size_t arp_display_c_style(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
+	size_t arp_len = arp_size_get();
 
 	assert(pkt);
-	assert(len >= sizeof(struct arphdr));
+	assert(len >= arp_len);
 
 	info("const uint8_t arp_hdr[] = {");
 
-	for (a = 0; a < sizeof(struct arphdr) - 1; a++)
+	for (a = 0; a < arp_len - 1; a++)
 	{
 		info("0x%.2x, ", pkt[a]);
 	}
 
 	if (len > 0)
-		info("0x%.2x\n", pkt[sizeof(struct arphdr)]);
+		info("0x%.2x\n", pkt[arp_len]);
 
 	info("};\n");
 
-}
-
-size_t arp_offset_get(const uint8_t * const pkt, const size_t len)
-{
-	assert(pkt);
-	assert(len >= sizeof(struct arphdr));
-
-	return(sizeof(struct arphdr));
+	return (arp_len);
 }
 
 uint16_t arp_key_get(const uint8_t * const pkt, const size_t len)

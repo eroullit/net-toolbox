@@ -7,29 +7,36 @@
 
 #include <netcore-ng/dissector/ethernet/ethernet.h>
 
-size_t ethernet_offset_get(const uint8_t * const pkt, const size_t len);
+size_t ethernet_size_get(void);
 uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len);
 void ethernet_display_set(const enum display_type dtype);
 
 static struct protocol_dissector eth_dissector = 
 {
 	.display = NULL,
-	.get_offset = ethernet_offset_get,
+	.get_offset = ethernet_size_get,
 	.get_next_key = ethernet_key_get,
 	.display_set = ethernet_display_set,
 	.key = ETHERNET_HDR_DEFAULT_KEY
 };
 
-void ethernet_display(const uint8_t * const pkt, const size_t len)
+size_t ethernet_size_get(void)
+{
+	return(sizeof(struct ether_header));
+}
+
+
+size_t ethernet_display(const uint8_t * const pkt, const size_t len)
 {
 	char mac_str[32] = { 0 };
+	size_t eth_len = ethernet_size_get();
 	struct ether_header * hdr = (struct ether_header *) pkt;
 	const char * ether_type_str = NULL;
 	const char * svendor_id = NULL;
 	const char * dvendor_id = NULL;
 
 	assert(pkt);
-	assert(len >= sizeof(*hdr));
+	assert(len >= eth_len);
 
 	ether_types_hash_search(ntohs(hdr->ether_type), &ether_type_str);
 
@@ -40,71 +47,74 @@ void ethernet_display(const uint8_t * const pkt, const size_t len)
 	info(" [ Eth ");
 	info("MAC (%s => %s), Proto (0x%.4x %s) ", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ntohs(hdr->ether_type), ether_type_str);
 	info("Vendor (%s => %s) ]\n", svendor_id, dvendor_id);
+
+	return (eth_len);
 }
 
-void ethernet_display_less(const uint8_t * const pkt, const size_t len)
+size_t ethernet_display_less(const uint8_t * const pkt, const size_t len)
 {
 	char mac_str[32] = { 0 };
+	size_t eth_len = ethernet_size_get();
 	struct ether_header * hdr = (struct ether_header *) pkt;
 	const char * ether_type_str = NULL;
 	
 	assert(pkt);
-	assert(len >= sizeof(*hdr));
+	assert(len >= eth_len);
 
 	ether_types_hash_search(ntohs(hdr->ether_type), &ether_type_str);
 	
 	info("%s => %s, (%s)\n", ether_ntoa_r((struct ether_addr *) &hdr->ether_shost, mac_str), ether_ntoa_r((struct ether_addr *) &hdr->ether_dhost, mac_str), ether_type_str);
+	
+	return (eth_len);
 }
 
-void ethernet_display_hex(const uint8_t * const pkt, const size_t len)
+size_t ethernet_display_hex(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
+	size_t eth_len = ethernet_size_get();
 
 	assert(pkt);
-	assert(len >= sizeof(struct ether_header));
+	assert(len >= eth_len);
 
 	info(" [ MAC header (");
-	for (a = 0; a < sizeof(struct ether_header); a++)
+	for (a = 0; a < eth_len; a++)
 	{
 		info("%.2x ", pkt[a]);
 	}
 
 	info(") ]\n");
+	
+	return (eth_len);
 }
 
-void ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
+size_t ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
+	size_t eth_len = ethernet_size_get();
 
 	assert(pkt);
-	assert(len >= sizeof(struct ether_header));
+	assert(len >= eth_len);
 
 	info("const uint8_t mac_hdr[] = {");
 
-	for (a = 0; a < sizeof(struct ether_header) - 1; a++)
+	for (a = 0; a < eth_len - 1; a++)
 	{
 		info("0x%.2x, ", pkt[a]);
 	}
 
 	if (len > 0)
-		info("0x%.2x\n", pkt[sizeof(struct ether_header)]);
+		info("0x%.2x\n", pkt[eth_len]);
 
 	info("};\n");
-}
-
-size_t ethernet_offset_get(const uint8_t * const pkt, const size_t len)
-{
-	assert(pkt);
-	assert(len >= sizeof(struct ether_header));
-
-	return(sizeof(struct ether_header));
+	
+	return (eth_len);
 }
 
 uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len)
 {
 	struct ether_header * hdr = (struct ether_header *) pkt;
 	assert(pkt);
-	assert(len >= sizeof(*hdr));
+	assert(len >= ethernet_size_get());
 
 	return(ntohs(hdr->ether_type));
 }

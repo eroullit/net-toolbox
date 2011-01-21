@@ -18,7 +18,7 @@ static struct protocol_dissector payload_dissector =
 	.key = PAYLOAD_DEFAULT_KEY
 };
 
-void payload_display(const uint8_t * const pkt, const size_t len)
+size_t payload_display(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
 
@@ -30,9 +30,11 @@ void payload_display(const uint8_t * const pkt, const size_t len)
 	}
 
 	info("]\n");
+	
+	return(len - a);
 }
 
-void payload_display_hex(const uint8_t * const pkt, const size_t len)
+size_t payload_display_hex(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
 
@@ -44,9 +46,11 @@ void payload_display_hex(const uint8_t * const pkt, const size_t len)
 	}
 
 	info("]\n");
+	
+	return(len - a);
 }
 
-void payload_display_c_style(const uint8_t * const pkt, const size_t len)
+size_t payload_display_c_style(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
 
@@ -61,6 +65,8 @@ void payload_display_c_style(const uint8_t * const pkt, const size_t len)
 		info("0x%.2x\n", pkt[len]);
 
 	info("};\n");
+
+	return(len - a + 1);
 }
 
 void payload_display_set(const enum display_type dtype)

@@ -12,7 +12,7 @@
  * 	Print all info of ICMP header
  */
 
-size_t icmp_offset_get(const uint8_t * const pkt, const size_t len);
+size_t icmp_size_get(void);
 uint16_t icmp_key_get(const uint8_t * const pkt, const size_t len);
 void icmp_display_set(const enum display_type dtype);
 
@@ -70,18 +70,24 @@ static const char * icmp_time_exceeded_str[ICMP_EXC_FRAGTIME + 1] =
 static struct protocol_dissector icmp_dissector = 
 {
 	.display = NULL,
-	.get_offset = icmp_offset_get,
+	.get_offset = icmp_size_get,
 	.get_next_key = icmp_key_get,
 	.display_set = icmp_display_set,
 	.key = IPPROTO_ICMP
 };
 
-void icmp_display(const uint8_t * const pkt, const size_t len)
+size_t icmp_size_get(void)
+{
+	return(sizeof(struct icmphdr));
+}
+
+size_t icmp_display(const uint8_t * const pkt, const size_t len)
 {
 	struct icmphdr * icmp = (struct icmphdr *) pkt;
+	size_t icmp_len = icmp_size_get();
 
 	assert(pkt);
-	assert(len >= sizeof(*icmp));
+	assert(len >= icmp_len);
 
 	info(" [ ICMP ");
 
@@ -137,14 +143,17 @@ void icmp_display(const uint8_t * const pkt, const size_t len)
 	info("Csum (0x%x), \n", icmp->checksum);
 
 	info(" ] \n");
+
+	return (icmp_len);
 }
 
-void icmp_display_less(const uint8_t * const pkt, const size_t len)
+size_t icmp_display_less(const uint8_t * const pkt, const size_t len)
 {
 	struct icmphdr * icmp = (struct icmphdr *) pkt;
+	size_t icmp_len = icmp_size_get();
 
 	assert(pkt);
-	assert(len >= sizeof(*icmp));
+	assert(len >= icmp_len);
 
 	info(" [ ICMP ");
 
@@ -153,58 +162,56 @@ void icmp_display_less(const uint8_t * const pkt, const size_t len)
 	info("Csum (0x%x), \n", icmp->checksum);
 
 	info(" ] \n");
+
+	return (icmp_len);
 }
 
-void icmp_display_hex(const uint8_t * const pkt, const size_t len)
+size_t icmp_display_hex(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
+	size_t icmp_len = icmp_size_get();
 
 	assert(pkt);
-	assert(len >= sizeof(struct icmphdr));
+	assert(len >= icmp_len);
 
 	info(" [ ICMP (");
-	for (a = 0; a < sizeof(struct icmphdr); a++)
+	for (a = 0; a < icmp_len; a++)
 	{
 		info("%.2x ", pkt[a]);
 	}
 
 	info(") ]\n");
-
+	
+	return (icmp_len);
 }
 
-void icmp_display_c_style(const uint8_t * const pkt, const size_t len)
+size_t icmp_display_c_style(const uint8_t * const pkt, const size_t len)
 {
 	size_t a;
+	size_t icmp_len = icmp_size_get();
 
 	assert(pkt);
-	assert(len >= sizeof(struct icmphdr));
+	assert(len >= icmp_len);
 
 	info("const uint8_t icmp[] = {");
 
-	for (a = 0; a < len - 1; a++)
+	for (a = 0; a < icmp_len - 1; a++)
 	{
 		info("0x%.2x, ", pkt[a]);
 	}
 
 	if (len > 0)
-		info("0x%.2x };\n", pkt[len]);
+		info("0x%.2x };\n", pkt[icmp_len]);
 
 	info("};\n");
 
-}
-
-size_t icmp_offset_get(const uint8_t * const pkt, const size_t len)
-{
-	assert(pkt);
-	assert(len >= sizeof(struct icmphdr));
-
-	return(sizeof(struct icmphdr));
+	return (icmp_len);
 }
 
 uint16_t icmp_key_get(const uint8_t * const pkt, const size_t len)
 {
 	assert(pkt);
-	assert(len >= sizeof(struct icmphdr));
+	assert(len >= icmp_size_get());
 
 	return (PAYLOAD_DEFAULT_KEY); 
 }
