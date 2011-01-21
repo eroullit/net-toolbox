@@ -59,6 +59,8 @@ int ethernet_dissector_run(uint8_t * pkt, size_t len)
 
 		len -= off;
 		pkt += off;
+
+		info("key = 0x%.4x\n", key);
 	}
 
 	if (hi_get_uint16_t(ethernet_dissector_hash, PAYLOAD_DEFAULT_KEY, (void **)&dis) == 0)
@@ -119,6 +121,11 @@ int ethernet_dissector_init(void)
 	}
 
 	if ((rc = dissector_arp_insert()) != 0)
+	{
+		goto error;
+	}
+
+	if ((rc = dissector_ip_insert()) != 0)
 	{
 		goto error;
 	}

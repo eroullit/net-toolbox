@@ -12,6 +12,7 @@
 #include <netcore-ng/dissector/payload.h>
 #include <netcore-ng/dissector/ethernet/ethernet.h>
 #include <netcore-ng/dissector/ethernet/arp.h>
+#include <netcore-ng/dissector/ethernet/ip.h>
 #include <netcore-ng/dissector/ethernet/icmp.h>
 
 int ethernet_dissector_insert(const struct protocol_dissector * const dis);

@@ -116,6 +116,8 @@ uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len)
 	assert(pkt);
 	assert(len >= ethernet_size_get());
 
+	info("Returns ethertype %.4x\n", ntohs(hdr->ether_type));
+
 	return(ntohs(hdr->ether_type));
 }
 
