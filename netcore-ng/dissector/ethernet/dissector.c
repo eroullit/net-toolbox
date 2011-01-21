@@ -46,21 +46,23 @@ int ethernet_dissector_insert(const struct protocol_dissector * const dis)
 int ethernet_dissector_run(uint8_t * pkt, size_t len)
 {
 	size_t off = 0;
-	uint16_t key;
+	uint16_t key = ETHERNET_HDR_DEFAULT_KEY;
 	struct protocol_dissector * dis = NULL;
 
 	assert(pkt);
 	assert(len);
 
-	for (key = ETHERNET_HDR_DEFAULT_KEY; hi_get_uint16_t(ethernet_dissector_hash, key, (void **)&dis) == 0; key = dis->get_next_key(pkt, len))
+	while (hi_get_uint16_t(ethernet_dissector_hash, key, (void **)&dis) == 0)
 	{
-		if (dis->display)
-			off = dis->display(pkt, len);
-
 		len -= off;
 		pkt += off;
 
+		if (dis->display)
+			off = dis->display(pkt, len);
+
 		info("key = 0x%.4x\n", key);
+
+		key = dis->get_next_key(pkt, len);
 	}
 
 	if (hi_get_uint16_t(ethernet_dissector_hash, PAYLOAD_DEFAULT_KEY, (void **)&dis) == 0)
