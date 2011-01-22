@@ -143,7 +143,7 @@ uint16_t arp_key_get(const uint8_t * const pkt, const size_t len)
 	assert(pkt);
 	assert(len >= sizeof(struct arphdr));
 
-	return (EINVAL); 
+	return (PAYLOAD_DEFAULT_KEY); 
 }
 
 void arp_display_set(const enum display_type dtype)

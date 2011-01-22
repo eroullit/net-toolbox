@@ -134,12 +134,11 @@ size_t ip_display_c_style(const uint8_t * const pkt, const size_t len)
 
 uint16_t ip_key_get(const uint8_t * const pkt, const size_t len)
 {
-	struct iphdr * ip = (struct iphdr *) pkt;
-
 	assert(pkt);
 	assert(len >= ip_size_get());
 
-	return (ip->protocol); 
+	/* TODO return L4 ID */
+	return (PAYLOAD_DEFAULT_KEY); 
 }
 
 void ip_display_set(const enum display_type dtype)
