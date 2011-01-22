@@ -140,7 +140,7 @@ size_t icmp_display(const uint8_t * const pkt, const size_t len)
 		break;
 	}
 
-	info("Csum (0x%x), \n", icmp->checksum);
+	info("Csum (0x%x)", icmp->checksum);
 
 	info(" ] \n");
 
