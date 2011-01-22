@@ -38,7 +38,7 @@ int ethernet_dissector_insert(const struct protocol_dissector * const dis)
 		return (rc);
 	}
 
-	info("Added dissector %p with key %x\n", (void *)dis, dis->key);
+	//info("Added dissector %p with key %x\n", (void *)dis, dis->key);
 
 	return (0);
 }
@@ -60,15 +60,12 @@ int ethernet_dissector_run(uint8_t * pkt, size_t len)
 		if (dis->display)
 			off = dis->display(pkt, len);
 
-		info("key = 0x%.4x\n", key);
+		if (dis->get_next_key == NULL)
+		{
+			break;
+		}
 
 		key = dis->get_next_key(pkt, len);
-	}
-
-	if (hi_get_uint16_t(ethernet_dissector_hash, PAYLOAD_DEFAULT_KEY, (void **)&dis) == 0)
-	{
-		if (dis->display)
-			dis->display(pkt, len);
 	}
 
 	return (0);
