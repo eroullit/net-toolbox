@@ -22,9 +22,9 @@ enum display_type
 
 struct protocol_dissector
 {
-	size_t (*display)(const uint8_t * const pkt, const size_t len);
+	size_t (*display)(const uint8_t * const pkt, const size_t len, const size_t off);
 	size_t (*get_offset)(void);
-	uint16_t (*get_next_key)(const uint8_t * const pkt, const size_t len);
+	uint16_t (*get_next_key)(const uint8_t * const pkt, const size_t len, const size_t off);
 	void (*display_set)(const enum display_type dtype);
 	const uint16_t key;
 };

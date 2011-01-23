@@ -6,7 +6,6 @@
 #include <netcore-ng/dissector/payload.h>
 
 size_t payload_offset_get(const uint8_t * const pkt, const size_t len);
-uint16_t payload_key_get(const uint8_t * const pkt, const size_t len);
 void payload_display_set(const enum display_type dtype);
 
 static struct protocol_dissector payload_dissector = 
@@ -18,55 +17,58 @@ static struct protocol_dissector payload_dissector =
 	.key = PAYLOAD_DEFAULT_KEY
 };
 
-size_t payload_display(const uint8_t * const pkt, const size_t len)
+size_t payload_display(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
 
+	assert(len > off);
+
 	info("[ Payload ");
 
-	for (a = 0; a < len; a++)
+	for (a = off; a < len; a++)
 	{
 		info("%c ", isprint(pkt[a]) ? pkt[a] : '.');
 	}
 
 	info("]\n");
 	
-	return(len - a);
+	return(len - off);
 }
 
-size_t payload_display_hex(const uint8_t * const pkt, const size_t len)
+size_t payload_display_hex(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
+	
+	assert(len > off);
 
 	info("[ Payload ");
 
-	for (a = 0; a < len; a++)
+	for (a = off; a < len; a++)
 	{
 		info("%.2x ", pkt[a]);
 	}
 
 	info("]\n");
 	
-	return(len - a);
+	return(len - off);
 }
 
-size_t payload_display_c_style(const uint8_t * const pkt, const size_t len)
+size_t payload_display_c_style(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
 
+	assert(len > off);
+
 	info("const uint8_t payload[] = {");
 
-	for (a = 0; a < len - 1; a++)
+	for (a = off; a < len - 1; a++)
 	{
 		info("0x%.2x, ", pkt[a]);
 	}
 
-	if (len > 0)
-		info("0x%.2x\n", pkt[len]);
+	info("0x%.2x};\n", pkt[len]);
 
-	info("};\n");
-
-	return(len - a + 1);
+	return(len - off);
 }
 
 void payload_display_set(const enum display_type dtype)

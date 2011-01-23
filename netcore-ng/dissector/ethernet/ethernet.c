@@ -8,7 +8,7 @@
 #include <netcore-ng/dissector/ethernet/ethernet.h>
 
 size_t ethernet_size_get(void);
-uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len);
+uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len, const size_t off);
 void ethernet_display_set(const enum display_type dtype);
 
 static struct protocol_dissector eth_dissector = 
@@ -26,17 +26,17 @@ size_t ethernet_size_get(void)
 }
 
 
-size_t ethernet_display(const uint8_t * const pkt, const size_t len)
+size_t ethernet_display(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	char mac_str[32] = { 0 };
 	size_t eth_len = ethernet_size_get();
-	struct ether_header * hdr = (struct ether_header *) pkt;
+	struct ether_header * hdr = (struct ether_header *) &pkt[off];
 	const char * ether_type_str = NULL;
 	const char * svendor_id = NULL;
 	const char * dvendor_id = NULL;
 
 	assert(pkt);
-	assert(len >= eth_len);
+	assert(len >= off + eth_len);
 
 	ether_types_hash_search(ntohs(hdr->ether_type), &ether_type_str);
 
@@ -51,15 +51,15 @@ size_t ethernet_display(const uint8_t * const pkt, const size_t len)
 	return (eth_len);
 }
 
-size_t ethernet_display_less(const uint8_t * const pkt, const size_t len)
+size_t ethernet_display_less(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	char mac_str[32] = { 0 };
 	size_t eth_len = ethernet_size_get();
-	struct ether_header * hdr = (struct ether_header *) pkt;
+	struct ether_header * hdr = (struct ether_header *) &pkt[off];
 	const char * ether_type_str = NULL;
 	
 	assert(pkt);
-	assert(len >= eth_len);
+	assert(len >= off + eth_len);
 
 	ether_types_hash_search(ntohs(hdr->ether_type), &ether_type_str);
 	
@@ -68,18 +68,18 @@ size_t ethernet_display_less(const uint8_t * const pkt, const size_t len)
 	return (eth_len);
 }
 
-size_t ethernet_display_hex(const uint8_t * const pkt, const size_t len)
+size_t ethernet_display_hex(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
 	size_t eth_len = ethernet_size_get();
 
 	assert(pkt);
-	assert(len >= eth_len);
+	assert(len >= off + eth_len);
 
 	info(" [ MAC header (");
 	for (a = 0; a < eth_len; a++)
 	{
-		info("%.2x ", pkt[a]);
+		info("%.2x ", pkt[off + a]);
 	}
 
 	info(") ]\n");
@@ -87,34 +87,31 @@ size_t ethernet_display_hex(const uint8_t * const pkt, const size_t len)
 	return (eth_len);
 }
 
-size_t ethernet_display_c_style(const uint8_t * const pkt, const size_t len)
+size_t ethernet_display_c_style(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
 	size_t eth_len = ethernet_size_get();
 
 	assert(pkt);
-	assert(len >= eth_len);
+	assert(len >= off + eth_len);
 
 	info("const uint8_t mac_hdr[] = {");
 
 	for (a = 0; a < eth_len - 1; a++)
 	{
-		info("0x%.2x, ", pkt[a]);
+		info("0x%.2x, ", pkt[off + a]);
 	}
 
-	if (len > 0)
-		info("0x%.2x\n", pkt[eth_len]);
+	info("0x%.2x};\n", pkt[off + eth_len]);
 
-	info("};\n");
-	
 	return (eth_len);
 }
 
-uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len)
+uint16_t ethernet_key_get(const uint8_t * const pkt, const size_t len, const size_t off)
 {
-	struct ether_header * hdr = (struct ether_header *) pkt;
+	struct ether_header * hdr = (struct ether_header *) &pkt[off];
 	assert(pkt);
-	assert(len >= ethernet_size_get());
+	assert(len >= off + ethernet_size_get());
 
 	return(ntohs(hdr->ether_type));
 }

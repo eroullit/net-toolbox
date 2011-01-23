@@ -13,7 +13,7 @@
  */
 
 size_t icmp_size_get(void);
-uint16_t icmp_key_get(const uint8_t * const pkt, const size_t len);
+uint16_t icmp_key_get(const uint8_t * const pkt, const size_t len, const size_t off);
 void icmp_display_set(const enum display_type dtype);
 
 static const char * icmp_types_str[] = 
@@ -81,13 +81,13 @@ size_t icmp_size_get(void)
 	return(sizeof(struct icmphdr));
 }
 
-size_t icmp_display(const uint8_t * const pkt, const size_t len)
+size_t icmp_display(const uint8_t * const pkt, const size_t len, const size_t off)
 {
-	struct icmphdr * icmp = (struct icmphdr *) pkt;
+	struct icmphdr * icmp = (struct icmphdr *) &pkt[off];
 	size_t icmp_len = icmp_size_get();
 
 	assert(pkt);
-	assert(len >= icmp_len);
+	assert(len >= off + icmp_len);
 
 	info(" [ ICMP ");
 
@@ -147,13 +147,13 @@ size_t icmp_display(const uint8_t * const pkt, const size_t len)
 	return (icmp_len);
 }
 
-size_t icmp_display_less(const uint8_t * const pkt, const size_t len)
+size_t icmp_display_less(const uint8_t * const pkt, const size_t len, const size_t off)
 {
-	struct icmphdr * icmp = (struct icmphdr *) pkt;
+	struct icmphdr * icmp = (struct icmphdr *) &pkt[off];
 	size_t icmp_len = icmp_size_get();
 
 	assert(pkt);
-	assert(len >= icmp_len);
+	assert(len >= off + icmp_len);
 
 	info(" [ ICMP ");
 
@@ -166,18 +166,18 @@ size_t icmp_display_less(const uint8_t * const pkt, const size_t len)
 	return (icmp_len);
 }
 
-size_t icmp_display_hex(const uint8_t * const pkt, const size_t len)
+size_t icmp_display_hex(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
 	size_t icmp_len = icmp_size_get();
 
 	assert(pkt);
-	assert(len >= icmp_len);
+	assert(len >= off + icmp_len);
 
 	info(" [ ICMP (");
 	for (a = 0; a < icmp_len; a++)
 	{
-		info("%.2x ", pkt[a]);
+		info("%.2x ", pkt[off + a]);
 	}
 
 	info(") ]\n");
@@ -185,33 +185,30 @@ size_t icmp_display_hex(const uint8_t * const pkt, const size_t len)
 	return (icmp_len);
 }
 
-size_t icmp_display_c_style(const uint8_t * const pkt, const size_t len)
+size_t icmp_display_c_style(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
 	size_t icmp_len = icmp_size_get();
 
 	assert(pkt);
-	assert(len >= icmp_len);
+	assert(len >= off + icmp_len);
 
 	info("const uint8_t icmp[] = {");
 
 	for (a = 0; a < icmp_len - 1; a++)
 	{
-		info("0x%.2x, ", pkt[a]);
+		info("0x%.2x, ", pkt[off + a]);
 	}
 
-	if (len > 0)
-		info("0x%.2x };\n", pkt[icmp_len]);
-
-	info("};\n");
+	info("0x%.2x};\n", pkt[off + icmp_len]);
 
 	return (icmp_len);
 }
 
-uint16_t icmp_key_get(const uint8_t * const pkt, const size_t len)
+uint16_t icmp_key_get(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	assert(pkt);
-	assert(len >= icmp_size_get());
+	assert(len >= off + icmp_size_get());
 
 	return (PAYLOAD_DEFAULT_KEY); 
 }

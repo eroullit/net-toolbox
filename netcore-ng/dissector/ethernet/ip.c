@@ -15,7 +15,7 @@
 #define	FRAG_OFF_FRAGMENT_OFFSET(x)    ((x) & IP_OFFMASK)
 
 size_t ip_size_get(void);
-uint16_t ip_key_get(const uint8_t * const pkt, const size_t len);
+uint16_t ip_key_get(const uint8_t * const pkt, const size_t len, const size_t off);
 void ip_display_set(const enum display_type dtype);
 
 static struct protocol_dissector ip_dissector = 
@@ -32,17 +32,17 @@ size_t ip_size_get(void)
 	return(sizeof(struct iphdr));
 }
 
-size_t ip_display(const uint8_t * const pkt, const size_t len)
+size_t ip_display(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	char src_ip[INET_ADDRSTRLEN];
 	char dst_ip[INET_ADDRSTRLEN];
-	struct iphdr * ip = (struct iphdr *) pkt;
+	struct iphdr * ip = (struct iphdr *) &pkt[off];
 	size_t ip_len = ip_size_get();
 	uint16_t frag_off;
 	/* TODO csum */
 
 	assert(pkt);
-	assert(len >= ip_len);
+	assert(len >= off + ip_len);
 
 	frag_off = ntohs(ip->frag_off);
 
@@ -69,39 +69,37 @@ size_t ip_display(const uint8_t * const pkt, const size_t len)
 	return (ip_len);
 }
 
-size_t ip_display_less(const uint8_t * const pkt, const size_t len)
+size_t ip_display_less(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	char src_ip[INET_ADDRSTRLEN];
 	char dst_ip[INET_ADDRSTRLEN];
-	struct iphdr * ip = (struct iphdr *) pkt;
+	struct iphdr * ip = (struct iphdr *) &pkt[off];
 	size_t ip_len = ip_size_get();
 
 	assert(pkt);
-	assert(len >= ip_len);
+	assert(len >= off + ip_len);
 	
 	inet_ntop(AF_INET, &ip->saddr, src_ip, sizeof(src_ip));
 	inet_ntop(AF_INET, &ip->daddr, dst_ip, sizeof(dst_ip));
 
-	info(" [ IPv4 ");
-	info("Addr (%s => %s), ", src_ip, dst_ip);
-	info(" ]\n");
+	info(" [ IPv4 Addr (%s => %s) ]\n", src_ip, dst_ip);
 
 	return (ip_len);
 }
 
-size_t ip_display_hex(const uint8_t * const pkt, const size_t len)
+size_t ip_display_hex(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
 	size_t ip_len = ip_size_get();
 
 	assert(pkt);
-	assert(len >= ip_len);
+	assert(len >= off + ip_len);
 
 	info(" [ IPv4 ");
 	
 	for (a = 0; a < ip_len; a++)
 	{
-		info("%.2x ", pkt[a]);
+		info("%.2x ", pkt[off + a]);
 	}
 
 	info(") ]\n");
@@ -109,33 +107,30 @@ size_t ip_display_hex(const uint8_t * const pkt, const size_t len)
 	return (ip_len);
 }
 
-size_t ip_display_c_style(const uint8_t * const pkt, const size_t len)
+size_t ip_display_c_style(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
 	size_t ip_len = ip_size_get();
 
 	assert(pkt);
-	assert(len >= ip_len);
+	assert(len >= off + ip_len);
 
 	info("const uint8_t ip_hdr[] = {");
 
 	for (a = 0; a < ip_len - 1; a++)
 	{
-		info("0x%.2x, ", pkt[a]);
+		info("0x%.2x, ", pkt[off + a]);
 	}
 
-	if (len > 0)
-		info("0x%.2x };\n", pkt[ip_len]);
-
-	info("};\n");
+	info("0x%.2x };\n", pkt[off + ip_len]);
 
 	return (ip_len);
 }
 
-uint16_t ip_key_get(const uint8_t * const pkt, const size_t len)
+uint16_t ip_key_get(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	assert(pkt);
-	assert(len >= ip_size_get());
+	assert(len >= off + ip_size_get());
 
 	/* TODO return L4 ID */
 	return (PAYLOAD_DEFAULT_KEY); 
