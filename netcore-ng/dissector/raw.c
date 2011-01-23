@@ -17,40 +17,77 @@ static struct protocol_dissector raw_dissector =
 	.key = RAW_DEFAULT_KEY
 };
 
-size_t raw_display(const uint8_t * const pkt, const size_t len, const size_t off)
+size_t _raw_display_less(const uint8_t * const pkt, const size_t len, const size_t off)
 {
 	size_t a;
+	size_t read = min(len - off, RAW_CHUNK);
 
 	assert(len > off);
 
-	info("[ Payload ");
-
-	for (a = off; a < len; a++)
+	for (a = 0; a < read; a++)
 	{
-		info("%c ", isprint(pkt[a]) ? pkt[a] : '.');
+		info("%c", isprint(pkt[off + a]) ? pkt[off + a] : '.');
 	}
 
-	info("]\n");
+	return(read);
+}
+
+size_t _raw_display_hex(const uint8_t * const pkt, const size_t len, const size_t off)
+{
+	size_t a;
+	size_t read = min(len - off, RAW_CHUNK);
 	
-	return(len - off);
+	assert(len > off);
+
+	info("0x%.4X | ", off);
+
+	for (a = 0; a < read; a++)
+	{
+		info("%.2x ", pkt[off + a]);
+	}
+
+	return(read);
+}
+
+size_t raw_display(const uint8_t * const pkt, const size_t len, const size_t off)
+{
+	size_t a = off;
+
+	while (a < len)
+	{
+		_raw_display_hex(pkt, len, a);
+		info(" | ");
+		a += _raw_display_less(pkt, len, a);
+		info("\n");
+	}
+
+	return (len - a);
 }
 
 size_t raw_display_hex(const uint8_t * const pkt, const size_t len, const size_t off)
 {
-	size_t a;
-	
-	assert(len > off);
+	size_t a = off;
 
-	info("[ Payload ");
-
-	for (a = off; a < len; a++)
+	while (a < len)
 	{
-		info("%.2x ", pkt[a]);
+		a += _raw_display_hex(pkt, len, a);
+		info("\n");
 	}
 
-	info("]\n");
-	
-	return(len - off);
+	return (len - a);
+}
+
+size_t raw_display_less(const uint8_t * const pkt, const size_t len, const size_t off)
+{
+	size_t a = off;
+
+	while (a < len)
+	{
+		a += _raw_display_less(pkt, len, a);
+		info("\n");
+	}
+
+	return (len - a);
 }
 
 size_t raw_display_c_style(const uint8_t * const pkt, const size_t len, const size_t off)
@@ -80,6 +117,9 @@ void raw_display_set(const enum display_type dtype)
 		break;
 
 		case DISPLAY_LESS:	
+			raw_dissector.display = raw_display_less;
+		break;
+
 		case DISPLAY_HEX:
 			raw_dissector.display = raw_display_hex;
 		break;

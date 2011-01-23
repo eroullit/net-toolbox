@@ -27,6 +27,10 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+#define min(x,y) x < y ? x : y
+
+#define max(x,y) x > y ? x : y
+
 #define info(...)                                             \
                                 fprintf(stdout, __VA_ARGS__)
 
