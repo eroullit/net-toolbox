@@ -140,7 +140,7 @@ uint16_t arp_key_get(const uint8_t * const pkt, const size_t len, const size_t o
 	assert(pkt);
 	assert(len >= off + arp_size_get());
 
-	return (PAYLOAD_DEFAULT_KEY); 
+	return (RAW_DEFAULT_KEY); 
 }
 
 void arp_display_set(const enum display_type dtype)

@@ -9,7 +9,7 @@
 #include <netcore-ng/ports_udp.h>
 
 #include <netcore-ng/dissector/dissector_generic.h>
-#include <netcore-ng/dissector/payload.h>
+#include <netcore-ng/dissector/raw.h>
 #include <netcore-ng/dissector/ethernet/ethernet.h>
 #include <netcore-ng/dissector/ethernet/arp.h>
 #include <netcore-ng/dissector/ethernet/ip.h>

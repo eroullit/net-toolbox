@@ -108,7 +108,7 @@ int ethernet_dissector_init(void)
 		goto error;
 	}
 
-	if ((rc = dissector_payload_insert(ethernet_dissector_insert)) != 0)
+	if ((rc = dissector_raw_insert(ethernet_dissector_insert)) != 0)
 	{
 		goto error;
 	}

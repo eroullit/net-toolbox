@@ -210,7 +210,7 @@ uint16_t icmp_key_get(const uint8_t * const pkt, const size_t len, const size_t 
 	assert(pkt);
 	assert(len >= off + icmp_size_get());
 
-	return (PAYLOAD_DEFAULT_KEY); 
+	return (RAW_DEFAULT_KEY); 
 }
 
 void icmp_display_set(const enum display_type dtype)

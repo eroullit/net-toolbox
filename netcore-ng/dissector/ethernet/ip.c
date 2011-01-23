@@ -133,7 +133,7 @@ uint16_t ip_key_get(const uint8_t * const pkt, const size_t len, const size_t of
 	assert(len >= off + ip_size_get());
 
 	/* TODO return L4 ID */
-	return (PAYLOAD_DEFAULT_KEY); 
+	return (RAW_DEFAULT_KEY); 
 }
 
 void ip_display_set(const enum display_type dtype)
