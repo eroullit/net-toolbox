@@ -39,7 +39,7 @@ size_t _raw_display_hex(const uint8_t * const pkt, const size_t len, const size_
 	
 	assert(len > off);
 
-	info("0x%.4X | ", off);
+	info("0x%.4zX | ", off);
 
 	for (a = 0; a < read; a++)
 	{
