@@ -310,13 +310,14 @@ void clean_config(struct system_data *sd)
 
 #endif
 
-static const char * const short_options = "d:b:p:l:cCrRIhv";
+static const char * const short_options = "d:b:p:l:scCrRIhv";
 
 static const struct option long_options[] = {
 	{"dev", required_argument, 0, 'd'},
 	{"bpf", required_argument, 0, 'b'},
 	{"pcap", required_argument, 0, 'p'},
 	{"cpu", required_argument, 0, 'l'},
+	{"silent", no_argument, 0, 's'},
 	{"capture", no_argument, 0, 'c'},
 	{"compat-capture", no_argument, 0, 'C'},
 	{"replay", no_argument, 0, 'r'},
@@ -332,6 +333,7 @@ void init_configuration(struct system_data *sd)
 	assert(sd);
 	memset(sd, 0, sizeof(*sd));
 	sd->mode = RX_THREAD;
+	sd->dtype = DISPLAY_NORMAL;
 }
 
 void check_config(struct system_data *sd)
@@ -374,6 +376,10 @@ void set_configuration(int argc, char **argv, struct system_data *sd)
 		{
 			case 'd':
 			sd->dev = xstrdup(optarg);
+			break;
+
+			case 's':
+			sd->dtype = DISPLAY_NONE;
 			break;
 
 			case 'b':

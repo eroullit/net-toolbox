@@ -21,6 +21,7 @@
 #define	_NET_CONFIG_H_
 
 #include <netcore-ng/thread.h>
+#include <netcore-ng/dissector/dissector_generic.h>
 
 /* Internals */
 #define DEFAULT_INTERFACE "lo"
@@ -53,6 +54,7 @@ struct system_data {
 	char * pcap_path;
 	char * dev;
 	char * cpu_set_str;
+	enum display_type dtype;
 	enum netsniff_ng_thread_type mode;
 };
 

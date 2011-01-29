@@ -349,7 +349,7 @@ void rx_thread_destroy(struct netsniff_ng_rx_thread_context * thread_config)
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
+struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path, const enum display_type dtype)
 {
 	int rc;
 	struct netsniff_ng_rx_thread_context * thread_config = NULL;
@@ -371,7 +371,7 @@ struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, 
 		goto error;
 	}
 
-	if ((rc = ethernet_dissector_init()) != 0)
+	if ((rc = ethernet_dissector_init(dtype)) != 0)
 	{
 		warn("Cannot initialize dissector\n");
 		goto error;

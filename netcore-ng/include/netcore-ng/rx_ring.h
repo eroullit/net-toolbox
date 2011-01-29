@@ -25,6 +25,7 @@
 #include <netcore-ng/types.h> 
 #include <netcore-ng/thread.h> 
 #include <netcore-ng/bpf.h> 
+#include <netcore-ng/dissector/dissector_generic.h> 
 
 /* Function signatures */
 /* a rx ring must only belong to one entity */
@@ -47,7 +48,7 @@ struct netsniff_ng_rx_thread_context
 };
 
 /* Function signatures */
-extern struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * const rx_dev, const char * const bpf_path, const char * const pcap_path);
+extern struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * const rx_dev, const char * const bpf_path, const char * const pcap_path, const enum display_type dtype);
 extern void rx_thread_destroy(struct netsniff_ng_rx_thread_context * thread_config);
 
 

@@ -79,7 +79,7 @@ void ethernet_dissector_destroy(void)
 	hi_fini(ethernet_dissector_hash);
 }
 
-int ethernet_dissector_init(void)
+int ethernet_dissector_init(const enum display_type dtype)
 {
 	int rc = 0;
 
@@ -133,7 +133,7 @@ int ethernet_dissector_init(void)
 		goto error;
 	}
 
-	if ((rc = ethernet_dissector_display_set(DISPLAY_NORMAL)) != 0)
+	if ((rc = ethernet_dissector_display_set(dtype)) != 0)
 	{
 		goto error;
 	}

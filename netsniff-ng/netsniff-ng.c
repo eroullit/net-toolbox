@@ -60,7 +60,7 @@ void start_single_rx_thread(struct system_data * sd)
 	switch(sd->mode)
 	{
 		case RX_THREAD:
-			thread_ctx.rx = rx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
+			thread_ctx.rx = rx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path, sd->dtype);
 
 			if (thread_ctx.rx == NULL)
 				goto out;
