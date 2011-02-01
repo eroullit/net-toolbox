@@ -1,0 +1,24 @@
+What is the use of these BPF files?
+====================
+
+The BPF files contained in the directory can be used by netsniff-ng
+to only push "interesting" packet to the userspace in order to process them.
+As libnetcore-ng does not have a BPF compiler built-in to transform expression in BPF
+code, raw BPFs are stored here.
+
+What is the copyright status of the BPF files?
+====================
+
+The files in the directory do not have any copyright on them as they are
+merely generated from a command such as:
+	tcpdump -dd udp
+
+Keep in mind that the following legal statement:
+
+	THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
+	WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+	MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+If any comment or question might arise, feel free to contact us at
+	<workgroup@netsniff-ng.org>
+
