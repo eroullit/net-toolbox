@@ -1,7 +1,7 @@
 /* __LICENSE_HEADER_BEGIN__ */
 
 /*
- * Copyright (C) 2009, 2010  Daniel Borkmann <daniel@netsniff-ng.org> and
+ * Copyright (C) 2009, 2011  Daniel Borkmann <daniel@netsniff-ng.org> and
  *                           Emmanuel Roullit <emmanuel@netsniff-ng.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -8186,7 +8186,7 @@ static const struct vendor_id vendor_db[] = {
 	{0x00200D, "CARL ZEISS"},
 	{0x00200E, "SATELLITE TECHNOLOGY MGMT, INC"},
 	{0x00200F, "TANBAC CO., LTD."},
-	{0x002010, "JEOL SYSTEM TECHNOLOGY CO. LTD"},
+	{0x002011, "JEOL SYSTEM TECHNOLOGY CO. LTD"},
 	{0x002011, "CANOPUS CO., LTD."},
 	{0x002012, "CAMTRONICS MEDICAL SYSTEMS"},
 	{0x002013, "DIVERSIFIED TECHNOLOGY, INC."},
@@ -13161,7 +13161,7 @@ static const struct vendor_id vendor_db[] = {
 	{0xA479E4, "KLINFO Corp"},
 	{0xA4AD00, "Ragsdale Technology"},
 	{0xA4ADB8, "Vitec Group, Camera Dynamics Ltd"},
-	{0xA4B121, "Arantia 2010 S.L."},
+	{0xA4B121, "Arantia 2011 S.L."},
 	{0xA4B1EE, "H. ZANDER GmbH & Co. KG"},
 	{0xA4BADB, "Dell Inc."},
 	{0xA4C2AB, "Hangzhou LEAD-IT Information & Technology Co.,Ltd"},

@@ -1,7 +1,7 @@
 /* __LICENSE_HEADER_BEGIN__ */
 
 /*
- * Copyright (C) 2009, 2010  Daniel Borkmann <daniel@netsniff-ng.org> and
+ * Copyright (C) 2009, 2011  Daniel Borkmann <daniel@netsniff-ng.org> and
  *                           Emmanuel Roullit <emmanuel@netsniff-ng.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -878,7 +878,7 @@ static const struct port_udp ports_udp[] = {
 	{2007, "raid-am"},
 	{2008, "terminaldb"},
 	{2009, "whosockami"},
-	{2010, "pipe_server"},
+	{2011, "pipe_server"},
 	{2011, "servserv"},
 	{2012, "raid-ac"},
 	{2013, "raid-cd"},

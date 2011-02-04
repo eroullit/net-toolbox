@@ -1,7 +1,7 @@
 /* __LICENSE_HEADER_BEGIN__ */
 
 /*
- * Copyright (C) 2009, 2010  Daniel Borkmann <daniel@netsniff-ng.org> and
+ * Copyright (C) 2009, 2011  Daniel Borkmann <daniel@netsniff-ng.org> and
  *                           Emmanuel Roullit <emmanuel@netsniff-ng.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -728,7 +728,7 @@ static const struct port_tcp ports_tcp[] = {
 	{2007, "dectalk"},
 	{2008, "conf"},
 	{2009, "news"},
-	{2010, "search"},
+	{2011, "search"},
 	{2011, "raid-cc"},
 	{2012, "ttyinfo"},
 	{2013, "raid-am"},

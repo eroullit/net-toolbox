@@ -1,7 +1,7 @@
 /* __LICENSE_HEADER_BEGIN__ */
 
 /*
- * Copyright (C) 2009, 2010  Daniel Borkmann <daniel@netsniff-ng.org> and
+ * Copyright (C) 2009, 2011  Daniel Borkmann <daniel@netsniff-ng.org> and
  *                           Emmanuel Roullit <emmanuel@netsniff-ng.org>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -107,7 +107,7 @@ void help(void)
 	info("  netsniff-ng --prio-norm --dev wlan0 --all-hex --type outgoing\n");
 	info("\n");
 	info("Please report bugs to <bugs@netsniff-ng.org>\n");
-	info("Copyright (C) 2009, 2010 Daniel Borkmann and Emmanuel Roullit\n");
+	info("Copyright (C) 2009, 2011 Daniel Borkmann and Emmanuel Roullit\n");
 	info("License: GNU GPL version 2\n");
 	info("This is free software: you are free to change and redistribute it.\n");
 	info("There is NO WARRANTY, to the extent permitted by law.\n\n");
@@ -137,7 +137,7 @@ void help()
 
 	info("\n");
 	info("Please report bugs to <bugs@netsniff-ng.org>\n");
-	info("Copyright (C) 2009, 2010 Daniel Borkmann and Emmanuel Roullit\n");
+	info("Copyright (C) 2009, 2011 Daniel Borkmann and Emmanuel Roullit\n");
 	info("License: GNU GPL version 2\n");
 	info("This is free software: you are free to change and redistribute it.\n");
 	info("There is NO WARRANTY, to the extent permitted by law.\n");
@@ -157,7 +157,7 @@ void version(void)
 	info("Compiled with transmit ring functionality :)\n\n");
 #endif
 	info("Please report bugs to <bugs@netsniff-ng.org>\n");
-	info("Copyright (C) 2009, 2010 Daniel Borkmann and Emmanuel Roullit\n");
+	info("Copyright (C) 2009, 2011 Daniel Borkmann and Emmanuel Roullit\n");
 	info("License: GNU GPL version 2\n");
 	info("This is free software: you are free to change and redistribute it.\n");
 	info("There is NO WARRANTY, to the extent permitted by law.\n\n");
