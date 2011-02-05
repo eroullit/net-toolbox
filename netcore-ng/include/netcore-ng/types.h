@@ -48,6 +48,21 @@ struct frame_map {
 	struct sockaddr_ll s_ll __attribute__ ((aligned(TPACKET_ALIGNMENT)));
 };
 
+static inline uint8_t * frame_map_pkt_buf_get(const struct frame_map * fm)
+{
+	return ((uint8_t *)fm + fm->tp_h.tp_mac);
+}
+
+static inline void frame_map_pkt_status_kernel(struct frame_map * fm)
+{
+	fm->tp_h.tp_status = TP_STATUS_KERNEL;
+}
+
+static inline unsigned long frame_map_pkt_status_get(struct frame_map * fm)
+{
+	return (fm->tp_h.tp_status);
+}
+
 /*
  * Some external data structures (wich are used for
  * data transmission via a unix domain socket inode)
