@@ -127,6 +127,7 @@ static int rx_ring_bind(int sock, int ifindex)
 
 static void * rx_thread_listen(void * arg)
 {
+	struct rx_job * job = NULL;
 	struct pollfd pfd;
 	int rc;
 	uint8_t * pkt_buf = NULL;
@@ -176,8 +177,11 @@ static void * rx_thread_listen(void * arg)
 
 				ethernet_dissector_run(pkt_buf, fm->tp_h.tp_len);
 
-				if (nic_ctx->pcap_fd > 0)
-					pcap_write_payload(nic_ctx->pcap_fd, &fm->tp_h, (struct ethhdr *)pkt_buf);
+				SLIST_FOREACH(job, &nic_ctx->job_list.head, entry)
+				{
+					/* TODO think about return values handling */
+					job->rx_job(thread_ctx, fm);
+				}
 			}
 	
 			frame_map_pkt_status_kernel(fm);
@@ -306,6 +310,12 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		goto error;
 	}
 
+	if ((rc = rx_job_list_init(&nic_ctx->job_list)) != 0)
+	{
+		warn("Could not create job list\n");
+		goto error;
+	}
+
 	if (bpf_path)
 	{
 		if(bpf_parse(bpf_path, &nic_ctx->bpf) == 0)
@@ -324,6 +334,12 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
 			rc = EINVAL;
+			goto error;
+		}
+
+		if ((rc = pcap_write_job_register(&nic_ctx->job_list)) != 0)
+		{
+			warn("Could not register pcap write job\n");
 			goto error;
 		}
 	}
