@@ -878,7 +878,7 @@ static const struct port_udp ports_udp[] = {
 	{2007, "raid-am"},
 	{2008, "terminaldb"},
 	{2009, "whosockami"},
-	{2011, "pipe_server"},
+	{2010, "pipe_server"},
 	{2011, "servserv"},
 	{2012, "raid-ac"},
 	{2013, "raid-cd"},

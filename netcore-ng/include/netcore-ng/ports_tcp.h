@@ -728,7 +728,7 @@ static const struct port_tcp ports_tcp[] = {
 	{2007, "dectalk"},
 	{2008, "conf"},
 	{2009, "news"},
-	{2011, "search"},
+	{2010, "search"},
 	{2011, "raid-cc"},
 	{2012, "ttyinfo"},
 	{2013, "raid-am"},
