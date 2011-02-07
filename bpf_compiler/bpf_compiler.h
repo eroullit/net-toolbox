@@ -32,6 +32,7 @@ enum bpf_compiler_code
 	LEN,
 	AND,
 	OR,
+	XOR,
 	MAC_ID,
 	IPv4_ID,
 };

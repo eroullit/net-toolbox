@@ -38,6 +38,7 @@ src		{printf("src\n"); return SRC;}
 		}
 and		{printf("and\n");return AND;}
 or		{printf("or\n");return OR;}
+xor		{printf("xor\n");return XOR;}
 not		{printf("not\n");return '!';}
 {word}		;
 [ \t\n\r]	;
