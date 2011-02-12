@@ -30,6 +30,7 @@ enum bpf_compiler_code
 	SRC = 1,
 	DST,
 	LEN,
+	PORT,
 	AND,
 	OR,
 	XOR,

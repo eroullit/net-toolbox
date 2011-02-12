@@ -27,6 +27,7 @@ IPv4	{number}.{number}.{number}.{number}
 
 dst		{printf("dst\n"); return DST;}
 src		{printf("src\n"); return SRC;}
+port		{printf("port\n"); return PORT;}
 {MAC}		{printf("mac : %s\n", ether_ntoa(ether_aton(yytext))); return MAC_ID;}
 {IPv4}		{char addrstr[INET_ADDRSTRLEN];
 		 struct in_addr addr;
