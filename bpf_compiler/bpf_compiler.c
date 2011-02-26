@@ -22,7 +22,36 @@
 
  /* __LICENSE_HEADER_END__ */
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <limits.h>
+#include <assert.h>
+#include <errno.h>
 #include "bpf_compiler.h"
+
+int bpf_strtoll(const char const * str, uint64_t * val)
+{
+	char * endptr = NULL;
+
+	assert(str);
+	assert(val);
+
+	errno = 0;
+
+	*val = strtoull(str, &endptr, 0);
+
+	if ((errno == ERANGE && *val == ULLONG_MAX) || (errno != 0 && *val == 0)) 
+	{
+		return(errno);
+	}
+
+	if (endptr == str) 
+	{
+		return(EINVAL);
+	}
+
+	return (0);
+}
 
 int main (int argc, char ** argv)
 {

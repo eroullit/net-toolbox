@@ -25,15 +25,19 @@
 #ifndef	__BPF_COMPILER_H__
 #define	__BPF_COMPILER_H__
 
+#define	stringify(x)	#x
+
 enum bpf_compiler_code
 {
-	SRC = 1,
+	UNKNOWN = 0,
+	SRC,
 	DST,
 	LEN,
 	PORT,
 	AND,
 	OR,
 	XOR,
+	POS_NUMBER,
 	MAC_ID,
 	IPv4_ID,
 };
@@ -41,5 +45,6 @@ enum bpf_compiler_code
 void lex_init(const char * const buf);
 void lex_cleanup();
 int bpf_expr_parse(void);
+int bpf_strtoll(const char const * str, uint64_t * val);
 
 #endif	/* __BPF_COMPILER_H__ */

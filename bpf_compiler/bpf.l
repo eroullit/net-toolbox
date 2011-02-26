@@ -16,32 +16,54 @@ static const char *in_buffer;
 %}
 
 digit	[0-9]
-number	{digit}+
+pos_int	{digit}+
+neg_int	-{digit}+
 letter	[a-zA-Z]
 word    {letter}+
 hex	([0-9A-Fa-f][0-9A-Fa-f]?)
 MAC	({hex}:{hex}:{hex}:{hex}:{hex}:{hex})
-IPv4	{number}.{number}.{number}.{number}
+IPv4	{pos_int}.{pos_int}.{pos_int}.{pos_int}
 
 %%
 
-dst		{printf("dst\n"); return DST;}
-src		{printf("src\n"); return SRC;}
-port		{printf("port\n"); return PORT;}
-{MAC}		{printf("mac : %s\n", ether_ntoa(ether_aton(yytext))); return MAC_ID;}
+dst		{printf("%s\n", stringify(DST)); return DST;}
+src		{printf("%s\n", stringify(SRC)); return SRC;}
+port		{printf("%s\n", stringify(PORT)); return PORT;}
+{MAC}		{printf("%s : %s\n", stringify(MAC_ID), ether_ntoa(ether_aton(yytext))); return MAC_ID;}
+
 {IPv4}		{char addrstr[INET_ADDRSTRLEN];
 		 struct in_addr addr;
 
 		 inet_pton(AF_INET, yytext, &addr);
 		 inet_ntop(AF_INET, &addr, addrstr, INET_ADDRSTRLEN);
-		 printf("ipv4 : %s\n", addrstr);
+		 printf("%s : %s\n", stringify(IPv4_ID), addrstr);
 		 return IPv4_ID;
 		}
-and		{printf("and\n");return AND;}
-or		{printf("or\n");return OR;}
-xor		{printf("xor\n");return XOR;}
-not		{printf("not\n");return '!';}
-{word}		;
+
+and		{printf("%s\n", stringify(AND));return AND;}
+or		{printf("%s\n", stringify(OR));return OR;}
+xor		{printf("%s\n", stringify(XOR));return XOR;}
+not		{printf("%c\n", '!');return '!';}
+
+{pos_int}	{uint64_t val;
+		 int rc;
+
+		 rc = bpf_strtoll(yytext, &val);
+
+		 if (rc)
+		 {
+		 	 printf("%s\n", stringify(UNKNOWN));
+		 	 return UNKNOWN;
+		 }
+
+		 printf("%s: %lu\n", stringify(NUMBER), val);
+
+		 return POS_NUMBER;
+		}
+
+{neg_int}	{return UNKNOWN;}	/* No support for negative number yet */
+
+{word}		{printf("%s\n", yytext);}
 [ \t\n\r]	;
 
 %%
