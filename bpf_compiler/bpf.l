@@ -22,6 +22,7 @@ neg_int	-{digit}+
 letter	[a-zA-Z]
 word    {letter}+
 hex	([0-9A-Fa-f][0-9A-Fa-f]?)
+hex_val	0x({hex}+)
 MAC	({hex}:{hex}:{hex}:{hex}:{hex}:{hex})
 IPv4	{pos_int}.{pos_int}.{pos_int}.{pos_int}
 
@@ -45,6 +46,22 @@ and		{printf("%s\n", stringify(AND));return AND;}
 or		{printf("%s\n", stringify(OR));return OR;}
 xor		{printf("%s\n", stringify(XOR));return XOR;}
 not		{printf("%c\n", '!');return '!';}
+
+{hex_val}	{uint64_t val;
+		 int rc;
+
+		 rc = bpf_strtoll(yytext, &val);
+
+		 if (rc)
+		 {
+		 	 printf("%s\n", stringify(UNKNOWN));
+		 	 return UNKNOWN;
+		 }
+
+		 printf("%s: %"PRIu64"\n", stringify(NUMBER), val);
+
+		 return POS_NUMBER;
+		}
 
 {pos_int}	{uint64_t val;
 		 int rc;
