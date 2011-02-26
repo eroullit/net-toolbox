@@ -2,6 +2,7 @@
 // bpf.l -- a simple BPF parser
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include <netinet/in.h>
 #include <netinet/ether.h>
 #include "bpf_compiler.h"
@@ -56,7 +57,7 @@ not		{printf("%c\n", '!');return '!';}
 		 	 return UNKNOWN;
 		 }
 
-		 printf("%s: %lu\n", stringify(NUMBER), val);
+		 printf("%s: %"PRIu64"\n", stringify(NUMBER), val);
 
 		 return POS_NUMBER;
 		}
