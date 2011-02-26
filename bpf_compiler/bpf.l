@@ -63,8 +63,7 @@ not		{printf("%c\n", '!');return '!';}
 		}
 
 {neg_int}	{return UNKNOWN;}	/* No support for negative number yet */
-
-{word}		{printf("%s\n", yytext);}
+{word}		{return UNKNOWN;}	/* Forbin unsupported words. */
 [ \t\n\r]	;
 
 %%
