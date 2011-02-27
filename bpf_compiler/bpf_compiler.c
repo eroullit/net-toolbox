@@ -159,6 +159,18 @@ int bpf_step_add_in6(struct bpf_expr * expr, const struct in6_addr in6)
 	return bpf_step_add(expr, token);
 }
 
+int bpf_print_expr(const struct bpf_expr * const expr)
+{
+	struct bpf_step * step;
+
+	assert(expr);
+
+	STAILQ_FOREACH(step, &expr->head, entry)
+	{
+		/* TODO */
+	}
+}
+
 int main (int argc, char ** argv)
 {
 	struct bpf_expr expr;
