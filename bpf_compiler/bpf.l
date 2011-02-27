@@ -1,7 +1,9 @@
 %{
 // bpf.l -- a simple BPF parser
+
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include <inttypes.h>
 #include <netinet/in.h>
 #include <netinet/ether.h>
@@ -14,6 +16,8 @@ static YY_BUFFER_STATE in_buffer;
 #else	/* FLEX_SCANNER */
 static const char *in_buffer;
 #endif	/* FLEX_SCANNER */
+
+static struct bpf_expr cur_expr;
 %}
 
 digit	[0-9]
@@ -28,26 +32,31 @@ IPv4	{pos_int}.{pos_int}.{pos_int}.{pos_int}
 
 %%
 
-dst		{printf("%s\n", stringify(DST)); return DST;}
-src		{printf("%s\n", stringify(SRC)); return SRC;}
-port		{printf("%s\n", stringify(PORT)); return PORT;}
-ip		{printf("%s\n", stringify(IP)); return IP;}
-mac		{printf("%s\n", stringify(MAC)); return MAC;}
-{MAC}		{printf("%s : %s\n", stringify(MAC_ID), ether_ntoa(ether_aton(yytext))); return MAC_ID;}
+dst		{bpf_step_add_code(&cur_expr, DST); return DST;}
+src		{bpf_step_add_code(&cur_expr, SRC); return SRC;}
+port		{bpf_step_add_code(&cur_expr, PORT); return PORT;}
+ip		{bpf_step_add_code(&cur_expr, IP); return IP;}
+mac		{bpf_step_add_code(&cur_expr, MAC); return MAC;}
+{MAC}		{struct ether_addr * eth = ether_aton(yytext);
+		 
+		 bpf_step_add_eth(&cur_expr, *eth);
+		 
+		 return MAC_ID;
+		}
 
-{IPv4}		{char addrstr[INET_ADDRSTRLEN];
-		 struct in_addr addr;
+{IPv4}		{struct in_addr addr;
 
 		 inet_pton(AF_INET, yytext, &addr);
-		 inet_ntop(AF_INET, &addr, addrstr, INET_ADDRSTRLEN);
-		 printf("%s : %s\n", stringify(IPv4_ID), addrstr);
+		 
+		 bpf_step_add_in(&cur_expr, addr);
+
 		 return IPv4_ID;
 		}
 
-and		{printf("%s\n", stringify(AND));return AND;}
-or		{printf("%s\n", stringify(OR));return OR;}
-xor		{printf("%s\n", stringify(XOR));return XOR;}
-not		{printf("%c\n", '!');return '!';}
+and		{bpf_step_add_code(&cur_expr, AND);return AND;}
+or		{bpf_step_add_code(&cur_expr, OR);return OR;}
+xor		{bpf_step_add_code(&cur_expr, XOR);return XOR;}
+not		{bpf_step_add_code(&cur_expr, NOT);return NOT;}
 
 {hex_val}	{uint64_t val;
 		 int rc;
@@ -60,7 +69,7 @@ not		{printf("%c\n", '!');return '!';}
 		 	 return UNKNOWN;
 		 }
 
-		 printf("%s: %"PRIu64"\n", stringify(NUMBER), val);
+		 bpf_step_add_value(&cur_expr, val);
 
 		 return POS_NUMBER;
 		}
@@ -76,7 +85,7 @@ not		{printf("%c\n", '!');return '!';}
 		 	 return UNKNOWN;
 		 }
 
-		 printf("%s: %"PRIu64"\n", stringify(NUMBER), val);
+		 bpf_step_add_value(&cur_expr, val);
 
 		 return POS_NUMBER;
 		}
@@ -105,14 +114,23 @@ void lex_cleanup()
 #endif
 }
 
-int bpf_expr_parse(void)
+int bpf_expr_parse(struct bpf_expr * expr)
 {
 	int rc;
+
+	assert(expr);
+
+	bpf_expr_init(expr);
+	bpf_expr_init(&cur_expr);
 
 	do
 	{
 		rc = yylex();
 	}while (rc != '\0');
+
+	expr->head = cur_expr.head;
+	
+	bpf_expr_init(&cur_expr);
 
 	return (0);
 }

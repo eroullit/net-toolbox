@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <limits.h>
 #include <assert.h>
 #include <errno.h>
@@ -53,10 +54,122 @@ int bpf_strtoull(const char const * str, uint64_t * val)
 	return (0);
 }
 
+void bpf_expr_init(struct bpf_expr * expr)
+{
+	assert(expr);
+
+	memset(expr, 0, sizeof(*expr));
+
+	STAILQ_INIT(&expr->head);
+}
+
+void bpf_expr_free(struct bpf_expr * expr)
+{
+	struct bpf_step * step;
+	assert(expr);
+
+	/* Same behaviour as free(3) */
+	if (!expr)
+		return;
+
+	while(!STAILQ_EMPTY(&expr->head))
+	{
+		step = STAILQ_FIRST(&expr->head);
+		STAILQ_REMOVE_HEAD(&expr->head, entry);
+		free(step);
+	}
+
+	memset(expr, 0, sizeof(*expr));
+}
+
+struct bpf_step * bpf_step_alloc(void)
+{
+	struct bpf_step * step;
+
+	step = malloc(sizeof(*step));
+
+	if (!step)
+		return NULL;
+
+	memset(step, 0, sizeof(*step));
+
+	return step;
+}
+
+static int bpf_step_add(struct bpf_expr * expr, const union token token)
+{
+	struct bpf_step * step;
+
+	assert(expr);
+
+	step = bpf_step_alloc();
+
+	if (!step)
+		return ENOMEM;
+
+	step->token = token;
+	step->nr = expr->len;
+
+	STAILQ_INSERT_TAIL(&expr->head, step, entry);
+	expr->len++;
+}
+
+int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code)
+{
+	union token token = {0};
+
+	token.code = code;
+
+	return bpf_step_add(expr, token);
+}
+
+int bpf_step_add_value(struct bpf_expr * expr, const uint64_t val)
+{
+	union token token = {0};
+
+	token.val = val;
+
+	return bpf_step_add(expr, token);
+}
+
+int bpf_step_add_eth(struct bpf_expr * expr, const struct ether_addr eth)
+{
+	union token token = {0};
+
+	token.eth = eth;
+
+	return bpf_step_add(expr, token);
+}
+
+int bpf_step_add_in(struct bpf_expr * expr, const struct in_addr in)
+{
+	union token token = {0};
+
+	token.in = in;
+
+	return bpf_step_add(expr, token);
+}
+
+int bpf_step_add_in6(struct bpf_expr * expr, const struct in6_addr in6)
+{
+	union token token = {0};
+
+	token.in6 = in6;
+
+	return bpf_step_add(expr, token);
+}
+
 int main (int argc, char ** argv)
 {
+	struct bpf_expr expr;
+
 	lex_init(argv[1] ? argv[1] : "");
-	bpf_expr_parse();
+
+	bpf_expr_parse(&expr);
+
+	bpf_expr_free(&expr);
+
 	lex_cleanup();
+
 	return (0);
 }
