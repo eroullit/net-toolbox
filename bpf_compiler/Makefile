@@ -1,3 +1,3 @@
 default:
 	flex bpf.l
-	gcc  bpf_compiler.c lex.yy.c
+	gcc -g bpf_compiler.c lex.yy.c -o bpf_compiler
