@@ -32,6 +32,8 @@ enum bpf_compiler_code
 	UNKNOWN = 0,
 	SRC,
 	DST,
+	IP,
+	MAC,
 	LEN,
 	PORT,
 	AND,

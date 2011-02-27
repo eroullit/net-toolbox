@@ -31,6 +31,8 @@ IPv4	{pos_int}.{pos_int}.{pos_int}.{pos_int}
 dst		{printf("%s\n", stringify(DST)); return DST;}
 src		{printf("%s\n", stringify(SRC)); return SRC;}
 port		{printf("%s\n", stringify(PORT)); return PORT;}
+ip		{printf("%s\n", stringify(IP)); return IP;}
+mac		{printf("%s\n", stringify(MAC)); return MAC;}
 {MAC}		{printf("%s : %s\n", stringify(MAC_ID), ether_ntoa(ether_aton(yytext))); return MAC_ID;}
 
 {IPv4}		{char addrstr[INET_ADDRSTRLEN];
@@ -50,7 +52,7 @@ not		{printf("%c\n", '!');return '!';}
 {hex_val}	{uint64_t val;
 		 int rc;
 
-		 rc = bpf_strtoll(yytext, &val);
+		 rc = bpf_strtoull(yytext, &val);
 
 		 if (rc)
 		 {
@@ -66,7 +68,7 @@ not		{printf("%c\n", '!');return '!';}
 {pos_int}	{uint64_t val;
 		 int rc;
 
-		 rc = bpf_strtoll(yytext, &val);
+		 rc = bpf_strtoull(yytext, &val);
 
 		 if (rc)
 		 {

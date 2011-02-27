@@ -29,7 +29,7 @@
 #include <errno.h>
 #include "bpf_compiler.h"
 
-int bpf_strtoll(const char const * str, uint64_t * val)
+int bpf_strtoull(const char const * str, uint64_t * val)
 {
 	char * endptr = NULL;
 
