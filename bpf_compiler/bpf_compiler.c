@@ -60,7 +60,7 @@ void bpf_expr_init(struct bpf_expr * expr)
 
 	memset(expr, 0, sizeof(*expr));
 
-	STAILQ_INIT(&expr->head);
+	TAILQ_INIT(&expr->head);
 }
 
 void bpf_expr_free(struct bpf_expr * expr)
@@ -72,10 +72,10 @@ void bpf_expr_free(struct bpf_expr * expr)
 	if (!expr)
 		return;
 
-	while(!STAILQ_EMPTY(&expr->head))
+	while(!TAILQ_EMPTY(&expr->head))
 	{
-		step = STAILQ_FIRST(&expr->head);
-		STAILQ_REMOVE_HEAD(&expr->head, entry);
+		step = TAILQ_FIRST(&expr->head);
+		TAILQ_REMOVE(&expr->head, step, entry);
 		free(step);
 	}
 
@@ -110,7 +110,7 @@ static int bpf_step_add(struct bpf_expr * expr, const union token token)
 	step->token = token;
 	step->nr = expr->len;
 
-	STAILQ_INSERT_TAIL(&expr->head, step, entry);
+	TAILQ_INSERT_TAIL(&expr->head, step, entry);
 	expr->len++;
 }
 
@@ -165,7 +165,7 @@ int bpf_print_expr(const struct bpf_expr * const expr)
 
 	assert(expr);
 
-	STAILQ_FOREACH(step, &expr->head, entry)
+	TAILQ_FOREACH(step, &expr->head, entry)
 	{
 		/* TODO */
 	}

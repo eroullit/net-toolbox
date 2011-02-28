@@ -62,13 +62,13 @@ struct bpf_step
 	} token;
 
 	size_t nr;
-	STAILQ_ENTRY(bpf_step) entry;
+	TAILQ_ENTRY(bpf_step) entry;
 };
 
 struct bpf_expr
 {
 	size_t					len;
-	STAILQ_HEAD(bpf_expr_head, bpf_step)	head;
+	TAILQ_HEAD(bpf_expr_head, bpf_step)	head;
 };
 
 void lex_init(const char * const buf);
