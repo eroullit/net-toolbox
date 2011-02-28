@@ -283,7 +283,7 @@ int main (int argc, char ** argv)
 
 	bpf_print_expr(&expr);
 
-	//bpf_expr_free(&expr);
+	bpf_expr_free(&expr);
 
 	lex_cleanup();
 

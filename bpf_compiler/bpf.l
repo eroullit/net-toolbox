@@ -116,6 +116,7 @@ void lex_cleanup()
 int bpf_expr_parse(struct bpf_expr * expr)
 {
 	int rc;
+	struct bpf_step * step = NULL;
 
 	assert(expr);
 
@@ -127,8 +128,12 @@ int bpf_expr_parse(struct bpf_expr * expr)
 		rc = yylex();
 	}while (rc != '\0');
 
-	memcpy(expr, &cur_expr, sizeof(*expr));
-	
+	while ((step = TAILQ_FIRST(&cur_expr.head)) != NULL)
+	{
+		TAILQ_REMOVE(&cur_expr.head, step, entry);
+		TAILQ_INSERT_TAIL(&expr->head, step, entry);
+	}
+
 	return (0);
 }
 
