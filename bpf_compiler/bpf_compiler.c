@@ -235,11 +235,11 @@ int bpf_print_expr(const struct bpf_expr * const expr)
 			break;
 	
 			case LEN:
-				printf("%s : %lu\n", stringify(LEN), step->value.nr);
+				printf("%s : %"PRIu64"\n", stringify(LEN), step->value.nr);
 			break;
 	
 			case PORT:
-				printf("%s : %lu\n", stringify(PORT), step->value.nr);
+				printf("%s : %"PRIu64"\n", stringify(PORT), step->value.nr);
 			break;
 			
 			case NOT:
