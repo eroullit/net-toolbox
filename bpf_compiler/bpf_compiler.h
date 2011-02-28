@@ -29,6 +29,7 @@
 #include <sys/queue.h>
 #include <netinet/ether.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define	stringify(x)	#x
 
@@ -47,7 +48,7 @@ enum bpf_compiler_code
 	XOR,
 	POS_NUMBER,
 	MAC_ID,
-	IPv4_ID,
+	IPv4_ID
 };
 
 struct bpf_step
@@ -75,7 +76,7 @@ void lex_init(const char * const buf);
 void lex_cleanup();
 
 int bpf_expr_parse(struct bpf_expr * expr);
-int bpf_strtoll(const char const * str, uint64_t * val);
+int bpf_strtoull(const char * const str, uint64_t * val);
 
 void bpf_expr_init(struct bpf_expr * expr);
 int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code);

@@ -22,6 +22,7 @@
 
  /* __LICENSE_HEADER_END__ */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -30,7 +31,7 @@
 #include <errno.h>
 #include "bpf_compiler.h"
 
-int bpf_strtoull(const char const * str, uint64_t * val)
+int bpf_strtoull(const char * const str, uint64_t * val)
 {
 	char * endptr = NULL;
 
@@ -112,6 +113,8 @@ static int bpf_step_add(struct bpf_expr * expr, const union token token)
 
 	TAILQ_INSERT_TAIL(&expr->head, step, entry);
 	expr->len++;
+
+	return 0;
 }
 
 int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code)
@@ -169,13 +172,21 @@ int bpf_print_expr(const struct bpf_expr * const expr)
 	{
 		/* TODO */
 	}
+
+	return 0;
 }
 
 int main (int argc, char ** argv)
 {
 	struct bpf_expr expr;
 
-	lex_init(argv[1] ? argv[1] : "");
+	if (argc != 2)
+	{
+		printf("Please write your BPF expression into double quotes\n");
+		return (EXIT_FAILURE);
+	}
+
+	lex_init((argc == 2 && argv[1]) ? argv[1] : "");
 
 	bpf_expr_parse(&expr);
 
