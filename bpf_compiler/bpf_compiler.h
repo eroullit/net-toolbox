@@ -39,6 +39,7 @@ enum bpf_compiler_code
 	SRC,
 	DST,
 	IP,
+	IP6,
 	MAC,
 	LEN,
 	PORT,
@@ -53,15 +54,15 @@ enum bpf_compiler_code
 
 struct bpf_step
 {
-	union token
+	union value
 	{
-		uint64_t val;
+		uint64_t nr;
 		struct in_addr in;
 		struct in6_addr in6;
 		struct ether_addr eth;
-		enum bpf_compiler_code code;
-	} token;
+	} value;
 
+	enum bpf_compiler_code code;
 	size_t nr;
 	TAILQ_ENTRY(bpf_step) entry;
 };
@@ -80,7 +81,7 @@ int bpf_strtoull(const char * const str, uint64_t * val);
 
 void bpf_expr_init(struct bpf_expr * expr);
 int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code);
-int bpf_step_add_value(struct bpf_expr * expr, const uint64_t val);
+int bpf_step_add_number(struct bpf_expr * expr, const uint64_t nr);
 int bpf_step_add_eth(struct bpf_expr * expr, const struct ether_addr eth);
 int bpf_step_add_in(struct bpf_expr * expr, const struct in_addr in);
 int bpf_step_add_in6(struct bpf_expr * expr, const struct in6_addr in6);

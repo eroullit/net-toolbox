@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <inttypes.h>
 #include <netinet/in.h>
 #include <netinet/ether.h>
 #include "bpf_compiler.h"
@@ -69,7 +68,7 @@ not		{bpf_step_add_code(&cur_expr, NOT);return NOT;}
 		 	 return UNKNOWN;
 		 }
 
-		 bpf_step_add_value(&cur_expr, val);
+		 bpf_step_add_number(&cur_expr, val);
 
 		 return POS_NUMBER;
 		}
@@ -85,7 +84,7 @@ not		{bpf_step_add_code(&cur_expr, NOT);return NOT;}
 		 	 return UNKNOWN;
 		 }
 
-		 bpf_step_add_value(&cur_expr, val);
+		 bpf_step_add_number(&cur_expr, val);
 
 		 return POS_NUMBER;
 		}
@@ -128,10 +127,8 @@ int bpf_expr_parse(struct bpf_expr * expr)
 		rc = yylex();
 	}while (rc != '\0');
 
-	expr->head = cur_expr.head;
+	memcpy(expr, &cur_expr, sizeof(*expr));
 	
-	bpf_expr_init(&cur_expr);
-
 	return (0);
 }
 

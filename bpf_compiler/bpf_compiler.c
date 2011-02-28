@@ -29,6 +29,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
 #include "bpf_compiler.h"
 
 int bpf_strtoull(const char * const str, uint64_t * val)
@@ -73,11 +74,11 @@ void bpf_expr_free(struct bpf_expr * expr)
 	if (!expr)
 		return;
 
-	while(!TAILQ_EMPTY(&expr->head))
+	while((step = TAILQ_FIRST(&expr->head)) != NULL)
 	{
-		step = TAILQ_FIRST(&expr->head);
 		TAILQ_REMOVE(&expr->head, step, entry);
 		free(step);
+		step = NULL;
 	}
 
 	memset(expr, 0, sizeof(*expr));
@@ -97,18 +98,60 @@ struct bpf_step * bpf_step_alloc(void)
 	return step;
 }
 
-static int bpf_step_add(struct bpf_expr * expr, const union token token)
+static int bpf_step_add_value(struct bpf_expr * expr, const union value value)
 {
 	struct bpf_step * step;
 
 	assert(expr);
 
+	/* 
+	 * As a value must go with the previous code
+	 * we fetch the last added step and attach the value to it
+	 */
+
+	step = TAILQ_LAST(&expr->head, bpf_expr_head);
+
+	assert(step);
+
+	switch(step->code)
+	{
+		case PORT:
+		case LEN:
+			step->value.nr = value.nr;
+		break;
+
+		case IP:
+			step->value.in = value.in;
+		break;
+
+		case IP6:
+			step->value.in6 = value.in6;
+		break;
+
+		case MAC:
+			step->value.eth = value.eth;
+		break;
+
+		default:
+			return EINVAL;
+		break;
+	}
+
+	return 0;
+}
+
+int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code)
+{
+	struct bpf_step * step;
+ 
+        assert(expr);
+ 
 	step = bpf_step_alloc();
 
 	if (!step)
 		return ENOMEM;
 
-	step->token = token;
+	step->code = code;
 	step->nr = expr->len;
 
 	TAILQ_INSERT_TAIL(&expr->head, step, entry);
@@ -117,60 +160,108 @@ static int bpf_step_add(struct bpf_expr * expr, const union token token)
 	return 0;
 }
 
-int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code)
+int bpf_step_add_number(struct bpf_expr * expr, const uint64_t nr)
 {
-	union token token = {0};
+	union value value = {0};
 
-	token.code = code;
+	value.nr = nr;
 
-	return bpf_step_add(expr, token);
-}
-
-int bpf_step_add_value(struct bpf_expr * expr, const uint64_t val)
-{
-	union token token = {0};
-
-	token.val = val;
-
-	return bpf_step_add(expr, token);
+	return bpf_step_add_value(expr, value);
 }
 
 int bpf_step_add_eth(struct bpf_expr * expr, const struct ether_addr eth)
 {
-	union token token = {0};
+	union value value = {0};
 
-	token.eth = eth;
+	value.eth = eth;
 
-	return bpf_step_add(expr, token);
+	return bpf_step_add_value(expr, value);
 }
 
 int bpf_step_add_in(struct bpf_expr * expr, const struct in_addr in)
 {
-	union token token = {0};
+	union value value = {0};
 
-	token.in = in;
+	value.in = in;
 
-	return bpf_step_add(expr, token);
+	return bpf_step_add_value(expr, value);
 }
 
 int bpf_step_add_in6(struct bpf_expr * expr, const struct in6_addr in6)
 {
-	union token token = {0};
+	union value value = {0};
 
-	token.in6 = in6;
+	value.in6 = in6;
 
-	return bpf_step_add(expr, token);
+	return bpf_step_add_value(expr, value);
 }
 
 int bpf_print_expr(const struct bpf_expr * const expr)
 {
+	union
+	{
+		char in_str[INET_ADDRSTRLEN];
+		char in6_str[INET6_ADDRSTRLEN];
+	} addr;
+
 	struct bpf_step * step;
 
 	assert(expr);
 
 	TAILQ_FOREACH(step, &expr->head, entry)
 	{
-		/* TODO */
+		switch(step->code)
+		{
+			case SRC:
+				printf("%s\n", stringify(SRC));
+			break;
+
+			case DST:
+				printf("%s\n", stringify(DST));
+			break;
+
+			case IP:
+				inet_ntop(AF_INET, &step->value.in, addr.in_str, sizeof(addr.in_str));
+				printf("%s : %s\n", stringify(IP), addr.in_str);
+			break;
+
+			case IP6:
+				inet_ntop(AF_INET6, &step->value.in6, addr.in6_str, sizeof(addr.in6_str));
+				printf("%s : %s\n", stringify(IP6),  addr.in6_str);
+			break;
+	
+			case MAC:
+				printf("%s : %s\n", stringify(MAC), ether_ntoa(&step->value.eth));
+			break;
+	
+			case LEN:
+				printf("%s : %lu\n", stringify(LEN), step->value.nr);
+			break;
+	
+			case PORT:
+				printf("%s : %lu\n", stringify(PORT), step->value.nr);
+			break;
+			
+			case NOT:
+				printf("%s\n", stringify(NOT));
+			break;
+
+			case AND:
+				printf("%s\n", stringify(AND));
+			break;
+
+			case OR:
+				printf("%s\n", stringify(OR));
+			break;
+
+			case XOR:
+				printf("%s\n", stringify(XOR));
+			break;
+
+			default:
+				return EINVAL;
+			break;
+		}
 	}
 
 	return 0;
@@ -190,7 +281,9 @@ int main (int argc, char ** argv)
 
 	bpf_expr_parse(&expr);
 
-	bpf_expr_free(&expr);
+	bpf_print_expr(&expr);
+
+	//bpf_expr_free(&expr);
 
 	lex_cleanup();
 
