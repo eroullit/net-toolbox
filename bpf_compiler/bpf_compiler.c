@@ -68,7 +68,6 @@ void bpf_expr_init(struct bpf_expr * expr)
 void bpf_expr_free(struct bpf_expr * expr)
 {
 	struct bpf_step * step;
-	assert(expr);
 
 	/* Same behaviour as free(3) */
 	if (!expr)
