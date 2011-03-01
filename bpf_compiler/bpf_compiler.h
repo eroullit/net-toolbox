@@ -33,6 +33,24 @@
 
 #define	stringify(x)	#x
 
+enum bpf_arith_ops
+{
+	EQUAL,
+	NOT_EQUAL,
+	GREATER,
+	LESS,
+	GREATER_EQUAL,
+	LESS_EQUAL
+};
+
+enum bpf_bit_ops
+{
+	NOT,
+	AND,
+	OR,
+	XOR
+};
+
 enum bpf_compiler_code
 {
 	UNKNOWN = 0,
@@ -43,17 +61,8 @@ enum bpf_compiler_code
 	MAC,
 	LEN,
 	PORT,
-	NOT,
-	AND,
-	OR,
-	XOR,
-	EQUAL,
-	NOT_EQUAL,
-	GREATER,
-	LESS,
-	GREATER_EQUAL,
-	LESS_EQUAL,
-	POS_NUMBER,
+	ARITH_OP,
+	BIT_OP,
 	MAC_ID,
 	IPv4_ID
 };
@@ -66,6 +75,8 @@ struct bpf_step
 		struct in_addr in;
 		struct in6_addr in6;
 		struct ether_addr eth;
+		enum bpf_arith_ops arith_op;
+		enum bpf_bit_ops bit_op;
 	} value;
 
 	enum bpf_compiler_code code;
