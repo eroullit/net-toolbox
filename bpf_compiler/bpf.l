@@ -56,6 +56,12 @@ and		{bpf_step_add_code(&cur_expr, AND);return AND;}
 or		{bpf_step_add_code(&cur_expr, OR);return OR;}
 xor		{bpf_step_add_code(&cur_expr, XOR);return XOR;}
 not		{bpf_step_add_code(&cur_expr, NOT);return NOT;}
+"=="		{bpf_step_add_code(&cur_expr, EQUAL);return EQUAL;}
+"!="		{bpf_step_add_code(&cur_expr, NOT_EQUAL);return NOT_EQUAL;}
+">"		{bpf_step_add_code(&cur_expr, GREATER);return GREATER;}
+"<"		{bpf_step_add_code(&cur_expr, LESS);return LESS;}
+">="		{bpf_step_add_code(&cur_expr, GREATER_EQUAL);return GREATER_EQUAL;}
+"<="		{bpf_step_add_code(&cur_expr, LESS_EQUAL);return LESS_EQUAL;}
 
 {hex_val}	{uint64_t val;
 		 int rc;

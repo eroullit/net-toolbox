@@ -47,6 +47,12 @@ enum bpf_compiler_code
 	AND,
 	OR,
 	XOR,
+	EQUAL,
+	NOT_EQUAL,
+	GREATER,
+	LESS,
+	GREATER_EQUAL,
+	LESS_EQUAL,
 	POS_NUMBER,
 	MAC_ID,
 	IPv4_ID
