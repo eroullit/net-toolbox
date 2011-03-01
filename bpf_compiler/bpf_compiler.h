@@ -51,7 +51,7 @@ enum bpf_bit_ops
 	XOR
 };
 
-enum bpf_compiler_code
+enum bpf_compiler_obj
 {
 	UNKNOWN = 0,
 	SRC,
@@ -61,9 +61,9 @@ enum bpf_compiler_code
 	MAC,
 	LEN,
 	PORT,
-	ARITH_OP,
 	BIT_OP,
 	MAC_ID,
+	POS_NUMBER,
 	IPv4_ID
 };
 
@@ -75,11 +75,11 @@ struct bpf_step
 		struct in_addr in;
 		struct in6_addr in6;
 		struct ether_addr eth;
-		enum bpf_arith_ops arith_op;
 		enum bpf_bit_ops bit_op;
 	} value;
 
-	enum bpf_compiler_code code;
+	enum bpf_arith_ops arith_op;
+	enum bpf_compiler_obj obj;
 	size_t nr;
 	TAILQ_ENTRY(bpf_step) entry;
 };
@@ -97,7 +97,9 @@ int bpf_expr_parse(struct bpf_expr * expr);
 int bpf_strtoull(const char * const str, uint64_t * val);
 
 void bpf_expr_init(struct bpf_expr * expr);
-int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code);
+int bpf_step_add_arith_op(struct bpf_expr * expr, const enum bpf_arith_ops op);
+int bpf_step_add_bit_op(struct bpf_expr * expr, const enum bpf_bit_ops op);
+int bpf_step_add_obj(struct bpf_expr * expr, const enum bpf_compiler_obj obj);
 int bpf_step_add_number(struct bpf_expr * expr, const uint64_t nr);
 int bpf_step_add_eth(struct bpf_expr * expr, const struct ether_addr eth);
 int bpf_step_add_in(struct bpf_expr * expr, const struct in_addr in);

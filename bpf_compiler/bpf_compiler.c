@@ -112,7 +112,7 @@ static int bpf_step_add_value(struct bpf_expr * expr, const union value value)
 
 	assert(step);
 
-	switch(step->code)
+	switch(step->obj)
 	{
 		case PORT:
 		case LEN:
@@ -131,6 +131,10 @@ static int bpf_step_add_value(struct bpf_expr * expr, const union value value)
 			step->value.eth = value.eth;
 		break;
 
+		case BIT_OP:
+			step->value.bit_op = value.bit_op;
+		break;
+
 		default:
 			return EINVAL;
 		break;
@@ -139,7 +143,44 @@ static int bpf_step_add_value(struct bpf_expr * expr, const union value value)
 	return 0;
 }
 
-int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code)
+int bpf_step_add_arith_op(struct bpf_expr * expr, const enum bpf_arith_ops op)
+{
+	struct bpf_step * step;
+
+	assert(expr);
+
+	/* 
+	 * As a value must go with the previous code
+	 * we fetch the last added step and attach the value to it
+	 */
+
+	step = TAILQ_LAST(&expr->head, bpf_expr_head);
+
+	assert(step);
+
+	step->arith_op = op;
+
+	return 0;
+}
+
+int bpf_step_add_bit_op(struct bpf_expr * expr, const enum bpf_bit_ops op)
+{
+	struct bpf_step * step;
+
+	assert(expr);
+
+	bpf_step_add_obj(expr, BIT_OP);
+
+	step = TAILQ_LAST(&expr->head, bpf_expr_head);
+
+	assert(step);
+
+	step->value.bit_op = op;
+
+	return 0;
+}
+
+int bpf_step_add_obj(struct bpf_expr * expr, const enum bpf_compiler_obj obj)
 {
 	struct bpf_step * step;
  
@@ -150,7 +191,8 @@ int bpf_step_add_code(struct bpf_expr * expr, const enum bpf_compiler_code code)
 	if (!step)
 		return ENOMEM;
 
-	step->code = code;
+	step->obj = obj;
+	step->arith_op = EQUAL;
 	step->nr = expr->len;
 
 	TAILQ_INSERT_TAIL(&expr->head, step, entry);
@@ -209,7 +251,7 @@ int bpf_print_expr(const struct bpf_expr * const expr)
 
 	TAILQ_FOREACH(step, &expr->head, entry)
 	{
-		switch(step->code)
+		switch(step->obj)
 		{
 			case SRC:
 				printf("%s\n", stringify(SRC));
@@ -241,22 +283,6 @@ int bpf_print_expr(const struct bpf_expr * const expr)
 				printf("%s : %"PRIu64"\n", stringify(PORT), step->value.nr);
 			break;
 			
-			case NOT:
-				printf("%s\n", stringify(NOT));
-			break;
-
-			case AND:
-				printf("%s\n", stringify(AND));
-			break;
-
-			case OR:
-				printf("%s\n", stringify(OR));
-			break;
-
-			case XOR:
-				printf("%s\n", stringify(XOR));
-			break;
-
 			default:
 				return EINVAL;
 			break;

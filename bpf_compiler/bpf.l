@@ -31,11 +31,11 @@ IPv4	{pos_int}.{pos_int}.{pos_int}.{pos_int}
 
 %%
 
-dst		{bpf_step_add_code(&cur_expr, DST); return DST;}
-src		{bpf_step_add_code(&cur_expr, SRC); return SRC;}
-port		{bpf_step_add_code(&cur_expr, PORT); return PORT;}
-ip		{bpf_step_add_code(&cur_expr, IP); return IP;}
-mac		{bpf_step_add_code(&cur_expr, MAC); return MAC;}
+dst		{bpf_step_add_obj(&cur_expr, DST); return DST;}
+src		{bpf_step_add_obj(&cur_expr, SRC); return SRC;}
+port		{bpf_step_add_obj(&cur_expr, PORT); return PORT;}
+ip		{bpf_step_add_obj(&cur_expr, IP); return IP;}
+mac		{bpf_step_add_obj(&cur_expr, MAC); return MAC;}
 {MAC}		{struct ether_addr * eth = ether_aton(yytext);
 		 
 		 bpf_step_add_eth(&cur_expr, *eth);
@@ -52,17 +52,17 @@ mac		{bpf_step_add_code(&cur_expr, MAC); return MAC;}
 		 return IPv4_ID;
 		}
 
-and		{bpf_step_add_code(&cur_expr, AND);return AND;}
-or		{bpf_step_add_code(&cur_expr, OR);return OR;}
-xor		{bpf_step_add_code(&cur_expr, XOR);return XOR;}
-not		{bpf_step_add_code(&cur_expr, NOT);return NOT;}
+and		{bpf_step_add_bit_op(&cur_expr, AND);return AND;}
+or		{bpf_step_add_bit_op(&cur_expr, OR);return OR;}
+xor		{bpf_step_add_bit_op(&cur_expr, XOR);return XOR;}
+not		{bpf_step_add_bit_op(&cur_expr, NOT);return NOT;}
 
-"=="		{bpf_step_add_code(&cur_expr, EQUAL);return EQUAL;}
-"!="		{bpf_step_add_code(&cur_expr, NOT_EQUAL);return NOT_EQUAL;}
-">"		{bpf_step_add_code(&cur_expr, GREATER);return GREATER;}
-"<"		{bpf_step_add_code(&cur_expr, LESS);return LESS;}
-">="		{bpf_step_add_code(&cur_expr, GREATER_EQUAL);return GREATER_EQUAL;}
-"<="		{bpf_step_add_code(&cur_expr, LESS_EQUAL);return LESS_EQUAL;}
+"=="		{bpf_step_add_arith_op(&cur_expr, EQUAL);return EQUAL;}
+"!="		{bpf_step_add_arith_op(&cur_expr, NOT_EQUAL);return NOT_EQUAL;}
+">"		{bpf_step_add_arith_op(&cur_expr, GREATER);return GREATER;}
+"<"		{bpf_step_add_arith_op(&cur_expr, LESS);return LESS;}
+">="		{bpf_step_add_arith_op(&cur_expr, GREATER_EQUAL);return GREATER_EQUAL;}
+"<="		{bpf_step_add_arith_op(&cur_expr, LESS_EQUAL);return LESS_EQUAL;}
 
 {hex_val}	{uint64_t val;
 		 int rc;
