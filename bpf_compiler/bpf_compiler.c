@@ -32,6 +32,59 @@
 #include <inttypes.h>
 #include "bpf_compiler.h"
 
+const char * bpf_arith_ops_to_string(const enum bpf_arith_ops op)
+{
+	static const char * const bpf_arith_ops_string[] = 
+	{
+		[EQUAL] = stringify(EQUAL),
+		[NOT_EQUAL] = stringify(NOT_EQUAL),
+		[LESS] = stringify(LESS),
+		[GREATER] = stringify(GREATER),
+		[GREATER_EQUAL] = stringify(GREATER_EQUAL),
+		[LESS_EQUAL]= stringify(LESS_EQUAL)
+	};
+
+	assert(op <= sizeof(bpf_arith_ops_string));
+
+	return (bpf_arith_ops_string[op]);
+}
+
+const char * bpf_bit_ops_to_string(const enum bpf_bit_ops op)
+{
+	static const char * const bpf_bit_ops_string[] = 
+	{
+		[NOT] = stringify(NOT),
+		[AND] = stringify(AND),
+		[OR] = stringify(OR),
+		[XOR] = stringify(XOR)
+	};
+
+	assert(op <= sizeof(bpf_bit_ops_string));
+
+	return (bpf_bit_ops_string[op]);
+}
+
+const char * bpf_code_to_string(const enum bpf_compiler_obj obj)
+{
+	static const char * const bpf_code_string[] = 
+	{
+		[UNKNOWN] = stringify(UNKNOWN),
+		[SRC] = stringify(SRC),
+		[DST] = stringify(DST),
+		[IP] = stringify(IP),
+		[IP6] = stringify(IP6),
+		[MAC] = stringify(MAC),
+		[PORT] = stringify(PORT),
+		[BIT_OP] = stringify(BIT_OP),
+		[POS_NUMBER] = stringify(POS_NUMBER),
+		[MAC_ID] = stringify(MAC_ID)
+	};
+	
+	assert(obj <= sizeof(bpf_code_string));
+
+	return (bpf_code_string[obj]);
+}
+
 int bpf_strtoull(const char * const str, uint64_t * val)
 {
 	char * endptr = NULL;
@@ -251,36 +304,34 @@ int bpf_print_expr(const struct bpf_expr * const expr)
 
 	TAILQ_FOREACH(step, &expr->head, entry)
 	{
+		printf("%s %s ", bpf_code_to_string(step->obj), bpf_arith_ops_to_string(step->arith_op));
+
 		switch(step->obj)
 		{
-			case SRC:
-				printf("%s\n", stringify(SRC));
-			break;
-
-			case DST:
-				printf("%s\n", stringify(DST));
-			break;
-
 			case IP:
 				inet_ntop(AF_INET, &step->value.in, addr.in_str, sizeof(addr.in_str));
-				printf("%s : %s\n", stringify(IP), addr.in_str);
+				printf("%s\n", addr.in_str);
 			break;
 
 			case IP6:
 				inet_ntop(AF_INET6, &step->value.in6, addr.in6_str, sizeof(addr.in6_str));
-				printf("%s : %s\n", stringify(IP6),  addr.in6_str);
+				printf("%s\n", addr.in6_str);
 			break;
 	
 			case MAC:
-				printf("%s : %s\n", stringify(MAC), ether_ntoa(&step->value.eth));
+				printf("%s\n", ether_ntoa(&step->value.eth));
 			break;
 	
 			case LEN:
-				printf("%s : %"PRIu64"\n", stringify(LEN), step->value.nr);
+				printf("%"PRIu64"\n", step->value.nr);
 			break;
 	
 			case PORT:
-				printf("%s : %"PRIu64"\n", stringify(PORT), step->value.nr);
+				printf("%"PRIu64"\n", step->value.nr);
+			break;
+
+			case BIT_OP:
+				printf("%s\n", bpf_bit_ops_to_string(step->value.bit_op));
 			break;
 			
 			default:
