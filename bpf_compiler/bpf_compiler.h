@@ -63,7 +63,7 @@ enum bpf_direction
 
 enum bpf_compiler_obj
 {
-	OBJ_UNKNOWN = 0,
+	UNKNOWN_OBJ = 0,
 	IP,
 	IP6,
 	MAC,
@@ -102,17 +102,24 @@ struct bpf_expr
 void lex_init(const char * const buf);
 void lex_cleanup();
 
+struct bpf_step * bpf_step_alloc(void);
+void bpf_expr_free(struct bpf_expr * expr);
+void bpf_expr_init(struct bpf_expr * expr);
 int bpf_expr_parse(struct bpf_expr * expr);
+
 int bpf_strtoull(const char * const str, uint64_t * val);
 
-void bpf_expr_init(struct bpf_expr * expr);
-int bpf_step_add_direction(struct bpf_expr * expr, const enum bpf_direction dir);
-int bpf_step_add_arith_op(struct bpf_expr * expr, const enum bpf_arith_ops op);
-int bpf_step_add_bit_op(struct bpf_expr * expr, const enum bpf_bit_ops op);
-int bpf_step_add_obj(struct bpf_expr * expr, const enum bpf_compiler_obj obj);
-int bpf_step_add_number(struct bpf_expr * expr, const uint64_t nr);
-int bpf_step_add_eth(struct bpf_expr * expr, const struct ether_addr eth);
-int bpf_step_add_in(struct bpf_expr * expr, const struct in_addr in);
-int bpf_step_add_in6(struct bpf_expr * expr, const struct in6_addr in6);
+int bpf_step_is_value_set(const struct bpf_step * const step);
+int bpf_step_set_obj(struct bpf_step * step, const enum bpf_compiler_obj obj);
+int bpf_step_set_direction(struct bpf_step * step, const enum bpf_direction dir);
+int bpf_step_set_arith_op(struct bpf_step * step, const enum bpf_arith_ops op);
+int bpf_step_set_bit_op(struct bpf_step * step, const enum bpf_bit_ops op);
+int bpf_expr_set_step(struct bpf_expr * expr, struct bpf_step * step);
+int bpf_step_set_number(struct bpf_step * step, const uint64_t nr);
+int bpf_step_set_eth(struct bpf_step * step, const struct ether_addr eth);
+int bpf_step_set_in(struct bpf_step * step, const struct in_addr in);
+int bpf_step_set_in6(struct bpf_step * step, const struct in6_addr in6);
+
+int bpf_print_step(const struct bpf_step * const step);
 
 #endif	/* __BPF_COMPILER_H__ */

@@ -16,7 +16,7 @@ static YY_BUFFER_STATE in_buffer;
 static const char *in_buffer;
 #endif	/* FLEX_SCANNER */
 
-static struct bpf_expr cur_expr;
+static struct bpf_step * cur_step;
 %}
 
 digit	[0-9]
@@ -31,14 +31,14 @@ IPv4	{pos_int}.{pos_int}.{pos_int}.{pos_int}
 
 %%
 
-dst		{bpf_step_add_direction(&cur_expr, DST); return DST;}
-src		{bpf_step_add_direction(&cur_expr, SRC); return SRC;}
-port		{bpf_step_add_obj(&cur_expr, PORT); return PORT;}
-ip		{bpf_step_add_obj(&cur_expr, IP); return IP;}
-mac		{bpf_step_add_obj(&cur_expr, MAC); return MAC;}
+dst		{bpf_step_set_direction(cur_step, DST); return DST;}
+src		{bpf_step_set_direction(cur_step, SRC); return SRC;}
+port		{bpf_step_set_obj(cur_step, PORT); return PORT;}
+ip		{bpf_step_set_obj(cur_step, IP); return IP;}
+mac		{bpf_step_set_obj(cur_step, MAC); return MAC;}
 {MAC}		{struct ether_addr * eth = ether_aton(yytext);
 		 
-		 bpf_step_add_eth(&cur_expr, *eth);
+		 bpf_step_set_eth(cur_step, *eth);
 		 
 		 return MAC_ID;
 		}
@@ -47,22 +47,22 @@ mac		{bpf_step_add_obj(&cur_expr, MAC); return MAC;}
 
 		 inet_pton(AF_INET, yytext, &addr);
 		 
-		 bpf_step_add_in(&cur_expr, addr);
+		 bpf_step_set_in(cur_step, addr);
 
 		 return IPv4_ID;
 		}
 
-and		{bpf_step_add_bit_op(&cur_expr, AND);return AND;}
-or		{bpf_step_add_bit_op(&cur_expr, OR);return OR;}
-xor		{bpf_step_add_bit_op(&cur_expr, XOR);return XOR;}
-not		{bpf_step_add_bit_op(&cur_expr, NOT);return NOT;}
+and		{bpf_step_set_bit_op(cur_step, AND);return AND;}
+or		{bpf_step_set_bit_op(cur_step, OR);return OR;}
+xor		{bpf_step_set_bit_op(cur_step, XOR);return XOR;}
+not		{bpf_step_set_bit_op(cur_step, NOT);return NOT;}
 
-"=="		{bpf_step_add_arith_op(&cur_expr, EQUAL);return EQUAL;}
-"!="		{bpf_step_add_arith_op(&cur_expr, NOT_EQUAL);return NOT_EQUAL;}
-">"		{bpf_step_add_arith_op(&cur_expr, GREATER);return GREATER;}
-"<"		{bpf_step_add_arith_op(&cur_expr, LESS);return LESS;}
-">="		{bpf_step_add_arith_op(&cur_expr, GREATER_EQUAL);return GREATER_EQUAL;}
-"<="		{bpf_step_add_arith_op(&cur_expr, LESS_EQUAL);return LESS_EQUAL;}
+"=="		{bpf_step_set_arith_op(cur_step, EQUAL);return EQUAL;}
+"!="		{bpf_step_set_arith_op(cur_step, NOT_EQUAL);return NOT_EQUAL;}
+">"		{bpf_step_set_arith_op(cur_step, GREATER);return GREATER;}
+"<"		{bpf_step_set_arith_op(cur_step, LESS);return LESS;}
+">="		{bpf_step_set_arith_op(cur_step, GREATER_EQUAL);return GREATER_EQUAL;}
+"<="		{bpf_step_set_arith_op(cur_step, LESS_EQUAL);return LESS_EQUAL;}
 
 {hex_val}	{uint64_t val;
 		 int rc;
@@ -71,11 +71,11 @@ not		{bpf_step_add_bit_op(&cur_expr, NOT);return NOT;}
 
 		 if (rc)
 		 {
-		 	 printf("%s\n", stringify(OBJ_UNKNOWN));
-		 	 return OBJ_UNKNOWN;
+		 	 printf("%s\n", stringify(UNKNOWN_OBJ));
+		 	 return UNKNOWN_OBJ;
 		 }
 
-		 bpf_step_add_number(&cur_expr, val);
+		 bpf_step_set_number(cur_step, val);
 
 		 return POS_NUMBER;
 		}
@@ -87,17 +87,17 @@ not		{bpf_step_add_bit_op(&cur_expr, NOT);return NOT;}
 
 		 if (rc)
 		 {
-		 	 printf("%s\n", stringify(OBJ_UNKNOWN));
-		 	 return OBJ_UNKNOWN;
+		 	 printf("%s\n", stringify(UNKNOWN_OBJ));
+		 	 return UNKNOWN_OBJ;
 		 }
 
-		 bpf_step_add_number(&cur_expr, val);
+		 bpf_step_set_number(cur_step, val);
 
 		 return POS_NUMBER;
 		}
 
-{neg_int}	{return OBJ_UNKNOWN;}	/* No support for negative number yet */
-{word}		{return OBJ_UNKNOWN;}	/* Forbid unsupported words. */
+{neg_int}	{return UNKNOWN_OBJ;}	/* No support for negative number yet */
+{word}		{return UNKNOWN_OBJ;}	/* Forbid unsupported words. */
 [ \t\n\r]	;
 
 %%
@@ -123,23 +123,40 @@ void lex_cleanup()
 int bpf_expr_parse(struct bpf_expr * expr)
 {
 	int rc;
-	struct bpf_step * step = NULL;
 
 	assert(expr);
 
 	bpf_expr_init(expr);
-	bpf_expr_init(&cur_expr);
+
+	cur_step = bpf_step_alloc();
+
+	if (!cur_step)
+	{
+		return ENOMEM;
+	}
 
 	do
 	{
 		rc = yylex();
+
+		/* When a BPF step is a valid object with a value, it is added to the BPF expression */
+		/* XXX Is valid here */
+		if (cur_step->obj != UNKNOWN_OBJ && bpf_step_is_value_set(cur_step) != 0)
+		{
+			bpf_expr_set_step(expr, cur_step);
+
+			cur_step = bpf_step_alloc();
+
+			if (!cur_step)
+			{
+				bpf_expr_free(expr);
+				return ENOMEM;
+			}
+		}
 	}while (rc != '\0');
 
-	while ((step = TAILQ_FIRST(&cur_expr.head)) != NULL)
-	{
-		TAILQ_REMOVE(&cur_expr.head, step, entry);
-		TAILQ_INSERT_TAIL(&expr->head, step, entry);
-	}
+	if (cur_step)
+		free(cur_step);
 
 	return (0);
 }

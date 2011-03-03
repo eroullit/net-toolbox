@@ -85,7 +85,7 @@ const char * bpf_code_to_string(const enum bpf_compiler_obj obj)
 {
 	static const char * const bpf_code_string[] = 
 	{
-		[OBJ_UNKNOWN] = stringify(OBJ_UNKNOWN),
+		[UNKNOWN_OBJ] = stringify(UNKNOWN_OBJ),
 		[IP] = stringify(IP),
 		[IP6] = stringify(IP6),
 		[MAC] = stringify(MAC),
@@ -162,22 +162,24 @@ struct bpf_step * bpf_step_alloc(void)
 
 	memset(step, 0, sizeof(*step));
 
+	step->obj = UNKNOWN_OBJ;
+	step->arith_op = EQUAL;
+	step->direction = ANY_DIRECTION;
+
 	return step;
 }
 
-static int bpf_step_add_value(struct bpf_expr * expr, const union value value)
+int bpf_step_is_value_set(const struct bpf_step * const step)
 {
-	struct bpf_step * step;
+	union value value = {0};
 
-	assert(expr);
+	assert(step);
 
-	/* 
-	 * As a value must go with the previous code
-	 * we fetch the last added step and attach the value to it
-	 */
+	return (memcmp(&value, &step->value, sizeof(value)));
+}
 
-	step = TAILQ_LAST(&expr->head, bpf_expr_head);
-
+int bpf_step_set_value(struct bpf_step * step, const union value value)
+{
 	assert(step);
 
 	switch(step->obj)
@@ -211,29 +213,26 @@ static int bpf_step_add_value(struct bpf_expr * expr, const union value value)
 	return 0;
 }
 
-int bpf_step_add_direction(struct bpf_expr * expr, const enum bpf_direction dir)
+int bpf_step_set_direction(struct bpf_step * step, const enum bpf_direction dir)
 {
-	assert(expr);
-	assert(dir);
+	assert(step);
 
-	/* TODO */
+	step->direction = dir;
 
 	return 0;
 }
 
-int bpf_step_add_arith_op(struct bpf_expr * expr, const enum bpf_arith_ops op)
+int bpf_step_set_obj(struct bpf_step * step, const enum bpf_compiler_obj obj)
 {
-	struct bpf_step * step;
+	assert(step);
 
-	assert(expr);
+	step->obj = obj;
 
-	/* 
-	 * As a value must go with the previous code
-	 * we fetch the last added step and attach the value to it
-	 */
+	return 0;
+}
 
-	step = TAILQ_LAST(&expr->head, bpf_expr_head);
-
+int bpf_step_set_arith_op(struct bpf_step * step, const enum bpf_arith_ops op)
+{
 	assert(step);
 
 	step->arith_op = op;
@@ -241,37 +240,22 @@ int bpf_step_add_arith_op(struct bpf_expr * expr, const enum bpf_arith_ops op)
 	return 0;
 }
 
-int bpf_step_add_bit_op(struct bpf_expr * expr, const enum bpf_bit_ops op)
+int bpf_step_set_bit_op(struct bpf_step * step, const enum bpf_bit_ops op)
 {
-	struct bpf_step * step;
-
-	assert(expr);
-
-	bpf_step_add_obj(expr, BIT_OP);
-
-	step = TAILQ_LAST(&expr->head, bpf_expr_head);
-
 	assert(step);
 
+	step->obj = BIT_OP;
+	step->arith_op = EQUAL;
 	step->value.bit_op = op;
 
 	return 0;
 }
 
-int bpf_step_add_obj(struct bpf_expr * expr, const enum bpf_compiler_obj obj)
+int bpf_expr_set_step(struct bpf_expr * expr, struct bpf_step * step)
 {
-	struct bpf_step * step;
- 
         assert(expr);
- 
-	step = bpf_step_alloc();
+        assert(step);
 
-	if (!step)
-		return ENOMEM;
-
-	step->obj = obj;
-	step->arith_op = EQUAL;
-	step->direction = ANY_DIRECTION;
 	step->nr = expr->len;
 
 	TAILQ_INSERT_TAIL(&expr->head, step, entry);
@@ -280,43 +264,43 @@ int bpf_step_add_obj(struct bpf_expr * expr, const enum bpf_compiler_obj obj)
 	return 0;
 }
 
-int bpf_step_add_number(struct bpf_expr * expr, const uint64_t nr)
+int bpf_step_set_number(struct bpf_step * step, const uint64_t nr)
 {
 	union value value = {0};
 
 	value.nr = nr;
 
-	return bpf_step_add_value(expr, value);
+	return bpf_step_set_value(step, value);
 }
 
-int bpf_step_add_eth(struct bpf_expr * expr, const struct ether_addr eth)
+int bpf_step_set_eth(struct bpf_step * step, const struct ether_addr eth)
 {
 	union value value = {0};
 
 	value.eth = eth;
 
-	return bpf_step_add_value(expr, value);
+	return bpf_step_set_value(step, value);
 }
 
-int bpf_step_add_in(struct bpf_expr * expr, const struct in_addr in)
+int bpf_step_set_in(struct bpf_step * step, const struct in_addr in)
 {
 	union value value = {0};
 
 	value.in = in;
 
-	return bpf_step_add_value(expr, value);
+	return bpf_step_set_value(step, value);
 }
 
-int bpf_step_add_in6(struct bpf_expr * expr, const struct in6_addr in6)
+int bpf_step_add_in6(struct bpf_step * step, const struct in6_addr in6)
 {
 	union value value = {0};
 
 	value.in6 = in6;
 
-	return bpf_step_add_value(expr, value);
+	return bpf_step_set_value(step, value);
 }
 
-int bpf_print_expr(const struct bpf_expr * const expr)
+int bpf_print_step(const struct bpf_step * const step)
 {
 	union
 	{
@@ -324,49 +308,66 @@ int bpf_print_expr(const struct bpf_expr * const expr)
 		char in6_str[INET6_ADDRSTRLEN];
 	} addr;
 
+	assert(step);
+
+	printf("%s %s %s ", bpf_direction_to_string(step->direction), bpf_code_to_string(step->obj), bpf_arith_ops_to_string(step->arith_op));
+
+	switch(step->obj)
+	{
+		case IP:
+			inet_ntop(AF_INET, &step->value.in, addr.in_str, sizeof(addr.in_str));
+			printf("%s", addr.in_str);
+		break;
+
+		case IP6:
+			inet_ntop(AF_INET6, &step->value.in6, addr.in6_str, sizeof(addr.in6_str));
+			printf("%s", addr.in6_str);
+		break;
+
+		case MAC:
+			printf("%s", ether_ntoa(&step->value.eth));
+		break;
+
+		case LEN:
+			printf("%"PRIu64"", step->value.nr);
+		break;
+
+		case PORT:
+			printf("%"PRIu64"", step->value.nr);
+		break;
+
+		case BIT_OP:
+			printf("%s", bpf_bit_ops_to_string(step->value.bit_op));
+		break;
+		
+		default:
+			printf("\n");
+
+			return EINVAL;
+		break;
+	}
+
+	printf("\n");
+
+	return (0);
+}
+
+int bpf_print_expr(const struct bpf_expr * const expr)
+{
+	int rc = 0;
 	struct bpf_step * step;
 
 	assert(expr);
 
 	TAILQ_FOREACH(step, &expr->head, entry)
 	{
-		printf("%s %s %s ", bpf_direction_to_string(step->direction), bpf_code_to_string(step->obj), bpf_arith_ops_to_string(step->arith_op));
+		rc = bpf_print_step(step);
 
-		switch(step->obj)
-		{
-			case IP:
-				inet_ntop(AF_INET, &step->value.in, addr.in_str, sizeof(addr.in_str));
-				printf("%s\n", addr.in_str);
+		if (rc)
 			break;
-
-			case IP6:
-				inet_ntop(AF_INET6, &step->value.in6, addr.in6_str, sizeof(addr.in6_str));
-				printf("%s\n", addr.in6_str);
-			break;
-	
-			case MAC:
-				printf("%s\n", ether_ntoa(&step->value.eth));
-			break;
-	
-			case LEN:
-				printf("%"PRIu64"\n", step->value.nr);
-			break;
-	
-			case PORT:
-				printf("%"PRIu64"\n", step->value.nr);
-			break;
-
-			case BIT_OP:
-				printf("%s\n", bpf_bit_ops_to_string(step->value.bit_op));
-			break;
-			
-			default:
-				return EINVAL;
-			break;
-		}
 	}
 
-	return 0;
+	return rc;
 }
 
 int main (int argc, char ** argv)
