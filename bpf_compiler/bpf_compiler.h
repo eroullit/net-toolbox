@@ -35,7 +35,7 @@
 
 enum bpf_arith_ops
 {
-	EQUAL,
+	EQUAL = 1,
 	NOT_EQUAL,
 	GREATER,
 	LESS,
@@ -45,7 +45,7 @@ enum bpf_arith_ops
 
 enum bpf_bit_ops
 {
-	NOT,
+	NOT = 1,
 	AND,
 	OR,
 	XOR
