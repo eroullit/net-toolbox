@@ -36,6 +36,7 @@ src		{bpf_step_set_direction(cur_step, SRC); return SRC;}
 port		{bpf_step_set_obj(cur_step, PORT); return PORT;}
 ip		{bpf_step_set_obj(cur_step, IP); return IP;}
 mac		{bpf_step_set_obj(cur_step, MAC); return MAC;}
+
 {MAC}		{struct ether_addr * eth = ether_aton(yytext);
 		 
 		 bpf_step_set_eth(cur_step, *eth);
@@ -52,10 +53,10 @@ mac		{bpf_step_set_obj(cur_step, MAC); return MAC;}
 		 return IPv4_ID;
 		}
 
-and		{bpf_step_set_bit_op(cur_step, AND);return AND;}
-or		{bpf_step_set_bit_op(cur_step, OR);return OR;}
-xor		{bpf_step_set_bit_op(cur_step, XOR);return XOR;}
-not		{bpf_step_set_bit_op(cur_step, NOT);return NOT;}
+and|"&&"	{bpf_step_set_bit_op(cur_step, AND);return AND;}
+or|"||"		{bpf_step_set_bit_op(cur_step, OR);return OR;}
+xor|"^"		{bpf_step_set_bit_op(cur_step, XOR);return XOR;}
+not|"!"		{bpf_step_set_bit_op(cur_step, NOT);return NOT;} /* XXX NOT support might cause problem */
 
 "=="		{bpf_step_set_arith_op(cur_step, EQUAL);return EQUAL;}
 "!="		{bpf_step_set_arith_op(cur_step, NOT_EQUAL);return NOT_EQUAL;}
@@ -64,40 +65,24 @@ not		{bpf_step_set_bit_op(cur_step, NOT);return NOT;}
 ">="		{bpf_step_set_arith_op(cur_step, GREATER_EQUAL);return GREATER_EQUAL;}
 "<="		{bpf_step_set_arith_op(cur_step, LESS_EQUAL);return LESS_EQUAL;}
 
-{hex_val}	{uint64_t val;
-		 int rc;
+{pos_int}|{hex_val}	{uint64_t val;
+			 int rc;
 
-		 rc = bpf_strtoull(yytext, &val);
+			 rc = bpf_strtoull(yytext, &val);
 
-		 if (rc)
-		 {
-		 	 printf("%s\n", stringify(UNKNOWN_OBJ));
-		 	 return UNKNOWN_OBJ;
-		 }
+			 if (rc)
+		 	 {
+		 		 printf("%s\n", stringify(UNKNOWN_OBJ));
+		 	 	 return UNKNOWN_OBJ;
+		 	 }
 
-		 bpf_step_set_number(cur_step, val);
+		 	 bpf_step_set_number(cur_step, val);
 
-		 return POS_NUMBER;
-		}
+		 	 return POS_NUMBER;
+			}
 
-{pos_int}	{uint64_t val;
-		 int rc;
+{neg_int}|{word}	{return UNKNOWN_OBJ;}	/* No support for negative number yet and forbid unsupported words. */
 
-		 rc = bpf_strtoull(yytext, &val);
-
-		 if (rc)
-		 {
-		 	 printf("%s\n", stringify(UNKNOWN_OBJ));
-		 	 return UNKNOWN_OBJ;
-		 }
-
-		 bpf_step_set_number(cur_step, val);
-
-		 return POS_NUMBER;
-		}
-
-{neg_int}	{return UNKNOWN_OBJ;}	/* No support for negative number yet */
-{word}		{return UNKNOWN_OBJ;}	/* Forbid unsupported words. */
 [ \t\n\r]	;
 
 %%
