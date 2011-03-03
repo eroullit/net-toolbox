@@ -36,6 +36,7 @@ const char * bpf_arith_ops_to_string(const enum bpf_arith_ops op)
 {
 	static const char * const bpf_arith_ops_string[] = 
 	{
+		[UNKNOWN_ARITH_OP] = stringify(UNKNOWN_ARITH_OP),
 		[EQUAL] = stringify(EQUAL),
 		[NOT_EQUAL] = stringify(NOT_EQUAL),
 		[LESS] = stringify(LESS),
@@ -53,6 +54,7 @@ const char * bpf_bit_ops_to_string(const enum bpf_bit_ops op)
 {
 	static const char * const bpf_bit_ops_string[] = 
 	{
+		[UNKNOWN_BIT_OP] = stringify(UNKNOWN_BIT_OP),
 		[NOT] = stringify(NOT),
 		[AND] = stringify(AND),
 		[OR] = stringify(OR),
@@ -64,13 +66,26 @@ const char * bpf_bit_ops_to_string(const enum bpf_bit_ops op)
 	return (bpf_bit_ops_string[op]);
 }
 
+const char * bpf_direction_to_string(const enum bpf_direction dir)
+{
+	static const char * const bpf_direction_string[] = 
+	{
+		[DIRECTION_UNKNOWN] = stringify(DIRECTION_UNKNOWN),
+		[ANY_DIRECTION] = stringify(ANY_DIRECTION),
+		[SRC] = stringify(SRC),
+		[DST] = stringify(DST)
+	};
+
+	assert(dir <= sizeof(bpf_direction_string));
+
+	return (bpf_direction_string[dir]);
+}
+
 const char * bpf_code_to_string(const enum bpf_compiler_obj obj)
 {
 	static const char * const bpf_code_string[] = 
 	{
-		[UNKNOWN] = stringify(UNKNOWN),
-		[SRC] = stringify(SRC),
-		[DST] = stringify(DST),
+		[OBJ_UNKNOWN] = stringify(OBJ_UNKNOWN),
 		[IP] = stringify(IP),
 		[IP6] = stringify(IP6),
 		[MAC] = stringify(MAC),
@@ -196,6 +211,16 @@ static int bpf_step_add_value(struct bpf_expr * expr, const union value value)
 	return 0;
 }
 
+int bpf_step_add_direction(struct bpf_expr * expr, const enum bpf_direction dir)
+{
+	assert(expr);
+	assert(dir);
+
+	/* TODO */
+
+	return 0;
+}
+
 int bpf_step_add_arith_op(struct bpf_expr * expr, const enum bpf_arith_ops op)
 {
 	struct bpf_step * step;
@@ -246,6 +271,7 @@ int bpf_step_add_obj(struct bpf_expr * expr, const enum bpf_compiler_obj obj)
 
 	step->obj = obj;
 	step->arith_op = EQUAL;
+	step->direction = ANY_DIRECTION;
 	step->nr = expr->len;
 
 	TAILQ_INSERT_TAIL(&expr->head, step, entry);
@@ -304,7 +330,7 @@ int bpf_print_expr(const struct bpf_expr * const expr)
 
 	TAILQ_FOREACH(step, &expr->head, entry)
 	{
-		printf("%s %s ", bpf_code_to_string(step->obj), bpf_arith_ops_to_string(step->arith_op));
+		printf("%s %s %s ", bpf_direction_to_string(step->direction), bpf_code_to_string(step->obj), bpf_arith_ops_to_string(step->arith_op));
 
 		switch(step->obj)
 		{

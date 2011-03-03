@@ -31,8 +31,8 @@ IPv4	{pos_int}.{pos_int}.{pos_int}.{pos_int}
 
 %%
 
-dst		{bpf_step_add_obj(&cur_expr, DST); return DST;}
-src		{bpf_step_add_obj(&cur_expr, SRC); return SRC;}
+dst		{bpf_step_add_direction(&cur_expr, DST); return DST;}
+src		{bpf_step_add_direction(&cur_expr, SRC); return SRC;}
 port		{bpf_step_add_obj(&cur_expr, PORT); return PORT;}
 ip		{bpf_step_add_obj(&cur_expr, IP); return IP;}
 mac		{bpf_step_add_obj(&cur_expr, MAC); return MAC;}
@@ -71,8 +71,8 @@ not		{bpf_step_add_bit_op(&cur_expr, NOT);return NOT;}
 
 		 if (rc)
 		 {
-		 	 printf("%s\n", stringify(UNKNOWN));
-		 	 return UNKNOWN;
+		 	 printf("%s\n", stringify(OBJ_UNKNOWN));
+		 	 return OBJ_UNKNOWN;
 		 }
 
 		 bpf_step_add_number(&cur_expr, val);
@@ -87,8 +87,8 @@ not		{bpf_step_add_bit_op(&cur_expr, NOT);return NOT;}
 
 		 if (rc)
 		 {
-		 	 printf("%s\n", stringify(UNKNOWN));
-		 	 return UNKNOWN;
+		 	 printf("%s\n", stringify(OBJ_UNKNOWN));
+		 	 return OBJ_UNKNOWN;
 		 }
 
 		 bpf_step_add_number(&cur_expr, val);
@@ -96,8 +96,8 @@ not		{bpf_step_add_bit_op(&cur_expr, NOT);return NOT;}
 		 return POS_NUMBER;
 		}
 
-{neg_int}	{return UNKNOWN;}	/* No support for negative number yet */
-{word}		{return UNKNOWN;}	/* Forbin unsupported words. */
+{neg_int}	{return OBJ_UNKNOWN;}	/* No support for negative number yet */
+{word}		{return OBJ_UNKNOWN;}	/* Forbid unsupported words. */
 [ \t\n\r]	;
 
 %%

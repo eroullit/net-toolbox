@@ -35,7 +35,8 @@
 
 enum bpf_arith_ops
 {
-	EQUAL = 1,
+	UNKNOWN_ARITH_OP = 0,
+	EQUAL,
 	NOT_EQUAL,
 	GREATER,
 	LESS,
@@ -45,17 +46,24 @@ enum bpf_arith_ops
 
 enum bpf_bit_ops
 {
-	NOT = 1,
+	UNKNOWN_BIT_OP = 0,
+	NOT,
 	AND,
 	OR,
 	XOR
 };
 
-enum bpf_compiler_obj
+enum bpf_direction
 {
-	UNKNOWN = 0,
+	DIRECTION_UNKNOWN = 0,
+	ANY_DIRECTION,
 	SRC,
 	DST,
+};
+
+enum bpf_compiler_obj
+{
+	OBJ_UNKNOWN = 0,
 	IP,
 	IP6,
 	MAC,
@@ -78,6 +86,7 @@ struct bpf_step
 		enum bpf_bit_ops bit_op;
 	} value;
 
+	enum bpf_direction direction;
 	enum bpf_arith_ops arith_op;
 	enum bpf_compiler_obj obj;
 	size_t nr;
@@ -97,6 +106,7 @@ int bpf_expr_parse(struct bpf_expr * expr);
 int bpf_strtoull(const char * const str, uint64_t * val);
 
 void bpf_expr_init(struct bpf_expr * expr);
+int bpf_step_add_direction(struct bpf_expr * expr, const enum bpf_direction dir);
 int bpf_step_add_arith_op(struct bpf_expr * expr, const enum bpf_arith_ops op);
 int bpf_step_add_bit_op(struct bpf_expr * expr, const enum bpf_bit_ops op);
 int bpf_step_add_obj(struct bpf_expr * expr, const enum bpf_compiler_obj obj);
