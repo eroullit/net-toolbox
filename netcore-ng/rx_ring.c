@@ -159,7 +159,7 @@ static void * rx_thread_listen(void * arg)
 		{
 			fm = rb->frames[rb->cur_frame].iov_base;
 
-			if (frame_map_pkt_status_get(fm) == TP_STATUS_KERNEL)
+			if ((frame_map_pkt_status_get(fm) & TP_STATUS_KERNEL) == TP_STATUS_KERNEL)
 			{
 				/* Force sleep here when the user wants */
 				if ((rc = poll(&pfd, 1, -1)) < 0)
@@ -170,7 +170,7 @@ static void * rx_thread_listen(void * arg)
 			}
 
 			/* TODO Add support for TP_STATUS_COPY */
-			if (frame_map_pkt_status_get(fm) == TP_STATUS_USER)
+			if ((frame_map_pkt_status_get(fm) & TP_STATUS_USER) == TP_STATUS_USER)
 			{
 				pkt_buf = frame_map_pkt_buf_get(fm);
 				//info("Process frame %zu/%u state : %lu on %s: %u bytes %p\n", rb->cur_frame, rb->layout.tp_frame_nr, fm->tp_h.tp_status, nic_ctx->rx_dev, fm->tp_h.tp_len, pkt_buf);
