@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <netinet/ether.h>
 #include "bpf_compiler.h"
+#include "bpf_expr.h"
 
 #ifdef	FLEX_SCANNER
 #define YY_NO_INPUT
