@@ -266,6 +266,7 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 	assert(nic_ctx);
 
 	rx_ring_destroy(nic_ctx->dev_fd, &nic_ctx->nic_rb);
+	rx_job_list_cleanup(&nic_ctx->job_list);
 
 	/* 
 	 * If there is a BPF filter loaded, then it

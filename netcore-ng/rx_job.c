@@ -42,12 +42,14 @@ void rx_job_list_cleanup(struct rx_job_list * job_list)
 
 	assert(job_list);
 
-	while(SLIST_EMPTY(&job_list->head) != 0)
+	while(SLIST_EMPTY(&job_list->head) == 0)
 	{
 		job = SLIST_FIRST(&job_list->head);
 		SLIST_REMOVE_HEAD(&job_list->head, entry);
 		free(job);
 	}
+
+	pthread_spin_destroy(&job_list->lock);
 }
 
 int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm))
