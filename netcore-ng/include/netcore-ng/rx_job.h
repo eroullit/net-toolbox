@@ -22,8 +22,8 @@
 
  /* __LICENSE_HEADER_END__ */
 
-#ifndef	__RX_JOB_ACCESSOR_H__
-#define	__RX_JOB_ACCESSOR_H__
+#ifndef	__RX_JOB_H__
+#define	__RX_JOB_H__
 
 #include <stdlib.h>
 #include <string.h>
@@ -47,60 +47,10 @@ struct rx_job_list
 	SLIST_HEAD(rx_job_head, rx_job)	head;
 };
 
-static inline int rx_job_list_init(struct rx_job_list * job_list)
-{
-	assert(job_list);
-	
-	SLIST_INIT(&job_list->head);
+int rx_job_list_init(struct rx_job_list * job_list);
+void rx_job_list_cleanup(struct rx_job_list * job_list);
+int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm));
 
-	return (pthread_spin_init(&job_list->lock, PTHREAD_PROCESS_SHARED));
-}
+int pcap_write_job_register(struct rx_job_list * job_list);
 
-static inline void rx_job_list_cleanup(struct rx_job_list * job_list)
-{
-	struct rx_job * job = NULL;
-
-	assert(job_list);
-
-	while(SLIST_EMPTY(&job_list->head) != 0)
-	{
-		job = SLIST_FIRST(&job_list->head);
-		SLIST_REMOVE_HEAD(&job_list->head, entry);
-		free(job);
-	}
-}
-
-static inline int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm))
-{
-	struct rx_job * cur = NULL;
-	struct rx_job * job = NULL;
-
-	assert(job_list);
-
-	if ((job = malloc(sizeof(*job))) == NULL)
-	{
-		return (ENOMEM);
-	}
-	
-	memset(job, 0, sizeof(*job));
-	job->rx_job = rx_job;
-
-	pthread_spin_lock(&job_list->lock);
-	SLIST_FOREACH(cur, &job_list->head, entry)
-	{
-		/* Check if the same job is already registered */
-		if (cur->rx_job == rx_job)
-		{
-			pthread_spin_unlock(&job_list->lock);
-			free(job);
-			return (EINVAL);
-		}
-	}
-
-	SLIST_INSERT_HEAD(&job_list->head, job, entry);
-	
-	pthread_spin_unlock(&job_list->lock);
-
-	return (0);
-}
-#endif	/* __RX_JOB_ACCESSOR_H__ */
+#endif	/* __RX_JOB_H__ */

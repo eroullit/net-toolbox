@@ -27,6 +27,7 @@
 #define _NET_TYPES_H_
 
 #include <stdint.h>
+#include <time.h>
 
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>

@@ -33,10 +33,6 @@
 
 #include <sys/stat.h>
 
-/* BEGIN TODO reorganize things that pcap function does know much about private types */
-#include <netcore-ng/types.h>
-#include <netcore-ng/rx_ring.h>
-/* END TODO */
 #include <netcore-ng/rx_job.h>
 #include <netcore-ng/pcap.h>
 #include <netcore-ng/macros.h>
@@ -192,11 +188,6 @@ ssize_t pcap_write_payload(const int fd, const struct tpacket_hdr * const tp_h, 
 	return (written);
 }
 
-ssize_t pcap_write_accessor(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm)
-{
-	return(pcap_write_payload(ctx->nic_ctx.pcap_fd, &fm->tp_h, (struct ethhdr *)frame_map_pkt_buf_get(fm)));
-}
-
 void pcap_destroy(const int pcap_fd, const char * const pcap_path)
 {
 	assert(pcap_path);
@@ -278,10 +269,5 @@ int pcap_open(const char * const pcap_path, int flags)
 int pcap_close(const int fd)
 {
 	return (close(fd));
-}
-
-int pcap_write_job_register(struct rx_job_list * job_list)
-{
-	return (rx_job_list_insert(job_list, pcap_write_accessor));
 }
 

@@ -52,6 +52,7 @@
 #include <netcore-ng/cursor.h>
 #include <netcore-ng/macros.h>
 #include <netcore-ng/types.h>
+#include <netcore-ng/rx_job.h>
 #include <netcore-ng/rx_ring.h>
 #include <netcore-ng/rxtx_common.h>
 #include <netcore-ng/netdev.h>
