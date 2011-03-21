@@ -25,6 +25,7 @@
 #include <netcore-ng/types.h>
 #include <netcore-ng/rx_ring.h>
 #include <netcore-ng/pcap.h>
+#include <netcore-ng/dissector/ethernet/dissector.h>
 
 int rx_job_list_init(struct rx_job_list * job_list)
 {
@@ -85,10 +86,26 @@ int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const st
 
 static ssize_t pcap_write_job(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm)
 {
+	assert(ctx);
+	assert(fm);
+
 	return(pcap_write_payload(ctx->nic_ctx.pcap_fd, &fm->tp_h, (struct ethhdr *)frame_map_pkt_buf_get(fm)));
 }
 
 int pcap_write_job_register(struct rx_job_list * job_list)
 {
 	return (rx_job_list_insert(job_list, pcap_write_job));
+}
+
+static ssize_t ethernet_dissector_job(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm)
+{
+	assert(ctx);
+	assert(fm);
+
+	return(ethernet_dissector_run(frame_map_pkt_buf_get(fm), fm->tp_h.tp_len));
+}
+
+int ethernet_dissector_register(struct rx_job_list * job_list)
+{
+	return (rx_job_list_insert(job_list, ethernet_dissector_job));
 }

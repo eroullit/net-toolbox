@@ -52,5 +52,6 @@ void rx_job_list_cleanup(struct rx_job_list * job_list);
 int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm));
 
 int pcap_write_job_register(struct rx_job_list * job_list);
+int ethernet_dissector_register(struct rx_job_list * job_list);
 
 #endif	/* __RX_JOB_H__ */

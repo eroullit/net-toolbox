@@ -174,9 +174,6 @@ static void * rx_thread_listen(void * arg)
 			if ((frame_map_pkt_status_get(fm) & TP_STATUS_USER) == TP_STATUS_USER)
 			{
 				pkt_buf = frame_map_pkt_buf_get(fm);
-				//info("Process frame %zu/%u state : %lu on %s: %u bytes %p\n", rb->cur_frame, rb->layout.tp_frame_nr, fm->tp_h.tp_status, nic_ctx->rx_dev, fm->tp_h.tp_len, pkt_buf);
-
-				ethernet_dissector_run(pkt_buf, fm->tp_h.tp_len);
 
 				SLIST_FOREACH(job, &nic_ctx->job_list.head, entry)
 				{
@@ -343,6 +340,12 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 			warn("Could not register pcap write job\n");
 			goto error;
 		}
+	}
+
+	if ((rc = ethernet_dissector_register(&nic_ctx->job_list)) != 0)
+	{
+		warn("Could not register ethernet dissector job\n");
+		goto error;
 	}
 
 	if ((rc = rx_ring_create(nic_ctx->dev_fd, &nic_ctx->nic_rb, rx_dev)) != 0)
