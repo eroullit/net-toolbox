@@ -23,6 +23,7 @@ ADD_LIBRARY(netcore-ng 	bpf.c
 			dissector/ethernet/ethernet.c 
 			dissector/ethernet/arp.c 
 			dissector/ethernet/ip.c 
+			dissector/ethernet/tcp.c 
 			dissector/ethernet/icmp.c
 )
 

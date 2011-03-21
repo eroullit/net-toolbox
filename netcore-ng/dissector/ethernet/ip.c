@@ -153,10 +153,18 @@ size_t ip_display_c_style(const uint8_t * const pkt, const size_t len, const siz
 
 uint16_t ip_key_get(const uint8_t * const pkt, const size_t len, const size_t off)
 {
+	struct iphdr * ip = (struct iphdr *) &pkt[off];
+
 	assert(pkt);
 	assert(len >= off + ip_size_get());
 
-	/* TODO return L4 ID */
+	switch(ip->protocol)
+	{
+		case IPPROTO_TCP:
+			return (ip->protocol);
+		break;
+	}
+
 	return (RAW_DEFAULT_KEY); 
 }
 

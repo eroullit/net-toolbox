@@ -152,6 +152,11 @@ int ethernet_dissector_init(const enum display_type dtype)
 		goto error;
 	}
 
+	if ((rc = dissector_tcphdr_insert()) != 0)
+	{
+		goto error;
+	}
+
 	if ((rc = dissector_icmp_insert()) != 0)
 	{
 		goto error;

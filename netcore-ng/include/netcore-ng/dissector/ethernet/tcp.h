@@ -22,27 +22,12 @@
 
  /* __LICENSE_HEADER_END__ */
 
-#ifndef	__ETHERNET_DISSECTOR_H__
-#define	__ETHERNET_DISSECTOR_H__
+#ifndef	__ETHERNET_DISSECTOR_TCP_H__
+#define	__ETHERNET_DISSECTOR_TCP_H__
 
-#include <libhashish.h>
+#include <netcore-ng/dissector/ethernet/dissector.h>
 
-#include <netcore-ng/ether_types.h>
-#include <netcore-ng/oui.h>
-#include <netcore-ng/ports_tcp.h>
-#include <netcore-ng/ports_udp.h>
+int dissector_tcphdr_insert(void);
+int dissector_tcphdr_print_set(const enum display_type);
 
-#include <netcore-ng/dissector/dissector_generic.h>
-#include <netcore-ng/dissector/raw.h>
-#include <netcore-ng/dissector/ethernet/ethernet.h>
-#include <netcore-ng/dissector/ethernet/arp.h>
-#include <netcore-ng/dissector/ethernet/ip.h>
-#include <netcore-ng/dissector/ethernet/tcp.h>
-#include <netcore-ng/dissector/ethernet/icmp.h>
-
-int ethernet_dissector_insert(const struct protocol_dissector * const dis);
-int ethernet_dissector_run(uint8_t * pkt, size_t len);
-int ethernet_dissector_init(const enum display_type dtype);
-void ethernet_dissector_destroy(void);
-
-#endif	/* __ETHERNET_DISSECTOR_H__ */
+#endif	/* __ETHERNET_DISSECTOR_IP_H__ */
