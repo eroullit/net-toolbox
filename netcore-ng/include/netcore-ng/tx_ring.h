@@ -30,11 +30,11 @@
 #include <assert.h>
 #include <net/if.h>
 #include <sys/queue.h>
+#include <sys/poll.h>
 
 #include <netcore-ng/macros.h>
 #include <netcore-ng/types.h>
 #include <netcore-ng/thread.h>
-#include <netcore-ng/rxtx_common.h>
 
 /* Function signatures */
 /* a tx ring must only belong to one entity */
