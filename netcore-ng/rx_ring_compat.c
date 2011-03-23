@@ -82,9 +82,10 @@ void * rx_thread_compat_listen(void * arg)
 {
 	struct netsniff_ng_rx_thread_compat_context * thread_ctx = (struct netsniff_ng_rx_thread_compat_context *) arg;
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
+	struct rx_job * job = NULL;
 	struct timeval          now;
 	struct sockaddr_ll      from;
-	struct tpacket_hdr 	tp_h;
+	struct frame_map	fm;
         socklen_t               from_len = sizeof(from);
 	ssize_t pkt_len;
 
@@ -94,7 +95,7 @@ void * rx_thread_compat_listen(void * arg)
 	}
 
 	memset(&from, 0, sizeof(from));
-	memset(&tp_h, 0, sizeof(tp_h));
+	memset(&fm, 0, sizeof(fm));
 
 	nic_ctx = &thread_ctx->nic_ctx;
 
@@ -109,13 +110,16 @@ void * rx_thread_compat_listen(void * arg)
 
 		gettimeofday(&now, NULL);
 
-                tp_h.tp_sec = now.tv_sec;
-                tp_h.tp_usec = now.tv_usec;
-                tp_h.tp_len = tp_h.tp_snaplen = pkt_len;
+                fm.tp_h.tp_sec = now.tv_sec;
+                fm.tp_h.tp_usec = now.tv_usec;
+                fm.tp_h.tp_len = fm.tp_h.tp_snaplen = pkt_len;
+                fm.s_ll = from;
 
-		if (nic_ctx->pcap_fd > 0)
+		SLIST_FOREACH(job, &nic_ctx->job_list.head, entry)
 		{
-			pcap_write_payload(nic_ctx->pcap_fd, &tp_h, (struct ethhdr *) nic_ctx->pkt_buf);
+			/* TODO think about return values handling */
+			/* FIXME make common rx thread ctx data struct to pass to the rx job. */
+			//job->rx_job(thread_ctx, &fm);
 		}
 	}
 
@@ -126,6 +130,8 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 {
 	assert(nic_ctx);
 	
+	rx_job_list_cleanup(&nic_ctx->job_list);
+
 	if (nic_ctx->bpf.filter)
 	{
 		bpf_kernel_reset(nic_ctx->dev_fd);
@@ -174,6 +180,12 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		goto error;
 	}
 
+	if ((rc = rx_job_list_init(&nic_ctx->job_list)) != 0)
+	{
+		warn("Could not create job list\n");
+		goto error;
+	}
+
 	if (bpf_path)
 	{
 		if(bpf_parse(bpf_path, &nic_ctx->bpf) == 0)
@@ -194,6 +206,18 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 			rc = EINVAL;
 			goto error;
 		}
+
+		if ((rc = pcap_write_job_register(&nic_ctx->job_list)) != 0)
+		{
+			warn("Could not register pcap write job\n");
+			goto error;
+		}
+	}
+
+	if ((rc = ethernet_dissector_register(&nic_ctx->job_list)) != 0)
+	{
+		warn("Could not register ethernet dissector job\n");
+		goto error;
 	}
 
 	return(0);

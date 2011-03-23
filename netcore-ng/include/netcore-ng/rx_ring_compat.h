@@ -29,6 +29,7 @@
 #include <net/if.h>
 #include <netcore-ng/bpf.h>
 #include <netcore-ng/thread.h>
+#include <netcore-ng/rx_job.h>
 
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_compat_context
@@ -40,6 +41,7 @@ struct netsniff_ng_rx_nic_compat_context
 	int					dev_fd;
 	int 					pcap_fd;
 	struct sock_fprog 			bpf;
+	struct rx_job_list			job_list;
 	size_t					pkt_buf_len;
 	uint8_t	*				pkt_buf;
 };
