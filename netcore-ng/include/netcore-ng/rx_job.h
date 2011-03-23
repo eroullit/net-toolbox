@@ -32,12 +32,12 @@
 #include <sys/queue.h>
 #include <pthread.h>
 
-struct netsniff_ng_rx_thread_context;
+struct rx_generic_nic_context;
 struct frame_map;
 
 struct rx_job
 {
-	ssize_t (*rx_job)(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm);
+	ssize_t (*rx_job)(const struct rx_generic_nic_context * const ctx, const struct frame_map * const fm);
 	SLIST_ENTRY(rx_job)	entry;
 };
 
@@ -49,7 +49,7 @@ struct rx_job_list
 
 int rx_job_list_init(struct rx_job_list * job_list);
 void rx_job_list_cleanup(struct rx_job_list * job_list);
-int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm));
+int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct rx_generic_nic_context * const ctx, const struct frame_map * const fm));
 
 int pcap_write_job_register(struct rx_job_list * job_list);
 int ethernet_dissector_register(struct rx_job_list * job_list);

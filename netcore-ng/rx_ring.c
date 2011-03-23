@@ -184,7 +184,7 @@ static void * rx_thread_listen(void * arg)
 	
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN|POLLRDNORM|POLLERR;
-	pfd.fd = nic_ctx->dev_fd;
+	pfd.fd = nic_ctx->generic.dev_fd;
 
 
 	info("--- Listening ---\n\n");
@@ -210,10 +210,10 @@ static void * rx_thread_listen(void * arg)
 			{
 				pkt_buf = frame_map_pkt_buf_get(fm);
 
-				SLIST_FOREACH(job, &nic_ctx->job_list.head, entry)
+				SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 				{
 					/* TODO think about return values handling */
-					job->rx_job(thread_ctx, fm);
+					job->rx_job(&nic_ctx->generic, fm);
 				}
 			}
 	
@@ -300,22 +300,22 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 {
 	assert(nic_ctx);
 
-	rx_ring_destroy(nic_ctx->dev_fd, &nic_ctx->nic_rb);
-	rx_job_list_cleanup(&nic_ctx->job_list);
+	rx_ring_destroy(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb);
+	rx_job_list_cleanup(&nic_ctx->generic.job_list);
 
 	/* 
 	 * If there is a BPF filter loaded, then it
 	 * must be unbound from the device and freed
 	 */
 
-	if (nic_ctx->bpf.filter)
+	if (nic_ctx->generic.bpf.filter)
 	{
-		bpf_kernel_reset(nic_ctx->dev_fd);
-		free(nic_ctx->bpf.filter);
+		bpf_kernel_reset(nic_ctx->generic.dev_fd);
+		free(nic_ctx->generic.bpf.filter);
 	}
 
-	close(nic_ctx->dev_fd);
-	close(nic_ctx->pcap_fd);
+	close(nic_ctx->generic.dev_fd);
+	close(nic_ctx->generic.pcap_fd);
 }
 
 static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, const char * rx_dev, const char * bpf_path, const char * pcap_path)
@@ -334,17 +334,17 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		return (EAGAIN);
 	}
 
-	strlcpy(nic_ctx->rx_dev, rx_dev, IFNAMSIZ);
-	nic_ctx->dev_fd = get_pf_socket();
+	strlcpy(nic_ctx->generic.rx_dev, rx_dev, IFNAMSIZ);
+	nic_ctx->generic.dev_fd = get_pf_socket();
 	
-	if (nic_ctx->dev_fd < 0)
+	if (nic_ctx->generic.dev_fd < 0)
 	{
 		warn("Could not open PF_PACKET socket\n");
 		rc = EPERM;
 		goto error;
 	}
 
-	if ((rc = rx_job_list_init(&nic_ctx->job_list)) != 0)
+	if ((rc = rx_job_list_init(&nic_ctx->generic.job_list)) != 0)
 	{
 		warn("Could not create job list\n");
 		goto error;
@@ -352,42 +352,42 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 
 	if (bpf_path)
 	{
-		if(bpf_parse(bpf_path, &nic_ctx->bpf) == 0)
+		if(bpf_parse(bpf_path, &nic_ctx->generic.bpf) == 0)
 		{
 			warn("Could not parse BPF file %s\n", bpf_path);
 			rc = EINVAL;
 			goto error;
 		}
 
-		bpf_kernel_inject(nic_ctx->dev_fd, &nic_ctx->bpf);
+		bpf_kernel_inject(nic_ctx->generic.dev_fd, &nic_ctx->generic.bpf);
 	}
 
 	if (pcap_path)
 	{
-		if ((nic_ctx->pcap_fd = pcap_create(pcap_path)) < 0)
+		if ((nic_ctx->generic.pcap_fd = pcap_create(pcap_path)) < 0)
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
 			rc = EINVAL;
 			goto error;
 		}
 
-		if ((rc = pcap_write_job_register(&nic_ctx->job_list)) != 0)
+		if ((rc = pcap_write_job_register(&nic_ctx->generic.job_list)) != 0)
 		{
 			warn("Could not register pcap write job\n");
 			goto error;
 		}
 	}
 
-	if ((rc = ethernet_dissector_register(&nic_ctx->job_list)) != 0)
+	if ((rc = ethernet_dissector_register(&nic_ctx->generic.job_list)) != 0)
 	{
 		warn("Could not register ethernet dissector job\n");
 		goto error;
 	}
 
-	if ((rc = rx_ring_create(nic_ctx->dev_fd, &nic_ctx->nic_rb, rx_dev)) != 0)
+	if ((rc = rx_ring_create(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb, rx_dev)) != 0)
 	{
 		/* If something goes wrong here, the create PCAP must be deleted */
-		pcap_destroy(nic_ctx->pcap_fd, pcap_path);
+		pcap_destroy(nic_ctx->generic.pcap_fd, pcap_path);
 		goto error;
 	}
 

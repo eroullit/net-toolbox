@@ -90,7 +90,7 @@ void start_single_rx_thread(struct system_data * sd)
 	{
 		case RX_THREAD:
 			pthread_cancel(thread_ctx.rx->thread_ctx.thread);
-			net_stat(thread_ctx.rx->nic_ctx.dev_fd);
+			net_stat(thread_ctx.rx->nic_ctx.generic.dev_fd);
 			rx_thread_destroy(thread_ctx.rx);
 		break;
 

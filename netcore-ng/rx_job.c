@@ -23,8 +23,9 @@
  /* __LICENSE_HEADER_END__ */
 
 #include <netcore-ng/types.h>
-#include <netcore-ng/rx_ring.h>
 #include <netcore-ng/pcap.h>
+#include <netcore-ng/rx_generic.h>
+#include <netcore-ng/rx_job.h>
 #include <netcore-ng/dissector/ethernet/dissector.h>
 
 int rx_job_list_init(struct rx_job_list * job_list)
@@ -52,7 +53,7 @@ void rx_job_list_cleanup(struct rx_job_list * job_list)
 	pthread_spin_destroy(&job_list->lock);
 }
 
-int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm))
+int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct rx_generic_nic_context * const ctx, const struct frame_map * const fm))
 {
 	struct rx_job * cur = NULL;
 	struct rx_job * job = NULL;
@@ -68,6 +69,7 @@ int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const st
 	job->rx_job = rx_job;
 
 	pthread_spin_lock(&job_list->lock);
+
 	SLIST_FOREACH(cur, &job_list->head, entry)
 	{
 		/* Check if the same job is already registered */
@@ -86,12 +88,12 @@ int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const st
 	return (0);
 }
 
-static ssize_t pcap_write_job(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm)
+static ssize_t pcap_write_job(const struct rx_generic_nic_context * const ctx, const struct frame_map * const fm)
 {
 	assert(ctx);
 	assert(fm);
 
-	return(pcap_write_payload(ctx->nic_ctx.pcap_fd, &fm->tp_h, (struct ethhdr *)frame_map_pkt_buf_get(fm)));
+	return(pcap_write_payload(ctx->pcap_fd, &fm->tp_h, (struct ethhdr *)frame_map_pkt_buf_get(fm)));
 }
 
 int pcap_write_job_register(struct rx_job_list * job_list)
@@ -99,7 +101,7 @@ int pcap_write_job_register(struct rx_job_list * job_list)
 	return (rx_job_list_insert(job_list, pcap_write_job));
 }
 
-static ssize_t ethernet_dissector_job(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm)
+static ssize_t ethernet_dissector_job(const struct rx_generic_nic_context * const ctx, const struct frame_map * const fm)
 {
 	assert(ctx);
 	assert(fm);

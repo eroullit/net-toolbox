@@ -30,6 +30,7 @@
 #include <netcore-ng/bpf.h>
 #include <netcore-ng/thread.h>
 #include <netcore-ng/rx_job.h>
+#include <netcore-ng/rx_generic.h>
 
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_compat_context

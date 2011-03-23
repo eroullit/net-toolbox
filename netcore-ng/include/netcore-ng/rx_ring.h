@@ -26,27 +26,18 @@
 #ifndef _NET_RX_RING_H_
 #define _NET_RX_RING_H_
 
-#include <net/if.h>
-
 #include <netcore-ng/types.h> 
 #include <netcore-ng/thread.h> 
-#include <netcore-ng/rx_job.h> 
 #include <netcore-ng/bpf.h> 
+#include <netcore-ng/rx_job.h> 
+#include <netcore-ng/rx_generic.h> 
 #include <netcore-ng/dissector/dissector_generic.h> 
 
-/* Function signatures */
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_context
 {
-	/* Structure which describe a nic instead? */
-	char 					rx_dev[IFNAMSIZ];
-	/* Maybe multiple ring buffer for one device */
-	uint32_t				flags;
-	int					dev_fd;
-	int 					pcap_fd;
-	struct sock_fprog 			bpf;
+	struct rx_generic_nic_context		generic;
 	struct ring_buff			nic_rb;
-	struct rx_job_list			job_list;
 };
 
 struct netsniff_ng_rx_thread_context
