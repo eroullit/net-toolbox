@@ -25,9 +25,11 @@ INCLUDE(CheckTxRing)
 
 ADD_DEFINITIONS(
 	-W
+	-Wextra
 	-Wall
 	-Werror
 	-pedantic
+	-pedantic-errors
 	-std=gnu99
 	-O2
 	-z relo
