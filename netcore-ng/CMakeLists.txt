@@ -5,12 +5,12 @@ ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/${NET-NG}/tests)
 
 ADD_LIBRARY(netcore-ng 	bpf.c 
 			cursor.c 
-			rx_ring_compat.c 
 			thread.c 
 			xmalloc.c 
 			netdev.c 
 			pcap.c 
 			rx_ring.c 
+			rx_ring_compat.c 
 			tx_ring.c 
 			rx_job.c 
 			strlcpy.c 
