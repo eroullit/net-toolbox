@@ -48,20 +48,14 @@
 #include <linux/if_packet.h>
 #include <linux/filter.h>
 
-#include "pcap.h"
-#include "cursor.h"
-#include "dump.h"
-#include "macros.h"
-#include "types.h"
-#include "tx_ring.h"
-#include "netdev.h"
-#include "config.h"
-#include "bpf.h"
-#include "xmalloc.h"
-#include "strlcpy.h"
-#include "replay.h"
+#include <netcore-ng/strlcpy.h>
+#include <netcore-ng/xmalloc.h>
+#include <netcore-ng/pcap.h>
+#include <netcore-ng/netdev.h>
+#include <netcore-ng/bpf.h>
+#include <netcore-ng/tx_ring.h>
 
-static int register_tx_ring(int sock, struct tpacket_req * req)
+static int tx_ring_register(int sock, struct tpacket_req * req)
 {
 	/* Loop to reduce requested ring buffer is it cannot be allocated */
 	/* Break when not supported */
@@ -74,13 +68,16 @@ static int register_tx_ring(int sock, struct tpacket_req * req)
 	return (0);
 }
 
-static void unregister_tx_ring(int sock)
+static void tx_ring_unregister(int sock)
 {
-	struct tpacket_req req = {0};
+	struct tpacket_req req;
+
+	memset(&req, 0, sizeof(req));
+
 	setsockopt(sock, SOL_PACKET, PACKET_TX_RING, (void *)&req, sizeof(req));
 }
 
-static int mmap_tx_ring(int sock, struct ring_buff * rb)
+static int tx_ring_mmap(int sock, struct ring_buff * rb)
 {
 	assert(rb);
 
@@ -93,7 +90,7 @@ static int mmap_tx_ring(int sock, struct ring_buff * rb)
 	return (0);
 }
 
-static void munmap_tx_ring(struct ring_buff * rb)
+static void tx_ring_munmap(struct ring_buff * rb)
 {
 	assert(rb);
 
@@ -105,10 +102,11 @@ static void munmap_tx_ring(struct ring_buff * rb)
 	}
 }
 
-static int bind_dev_to_tx_ring(int sock, int ifindex)
+static int tx_ring_bind(int sock, int ifindex)
 {
-	struct sockaddr_ll sll = {0};
+	struct sockaddr_ll sll;
 
+	memset(&sll, 0, sizeof(sll));
 	sll.sll_family = AF_PACKET;
 	sll.sll_protocol = htons(ETH_P_ALL);
 	sll.sll_ifindex = ifindex;
@@ -123,7 +121,7 @@ static int bind_dev_to_tx_ring(int sock, int ifindex)
 	return (0);
 }
 
-static int set_packet_loss_discard(int sock)
+static int packet_loss_discard_set(int sock)
 {
 	int ret;
 	int foo = 1;		/* we discard wrong packets */
@@ -137,10 +135,9 @@ static int set_packet_loss_discard(int sock)
 	return (ret);
 }
 
-
 static void * tx_thread_listen(void * arg)
 {
-	struct pollfd pfd = {0};
+	struct pollfd pfd;
 	struct tpacket_hdr *header = NULL;
 	int ret = 0;
 	size_t pkt_len = 0;
@@ -161,9 +158,9 @@ static void * tx_thread_listen(void * arg)
 	nic_ctx = &thread_ctx->nic_ctx;
 	rb = &nic_ctx->nic_rb;
 	
+	memset(&pfd, 0, sizeof(pfd));
 	pfd.fd = nic_ctx->dev_fd;
 	pfd.events = POLLOUT;
-	pfd.revents = 0;
 
 	info("--- Transmitting ---\n\n");
 
@@ -221,17 +218,46 @@ flush_pkt:
 	} while (pkt_len);
 
 	info("Placed %u packets\n", pkt_put);
-
 	pthread_exit(NULL);
 }
 
-
-static int create_tx_ring(int sock, struct ring_buff * rb, const char *ifname)
+static inline int frame_buffer_create(struct ring_buff * rb, struct tpacket_req req)
 {
-	struct tpacket_req req = {0};
+	uint32_t i = 0;
+
+	assert(rb);
+
+	rb->frames = malloc(req.tp_frame_nr * sizeof(*rb->frames));
+	if (!rb->frames) {
+		err("No mem left");
+		return (ENOMEM);
+	}
+
+	memset(rb->frames, 0, req.tp_frame_nr * sizeof(*rb->frames));
+
+	for (i = 0; i < req.tp_frame_nr; ++i) {
+		rb->frames[i].iov_base = (uint8_t *) ((long)rb->buffer) + (i * req.tp_frame_size);
+		rb->frames[i].iov_len = req.tp_frame_size;
+	}
+
+	return (0);
+}
+
+static inline void frame_buffer_destroy(struct ring_buff * rb)
+{
+	assert(rb);
+
+	free(rb->frames);
+}
+
+static int tx_ring_create(int sock, struct ring_buff * rb, const char *ifname)
+{
+	struct tpacket_req req;
 
 	assert(rb);
 	assert(ifname);
+
+	memset(&req, 0, sizeof(req));
 
 	/* max: getpagesize() << 11 for i386 */
 	req.tp_block_size = getpagesize() << 2;
@@ -242,7 +268,7 @@ static int create_tx_ring(int sock, struct ring_buff * rb, const char *ifname)
 	req.tp_block_nr = ((1024 * 1024) / req.tp_block_size);
 	req.tp_frame_nr = req.tp_block_size / req.tp_frame_size * req.tp_block_nr;
 
-	if (register_tx_ring(sock, &req))
+	if (tx_ring_register(sock, &req))
 	{
 		err("Cannot register TX ring buffer for %s", ifname);
 		return (EAGAIN);
@@ -250,26 +276,26 @@ static int create_tx_ring(int sock, struct ring_buff * rb, const char *ifname)
 
 	rb->size = req.tp_block_size * req.tp_block_nr;
 
-	if (mmap_tx_ring(sock, rb))
+	if (tx_ring_mmap(sock, rb))
 	{
-		unregister_tx_ring(sock);
+		tx_ring_unregister(sock);
 		err("Cannot prepare TX ring buffer for interface %s for userspace", ifname);
 		return (EAGAIN);
 	}
 
-	if (create_frame_buffer(rb, req))
+	if (frame_buffer_create(rb, req))
 	{
-		munmap_tx_ring(rb);
-		unregister_tx_ring(sock);
+		tx_ring_munmap(rb);
+		tx_ring_unregister(sock);
 		err("Cannot allocate TX ring buffer frame buffer for %s", ifname);
 		return (ENOMEM);
 	}
 
-	if (bind_dev_to_tx_ring(sock, ethdev_to_ifindex(ifname)))
+	if (tx_ring_bind(sock, ethdev_to_ifindex(ifname)))
 	{
-		destroy_frame_buffer(rb);
-		munmap_tx_ring(rb);
-		unregister_tx_ring(sock);
+		frame_buffer_destroy(rb);
+		tx_ring_munmap(rb);
+		tx_ring_unregister(sock);
 		err("Cannot bind %s to TX ring buffer frame buffer", ifname);
 		return (EAGAIN);
 	}
@@ -285,21 +311,21 @@ static int create_tx_ring(int sock, struct ring_buff * rb, const char *ifname)
 	return (0);
 }
 
-static void destroy_tx_ring(int sock, struct ring_buff * rb)
+static void tx_ring_destroy(int sock, struct ring_buff * rb)
 {
 	assert(rb);
 
-	munmap_tx_ring(rb);
-	unregister_tx_ring(sock);
-	destroy_frame_buffer(rb);
+	tx_ring_munmap(rb);
+	tx_ring_unregister(sock);
+	frame_buffer_destroy(rb);
 }
 
 
-static void destroy_tx_nic_ctx(struct netsniff_ng_tx_nic_context * nic_ctx)
+static void tx_nic_ctx_destroy(struct netsniff_ng_tx_nic_context * nic_ctx)
 {
 	assert(nic_ctx);
 
-	destroy_tx_ring(nic_ctx->dev_fd, &nic_ctx->nic_rb);
+	tx_ring_destroy(nic_ctx->dev_fd, &nic_ctx->nic_rb);
 
 	/* 
 	 * If there is a BPF filter loaded, then it
@@ -308,7 +334,7 @@ static void destroy_tx_nic_ctx(struct netsniff_ng_tx_nic_context * nic_ctx)
 
 	if (nic_ctx->bpf.filter)
 	{
-		reset_kernel_bpf(nic_ctx->dev_fd);
+		bpf_kernel_reset(nic_ctx->dev_fd);
 		free(nic_ctx->bpf.filter);
 	}
 
@@ -316,7 +342,7 @@ static void destroy_tx_nic_ctx(struct netsniff_ng_tx_nic_context * nic_ctx)
 	close(nic_ctx->pcap_fd);
 }
 
-static int init_tx_nic_ctx(struct netsniff_ng_tx_thread_context * thread_ctx, const char * tx_dev, const char * bpf_path, const char * pcap_path)
+static int tx_nic_ctx_init(struct netsniff_ng_tx_thread_context * thread_ctx, const char * tx_dev, const char * bpf_path, const char * pcap_path)
 {
 	struct netsniff_ng_tx_nic_context * nic_ctx = NULL;
 	int rc = 0;
@@ -342,26 +368,26 @@ static int init_tx_nic_ctx(struct netsniff_ng_tx_thread_context * thread_ctx, co
 		goto error;
 	}
 	
-	if ((rc = set_packet_loss_discard(nic_ctx->dev_fd)) != 0)
+	if ((rc = packet_loss_discard_set(nic_ctx->dev_fd)) != 0)
 	{
 		goto error;
 	}
 
 	if (bpf_path)
 	{
-		if(parse_rules(bpf_path, &nic_ctx->bpf) == 0)
+		if(bpf_parse(bpf_path, &nic_ctx->bpf) == 0)
 		{
 			warn("Could not parse BPF file %s\n", bpf_path);
 			rc = EINVAL;
 			goto error;
 		}
 
-		inject_kernel_bpf(nic_ctx->dev_fd, &nic_ctx->bpf);
+		bpf_kernel_inject(nic_ctx->dev_fd, &nic_ctx->bpf);
 	}
 
 	if (pcap_path)
 	{
-		if ((nic_ctx->pcap_fd = open_pcap_ro(pcap_path)) < 0)
+		if ((nic_ctx->pcap_fd = pcap_open(pcap_path, O_RDONLY)) < 0)
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
 			rc = EINVAL;
@@ -369,7 +395,7 @@ static int init_tx_nic_ctx(struct netsniff_ng_tx_thread_context * thread_ctx, co
 		}
 	}
 
-	if ((rc = create_tx_ring(nic_ctx->dev_fd, &nic_ctx->nic_rb, tx_dev)) != 0)
+	if ((rc = tx_ring_create(nic_ctx->dev_fd, &nic_ctx->nic_rb, tx_dev)) != 0)
 	{
 		goto error;
 	}
@@ -378,23 +404,23 @@ static int init_tx_nic_ctx(struct netsniff_ng_tx_thread_context * thread_ctx, co
 	return(0);
 
 error:
-	destroy_tx_nic_ctx(nic_ctx);
+	tx_nic_ctx_destroy(nic_ctx);
 	return (rc);
 }
 
-void destroy_tx_thread(struct netsniff_ng_tx_thread_context * thread_config)
+void tx_thread_destroy(struct netsniff_ng_tx_thread_context * thread_config)
 {
 	assert(thread_config);
 
 	if (thread_config->thread_ctx.thread)
 		pthread_cancel(thread_config->thread_ctx.thread);
 
-	destroy_thread_context(&thread_config->thread_ctx);
-	destroy_tx_nic_ctx(&thread_config->nic_ctx);
+	thread_context_destroy(&thread_config->thread_ctx);
+	tx_nic_ctx_destroy(&thread_config->nic_ctx);
 	xfree(thread_config);
 }
 
-struct netsniff_ng_tx_thread_context * create_tx_thread(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path)
+struct netsniff_ng_tx_thread_context * tx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
 	struct netsniff_ng_tx_thread_context * thread_config = NULL;
@@ -405,12 +431,12 @@ struct netsniff_ng_tx_thread_context * create_tx_thread(const cpu_set_t run_on, 
 		return (NULL);
 	}
 
-	if ((rc = init_thread_context(&thread_config->thread_ctx, run_on, sched_prio, sched_policy, TX_THREAD)) != 0)
+	if ((rc = thread_context_init(&thread_config->thread_ctx, run_on, sched_prio, sched_policy, TX_THREAD)) != 0)
 	{
 		goto error;
 	}
 
-	if ((rc = init_tx_nic_ctx(thread_config, tx_dev, bpf_path, pcap_path)) != 0)
+	if ((rc = tx_nic_ctx_init(thread_config, tx_dev, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize TX NIC context\n");
 		goto error;
@@ -418,14 +444,14 @@ struct netsniff_ng_tx_thread_context * create_tx_thread(const cpu_set_t run_on, 
 
 	if ((rc = pthread_create(&thread_config->thread_ctx.thread, &thread_config->thread_ctx.thread_attr, tx_thread_listen, thread_config)))
 	{
-		warn("Could not start TX thread\n")
+		warn("Could not start TX thread\n");
 		goto error;
 	}
 
 	return (thread_config);
 
 error:
-	destroy_tx_thread(thread_config);
+	tx_thread_destroy(thread_config);
 	return (NULL);
 }
 

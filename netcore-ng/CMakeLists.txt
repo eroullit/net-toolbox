@@ -11,6 +11,7 @@ ADD_LIBRARY(netcore-ng 	bpf.c
 			netdev.c 
 			pcap.c 
 			rx_ring.c 
+			tx_ring.c 
 			rx_job.c 
 			strlcpy.c 
 			system.c 
