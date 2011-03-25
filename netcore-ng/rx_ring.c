@@ -433,6 +433,7 @@ struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, 
 		goto error;
 	}
 
+	/* XXX Not its place */
 	if ((rc = ethernet_dissector_init(dtype)) != 0)
 	{
 		warn("Cannot initialize dissector\n");

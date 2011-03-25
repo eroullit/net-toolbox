@@ -73,7 +73,7 @@ void start_single_rx_thread(struct system_data * sd)
 		break;
 
 		case RX_THREAD_COMPAT:
-			thread_ctx.rx_compat = rx_thread_compat_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
+			thread_ctx.rx_compat = rx_thread_compat_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path, sd->dtype);
 			
 			if (thread_ctx.rx_compat == NULL)
 				goto out;

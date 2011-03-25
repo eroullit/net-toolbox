@@ -59,6 +59,7 @@
 #include <netcore-ng/netdev.h>
 #include <netcore-ng/xmalloc.h>
 #include <netcore-ng/strlcpy.h>
+#include <netcore-ng/dissector/ethernet/dissector.h>
 
 static int sock_dev_bind(const char * dev, int sock)
 {
@@ -103,7 +104,7 @@ void * rx_thread_compat_listen(void * arg)
 
 	for(;;)
 	{
-		pkt_len = recvfrom(nic_ctx->dev_fd, nic_ctx->pkt_buf, nic_ctx->pkt_buf_len, MSG_TRUNC, (struct sockaddr *) &from, &from_len);
+		pkt_len = recvfrom(nic_ctx->generic.dev_fd, nic_ctx->pkt_buf, nic_ctx->pkt_buf_len, MSG_TRUNC, (struct sockaddr *) &from, &from_len);
 
 		if (errno == EINTR)
                         break;
@@ -115,11 +116,10 @@ void * rx_thread_compat_listen(void * arg)
                 fm.tp_h.tp_len = fm.tp_h.tp_snaplen = pkt_len;
                 fm.s_ll = from;
 
-		SLIST_FOREACH(job, &nic_ctx->job_list.head, entry)
+		SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 		{
 			/* TODO think about return values handling */
-			/* FIXME make common rx thread ctx data struct to pass to the rx job. */
-			//job->rx_job(thread_ctx, &fm);
+			job->rx_job(&nic_ctx->generic, &fm);
 		}
 	}
 
@@ -130,19 +130,19 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 {
 	assert(nic_ctx);
 	
-	rx_job_list_cleanup(&nic_ctx->job_list);
+	rx_job_list_cleanup(&nic_ctx->generic.job_list);
 
-	if (nic_ctx->bpf.filter)
+	if (nic_ctx->generic.bpf.filter)
 	{
-		bpf_kernel_reset(nic_ctx->dev_fd);
-		free(nic_ctx->bpf.filter);
+		bpf_kernel_reset(nic_ctx->generic.dev_fd);
+		free(nic_ctx->generic.bpf.filter);
 	}
 
 	if (nic_ctx->pkt_buf)
 		xfree(nic_ctx->pkt_buf);
 
-	close(nic_ctx->dev_fd);
-	close(nic_ctx->pcap_fd);
+	close(nic_ctx->generic.dev_fd);
+	close(nic_ctx->generic.pcap_fd);
 }
 
 int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_ctx, const char * rx_dev, const char * bpf_path, const char * pcap_path)
@@ -161,26 +161,26 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		return (EAGAIN);
 	}
 
-	strlcpy(nic_ctx->rx_dev, rx_dev, IFNAMSIZ);
-	nic_ctx->pkt_buf_len = get_mtu(nic_ctx->rx_dev);
+	strlcpy(nic_ctx->generic.rx_dev, rx_dev, IFNAMSIZ);
+	nic_ctx->pkt_buf_len = get_mtu(nic_ctx->generic.rx_dev);
 
 	nic_ctx->pkt_buf = xzmalloc(nic_ctx->pkt_buf_len);
 
-	if ((nic_ctx->dev_fd = socket(PF_INET, SOCK_PACKET, htons(ETH_P_ALL))) < 0)
+	if ((nic_ctx->generic.dev_fd = socket(PF_INET, SOCK_PACKET, htons(ETH_P_ALL))) < 0)
 	{
-		warn("Could not open socket for %s\n", nic_ctx->rx_dev);
+		warn("Could not open socket for %s\n", nic_ctx->generic.rx_dev);
 		rc = EPERM;
 		goto error;
 	}
 
-	if (sock_dev_bind(rx_dev, nic_ctx->dev_fd))
+	if (sock_dev_bind(rx_dev, nic_ctx->generic.dev_fd))
 	{
-		warn("Could not dev %s to socket\n", nic_ctx->rx_dev);
+		warn("Could not dev %s to socket\n", nic_ctx->generic.rx_dev);
 		rc = EAGAIN;
 		goto error;
 	}
 
-	if ((rc = rx_job_list_init(&nic_ctx->job_list)) != 0)
+	if ((rc = rx_job_list_init(&nic_ctx->generic.job_list)) != 0)
 	{
 		warn("Could not create job list\n");
 		goto error;
@@ -188,33 +188,33 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 
 	if (bpf_path)
 	{
-		if(bpf_parse(bpf_path, &nic_ctx->bpf) == 0)
+		if(bpf_parse(bpf_path, &nic_ctx->generic.bpf) == 0)
 		{
 			warn("Could not parse BPF file %s\n", bpf_path);
 			rc = EINVAL;
 			goto error;
 		}
 
-		bpf_kernel_inject(nic_ctx->dev_fd, &nic_ctx->bpf);
+		bpf_kernel_inject(nic_ctx->generic.dev_fd, &nic_ctx->generic.bpf);
 	}
 
 	if (pcap_path)
 	{
-		if ((nic_ctx->pcap_fd = pcap_create(pcap_path)) < 0)
+		if ((nic_ctx->generic.pcap_fd = pcap_create(pcap_path)) < 0)
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
 			rc = EINVAL;
 			goto error;
 		}
 
-		if ((rc = pcap_write_job_register(&nic_ctx->job_list)) != 0)
+		if ((rc = pcap_write_job_register(&nic_ctx->generic.job_list)) != 0)
 		{
 			warn("Could not register pcap write job\n");
 			goto error;
 		}
 	}
 
-	if ((rc = ethernet_dissector_register(&nic_ctx->job_list)) != 0)
+	if ((rc = ethernet_dissector_register(&nic_ctx->generic.job_list)) != 0)
 	{
 		warn("Could not register ethernet dissector job\n");
 		goto error;
@@ -233,12 +233,14 @@ void rx_thread_compat_destroy(struct netsniff_ng_rx_thread_compat_context * thre
 	if (thread_config->thread_ctx.thread)
 		pthread_cancel(thread_config->thread_ctx.thread);
 	
+	ethernet_dissector_destroy();
 	thread_context_destroy(&thread_config->thread_ctx);
 	rx_nic_compat_ctx_destroy(&thread_config->nic_ctx);
+
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
+struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path, const enum display_type dtype)
 {
 	int rc;
 	struct netsniff_ng_rx_thread_compat_context * thread_config = NULL;
@@ -256,6 +258,13 @@ struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_
 	if ((rc = rx_nic_compat_ctx_init(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize RX NIC context\n");
+		goto error;
+	}
+
+	/* XXX Not its place */
+	if ((rc = ethernet_dissector_init(dtype)) != 0)
+	{
+		warn("Cannot initialize dissector\n");
 		goto error;
 	}
 

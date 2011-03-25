@@ -31,18 +31,12 @@
 #include <netcore-ng/thread.h>
 #include <netcore-ng/rx_job.h>
 #include <netcore-ng/rx_generic.h>
+#include <netcore-ng/dissector/dissector_generic.h>
 
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_compat_context
 {
-	/* Structure which describe a nic instead? */
-	char 					rx_dev[IFNAMSIZ];
-	/* Maybe multiple ring buffer for one device */
-	uint32_t				flags;
-	int					dev_fd;
-	int 					pcap_fd;
-	struct sock_fprog 			bpf;
-	struct rx_job_list			job_list;
+	struct rx_generic_nic_context		generic;
 	size_t					pkt_buf_len;
 	uint8_t	*				pkt_buf;
 };
@@ -54,7 +48,7 @@ struct netsniff_ng_rx_thread_compat_context
 };
 
 /* Function signatures */
-extern struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * const rx_dev, const char * const bpf_path, const char * const pcap_path);
+extern struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * const rx_dev, const char * const bpf_path, const char * const pcap_path, const enum display_type dtype);
 extern void rx_thread_compat_destroy(struct netsniff_ng_rx_thread_compat_context * thread_config);
 
 #define DEFAULT_RX_RING_COMPAT_SILENT_MESSAGE "Receive ring dumping (Compatibility mode)... |"
