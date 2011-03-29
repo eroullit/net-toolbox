@@ -7,7 +7,7 @@
 
 licenselen=`wc -l license_header | sed 's/[^0-9]//g'`
 
-for x in `find ${@} -type f -iname *.c -or -iname *.h`; do
+for x in `find ${@} -type f -iname *.c -or -iname *.h -or -iname *.l`; do
   head -${licenselen} ${x} | diff license_header - || ( ( cat license_header; echo; cat ${x}) > tmp_file; mv tmp_file ${x} )
 done
 
