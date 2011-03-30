@@ -86,7 +86,7 @@ void * rx_thread_compat_listen(void * arg)
 	struct rx_job * job = NULL;
 	struct timeval          now;
 	struct sockaddr_ll      from;
-	struct frame_map	fm;
+	struct frame_map *	fm = NULL;
         socklen_t               from_len = sizeof(from);
 	ssize_t pkt_len;
 
@@ -99,27 +99,32 @@ void * rx_thread_compat_listen(void * arg)
 	memset(&fm, 0, sizeof(fm));
 
 	nic_ctx = &thread_ctx->nic_ctx;
+	fm = &nic_ctx->fm;
 
 	info("--- Listening (Compatibility mode)---\n\n");
 
 	for(;;)
 	{
-		pkt_len = recvfrom(nic_ctx->generic.dev_fd, nic_ctx->pkt_buf, nic_ctx->pkt_buf_len, MSG_TRUNC, (struct sockaddr *) &from, &from_len);
+		pkt_len = recvfrom(nic_ctx->generic.dev_fd, nic_ctx->pkt_buf, sizeof(nic_ctx->pkt_buf), MSG_TRUNC, (struct sockaddr *) &from, &from_len);
 
 		if (errno == EINTR)
                         break;
 
 		gettimeofday(&now, NULL);
 
-                fm.tp_h.tp_sec = now.tv_sec;
-                fm.tp_h.tp_usec = now.tv_usec;
-                fm.tp_h.tp_len = fm.tp_h.tp_snaplen = pkt_len;
-                fm.s_ll = from;
+                fm->tp_h.tp_sec = now.tv_sec;
+                fm->tp_h.tp_usec = now.tv_usec;
+                fm->tp_h.tp_len = fm->tp_h.tp_snaplen = pkt_len;
+
+                /* HACK to use the rx job list */
+                fm->tp_h.tp_mac = sizeof(*fm);
+
+                fm->s_ll = from;
 
 		SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 		{
 			/* TODO think about return values handling */
-			job->rx_job(&nic_ctx->generic, &fm);
+			job->rx_job(&nic_ctx->generic, fm);
 		}
 	}
 
@@ -137,9 +142,6 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 		bpf_kernel_reset(nic_ctx->generic.dev_fd);
 		free(nic_ctx->generic.bpf.filter);
 	}
-
-	if (nic_ctx->pkt_buf)
-		xfree(nic_ctx->pkt_buf);
 
 	close(nic_ctx->generic.dev_fd);
 	close(nic_ctx->generic.pcap_fd);
@@ -162,9 +164,6 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 	}
 
 	strlcpy(nic_ctx->generic.rx_dev, rx_dev, IFNAMSIZ);
-	nic_ctx->pkt_buf_len = get_mtu(nic_ctx->generic.rx_dev);
-
-	nic_ctx->pkt_buf = xzmalloc(nic_ctx->pkt_buf_len);
 
 	if ((nic_ctx->generic.dev_fd = socket(PF_INET, SOCK_PACKET, htons(ETH_P_ALL))) < 0)
 	{

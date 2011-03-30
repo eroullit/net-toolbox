@@ -33,12 +33,14 @@
 #include <netcore-ng/rx_generic.h>
 #include <netcore-ng/dissector/dissector_generic.h>
 
+#define RX_RING_COMPAT_DEFAULT_PKT_SIZE	16384
+
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_compat_context
 {
 	struct rx_generic_nic_context		generic;
-	size_t					pkt_buf_len;
-	uint8_t	*				pkt_buf;
+	struct frame_map			fm;
+	uint8_t					pkt_buf[RX_RING_COMPAT_DEFAULT_PKT_SIZE];
 };
 
 struct netsniff_ng_rx_thread_compat_context
