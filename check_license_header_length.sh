@@ -7,22 +7,16 @@ license_length=0
 while read line;
 do
 	if [ "${start_count}" = "1" ]; then
-		echo "${line}" | grep ${LICENSE_BEGIN}
-		ret=$?
-		echo $ret
-		if [ "${ret}" = "0" ]; then
+		echo "${line}" | grep -q ${LICENSE_BEGIN}
+		if [ "${?}" = "0" ]; then
 			start_count=1
 		fi
 	else
 		license_length=$((${license_length} + 1))
 
-		echo "${line}" | grep ${LICENSE_BEGIN}
+		echo "${line}" | grep -q ${LICENSE_END}
 
-		ret=$?
-
-		echo $ret
-
-		if [ "${ret}" = "0" ]; then
+		if [ "${?}" = "0" ]; then
 			break;
 		fi
 	fi
