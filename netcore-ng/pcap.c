@@ -37,6 +37,27 @@
 #include <netcore-ng/pcap.h>
 #include <netcore-ng/macros.h>
 
+int pcap_get_link_type(int arp_type, int * pcap_link_type)
+{
+	int rc = 0;
+
+	assert(pcap_link_type);
+
+	switch(arp_type)
+	{
+		case ARPHRD_ETHER:
+		case ARPHRD_LOOPBACK:
+			*pcap_link_type = LINKTYPE_EN10MB;
+			break;
+		default:
+			warn("Unsupported ARP type\n");
+			rc = EINVAL;
+			break;
+	}
+
+	return (rc);
+}
+
 int pcap_has_packets(const int fd)
 {
 	off_t pos;
@@ -198,7 +219,7 @@ void pcap_destroy(const int pcap_fd, const char * const pcap_path)
 	}
 }
 
-int pcap_create(const char * const pcap_path)
+int pcap_create(const char * const pcap_path, const int linktype)
 {
 	assert(pcap_path);
 
@@ -211,7 +232,7 @@ int pcap_create(const char * const pcap_path)
 	}
 	
 	/* TODO make it configurable instead of using default values */
-	if (pcap_write_header(fd, LINKTYPE_EN10MB, 0, PCAP_DEFAULT_SNAPSHOT_LEN))
+	if (pcap_write_header(fd, linktype, 0, PCAP_DEFAULT_SNAPSHOT_LEN))
 	{
 		/* When the PCAP header cannot be written the file
 		 * must be closed and then deleted

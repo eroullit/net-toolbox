@@ -92,13 +92,14 @@ struct pcap_sf_pkthdr {
 	int32_t len;		/* length this packet (off wire) */
 };
 
+int pcap_get_link_type(int arp_type, int * pcap_link_type);
 int pcap_has_packets(const int fd);
 int pcap_validate_header(const int fd);
 size_t pcap_fetch_next_packet(const int fd, struct packet_ctx * pkt_ctx);
 int pcap_write_header(const int fd, const int linktype, const int thiszone, const int snaplen);
 ssize_t pcap_write_payload(const int fd, const struct packet_ctx * const pkt_ctx);
-int pcap_create(const char * const pcap_path);
 void pcap_destroy(const int pcap_fd, const char * const pcap_path);
+int pcap_create(const char * const pcap_path, const int linktype);
 int pcap_open(const char * const pcap_path, const int flags);
 int pcap_close(const int fd);
 

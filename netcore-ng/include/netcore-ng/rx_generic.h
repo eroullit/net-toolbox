@@ -38,6 +38,7 @@ struct rx_generic_nic_context
 	char 					rx_dev[IFNAMSIZ];
 	int					dev_fd;
 	int 					pcap_fd;
+	int 					linktype;
 	struct sock_fprog 			bpf;
 	struct rx_job_list			job_list;
 	struct packet_ctx			pkt_ctx;

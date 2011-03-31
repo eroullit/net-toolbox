@@ -69,7 +69,7 @@ int main (void)
 	int fd;
 
 	/* Create PCAP file */
-	assert((fd = pcap_create(test_path)) > 0);
+	assert((fd = pcap_create(test_path, LINKTYPE_EN10MB)) > 0);
 
 	/* Write payload */
 	assert(test_pcap_write(fd, icmp_dns, sizeof(icmp_dns)) == 0);

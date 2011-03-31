@@ -571,6 +571,34 @@ static int get_nic_mac(const char *dev, uint8_t * mac)
 	return (0);
 }
 
+int get_arp_type(const char * dev, int * arp_type)
+{
+	int ret;
+	int sock;
+	struct ifreq ifr;
+
+	assert_dev_name(dev);
+	assert(arp_type);
+
+	sock = get_af_socket(AF_INET);
+
+	memset(&ifr, 0, sizeof(ifr));
+	strlcpy(ifr.ifr_name, dev, sizeof(ifr.ifr_name));
+
+	ret = ioctl(sock, SIOCGIFHWADDR, &ifr);
+
+	close(sock);
+
+	if (ret < 0) {
+		err("Doing ioctl(SIOCGIFHWADDR)");
+		return (EINVAL);
+	}
+
+	*arp_type = ifr.ifr_hwaddr.sa_family;
+	
+	return (0);
+}
+
 static char *get_nic_mac_str(const char *dev)
 {
 	uint8_t mac[ETH_ALEN] = { 0 };

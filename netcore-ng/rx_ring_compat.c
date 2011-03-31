@@ -142,6 +142,7 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_ctx, const char * rx_dev, const char * bpf_path, const char * pcap_path)
 {
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
+	int dev_arp_type;
 	int rc;
 
 	assert(thread_ctx);
@@ -156,6 +157,16 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 	}
 
 	strlcpy(nic_ctx->generic.rx_dev, rx_dev, IFNAMSIZ);
+
+	if ((rc = get_arp_type(nic_ctx->generic.rx_dev, &dev_arp_type)) != 0)
+	{
+		goto error;
+	}
+
+	if ((rc = pcap_get_link_type(dev_arp_type, &nic_ctx->generic.linktype)) != 0)
+	{
+		goto error;
+	}
 
 	if ((nic_ctx->generic.dev_fd = socket(PF_INET, SOCK_PACKET, htons(ETH_P_ALL))) < 0)
 	{
@@ -191,7 +202,7 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 
 	if (pcap_path)
 	{
-		if ((nic_ctx->generic.pcap_fd = pcap_create(pcap_path)) < 0)
+		if ((nic_ctx->generic.pcap_fd = pcap_create(pcap_path, nic_ctx->generic.linktype)) < 0)
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
 			rc = EINVAL;

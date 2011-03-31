@@ -59,5 +59,6 @@ extern int get_mtu(const char *dev);
 extern int is_device_ready(const char * dev);
 extern int get_af_socket(int af);
 extern int get_pf_socket(void);
+int get_arp_type(const char * dev, int * arp_type);
 
 #endif				/* _NET_NETDEV_H_ */
