@@ -32,6 +32,7 @@
 struct packet_ctx
 {
 	struct timeval          pkt_ts;
+	size_t			pkt_snaplen;
 	size_t			pkt_len;
 	uint8_t *		pkt_buf;
 	/* packet decapsulation info here ? */

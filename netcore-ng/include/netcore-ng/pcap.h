@@ -30,6 +30,8 @@
 #include <netinet/if_ether.h>
 #include <linux/if_packet.h>
 
+#include <netcore-ng/packet.h>
+
 #define TCPDUMP_MAGIC               0xa1b2c3d4
 #define PCAP_VERSION_MAJOR          2
 #define PCAP_VERSION_MINOR          4
@@ -90,19 +92,11 @@ struct pcap_sf_pkthdr {
 	int32_t len;		/* length this packet (off wire) */
 };
 
-/* FIXME */
-struct netsniff_ng_rx_thread_context;
-struct frame_map;
-struct rx_job_list;
-/* FIXME */
-
 int pcap_has_packets(const int fd);
 int pcap_validate_header(const int fd);
-size_t pcap_fetch_next_packet(const int fd, struct tpacket_hdr * tp_h, struct ethhdr * sp);
+size_t pcap_fetch_next_packet(const int fd, struct packet_ctx * pkt_ctx);
 int pcap_write_header(const int fd, const int linktype, const int thiszone, const int snaplen);
-ssize_t pcap_write_payload(const int fd, const struct tpacket_hdr * const tp_h, const struct ethhdr const *sp);
-ssize_t pcap_write_accessor(const struct netsniff_ng_rx_thread_context * const ctx, const struct frame_map * const fm);
-int pcap_write_job_register(struct rx_job_list * job_list);
+ssize_t pcap_write_payload(const int fd, const struct packet_ctx * const pkt_ctx);
 int pcap_create(const char * const pcap_path);
 void pcap_destroy(const int pcap_fd, const char * const pcap_path);
 int pcap_open(const char * const pcap_path, const int flags);

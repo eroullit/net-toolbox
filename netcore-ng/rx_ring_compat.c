@@ -111,10 +111,12 @@ void * rx_thread_compat_listen(void * arg)
 
 		gettimeofday(&pkt_ctx->pkt_ts, NULL);
 
+		pkt_ctx->pkt_snaplen = pkt_ctx->pkt_len;
+
 		SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 		{
 			/* TODO think about return values handling */
-			job->rx_job(&nic_ctx->generic, NULL);
+			job->rx_job(&nic_ctx->generic);
 		}
 	}
 

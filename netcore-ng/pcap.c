@@ -96,29 +96,24 @@ int pcap_validate_header(const int fd)
 	return (0);
 }
 
-size_t pcap_fetch_next_packet(const int fd, struct tpacket_hdr * tp_h, struct ethhdr * sp)
+size_t pcap_fetch_next_packet(const int fd, struct packet_ctx * pkt_ctx)
 {
 	struct pcap_sf_pkthdr sf_hdr;
 
 	assert(fd > 0);
-
-	if (tp_h == NULL || sp == NULL) {
-		errno = EINVAL;
-		err("Can't access packet header");
-		return (0);
-	}
+	assert(pkt_ctx);
 
 	if (read(fd, (char *)&sf_hdr, sizeof(sf_hdr)) != sizeof(sf_hdr)) {
 		return (0);
 	}
 	
 	/* TODO Need to set the other structure element ? */
-	tp_h->tp_sec = sf_hdr.ts.tv_sec;
-	tp_h->tp_usec = sf_hdr.ts.tv_usec;
-	tp_h->tp_snaplen = sf_hdr.caplen;
-	tp_h->tp_len = sf_hdr.len;
+	pkt_ctx->pkt_ts.tv_sec = sf_hdr.ts.tv_sec;
+	pkt_ctx->pkt_ts.tv_usec = sf_hdr.ts.tv_usec;
+	pkt_ctx->pkt_snaplen = sf_hdr.caplen;
+	pkt_ctx->pkt_len = sf_hdr.len;
 
-	if (read(fd, (char *)sp, sf_hdr.len) != sf_hdr.len) {
+	if (read(fd, pkt_ctx->pkt_buf, sf_hdr.len) != sf_hdr.len) {
 		return (0);
 	}
 
@@ -149,24 +144,26 @@ int pcap_write_header(const int fd, const int linktype, const int thiszone, cons
 	return (0);
 }
 
-ssize_t pcap_write_payload(const int fd, const struct tpacket_hdr * const tp_h, const struct ethhdr const *sp)
+ssize_t pcap_write_payload(const int fd, const struct packet_ctx * const pkt_ctx)
 {
 	struct pcap_sf_pkthdr sf_hdr;
 	ssize_t written = 0;
 
-	assert(tp_h);
-	assert(sp);
+	assert(fd > 0);
+	assert(pkt_ctx);
+	assert(pkt_ctx->pkt_buf);
 
 	/* 
-	 *  XXX keep in mind that timestamps in tp_h are unsigned int
+	 *  XXX keep in mind that timestamps in pkt_ctx are unsigned int
 	 * whereas they are int32_t in pcap_sf_pkthdr
 	 */
 
 	memset(&sf_hdr, 0, sizeof(sf_hdr));
-	sf_hdr.ts.tv_sec = tp_h->tp_sec;
-	sf_hdr.ts.tv_usec = tp_h->tp_usec;
-	sf_hdr.caplen = tp_h->tp_snaplen;
-	sf_hdr.len = tp_h->tp_len;
+
+	sf_hdr.ts.tv_sec = pkt_ctx->pkt_ts.tv_sec;
+	sf_hdr.ts.tv_usec = pkt_ctx->pkt_ts.tv_sec;
+	sf_hdr.caplen = pkt_ctx->pkt_snaplen;
+	sf_hdr.len = pkt_ctx->pkt_snaplen;
 
 	/*
 	 * XXX we should check the return status
@@ -179,7 +176,7 @@ ssize_t pcap_write_payload(const int fd, const struct tpacket_hdr * const tp_h, 
 		return(-1);
 	}
 
-	if ((written = write(fd, sp, sf_hdr.len)) != sf_hdr.len)
+	if ((written = write(fd, pkt_ctx->pkt_buf, sf_hdr.len)) != sf_hdr.len)
 	{
 		err("Cannot write pcap payload wrote %zi/%u bytes", written, sf_hdr.len);
 		return(-1);

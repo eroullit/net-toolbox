@@ -140,12 +140,11 @@ static void * tx_thread_listen(void * arg)
 	struct pollfd pfd;
 	struct tpacket_hdr *header = NULL;
 	int ret = 0;
-	size_t pkt_len = 0;
-	uint8_t * pkt_buf = NULL;
 	uint32_t pkt_put = 0;
 	uint32_t i = 0;
 	struct netsniff_ng_tx_thread_context * thread_ctx = (struct netsniff_ng_tx_thread_context *) arg;
 	struct netsniff_ng_tx_nic_context * nic_ctx = NULL;
+	struct packet_ctx pkt_ctx;
 	struct ring_buff * rb = NULL;
 
 	if (thread_ctx == NULL)
@@ -158,6 +157,9 @@ static void * tx_thread_listen(void * arg)
 	nic_ctx = &thread_ctx->nic_ctx;
 	rb = &nic_ctx->nic_rb;
 	
+	/* XXX packet context should go in NIC context */
+	memset(&pkt_ctx, 0, sizeof(pkt_ctx));
+
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.fd = nic_ctx->dev_fd;
 	pfd.events = POLLOUT;
@@ -167,22 +169,26 @@ static void * tx_thread_listen(void * arg)
 	do {
 		for (i = 0; i < rb->layout.tp_block_nr; i++) {
 			header = (struct tpacket_hdr *)rb->frames[i].iov_base;
-			pkt_buf = (uint8_t *) ((uintptr_t) header + TPACKET_HDRLEN - sizeof(struct sockaddr_ll));
+			pkt_ctx.pkt_buf = (uint8_t *) ((uintptr_t) header + TPACKET_HDRLEN - sizeof(struct sockaddr_ll));
+			pkt_ctx.pkt_len = header->tp_len;
+			pkt_ctx.pkt_snaplen = header->tp_snaplen;
+			pkt_ctx.pkt_ts.tv_sec = header->tp_sec;
+			pkt_ctx.pkt_ts.tv_usec = header->tp_usec;
 
 			info("Slot %u/%u %lx\n", i + 1, rb->layout.tp_block_nr, header->tp_status);
 
 			switch ((volatile uint32_t)header->tp_status) {
 			case TP_STATUS_AVAILABLE:
-				while ((pkt_len =
-					pcap_fetch_next_packet(nic_ctx->pcap_fd, header, (struct ethhdr *)pkt_buf)) != 0) {
+				while ((pkt_ctx.pkt_len =
+					pcap_fetch_next_packet(nic_ctx->pcap_fd, &pkt_ctx)) != 0) {
 					/* If the fetch packet does not match the BPF, take the next one */
-					if (bpf_filter(&nic_ctx->bpf, pkt_buf, header->tp_len)) {
+					if (bpf_filter(&nic_ctx->bpf, pkt_ctx.pkt_buf, pkt_ctx.pkt_len)) {
 						break;
 					}
 				}
 
 				/* No packets to replay or error, time to exit */
-				if (pkt_len == 0)
+				if (pkt_ctx.pkt_len == 0)
 					goto flush_pkt;
 
 				/* Mark packet as ready to send */
@@ -215,7 +221,7 @@ flush_pkt:
 		if (ret < 0)
 			err("An error occured while polling on %s\n", nic_ctx->tx_dev);
 
-	} while (pkt_len);
+	} while (pkt_ctx.pkt_len);
 
 	info("Placed %u packets\n", pkt_put);
 	pthread_exit(NULL);

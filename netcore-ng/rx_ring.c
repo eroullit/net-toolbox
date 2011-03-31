@@ -166,10 +166,10 @@ static void * rx_thread_listen(void * arg)
 	struct rx_job * job = NULL;
 	struct pollfd pfd;
 	int rc;
-	uint8_t * pkt_buf = NULL;
 	struct frame_map * fm = NULL;
 	struct netsniff_ng_rx_thread_context * thread_ctx = (struct netsniff_ng_rx_thread_context *) arg;
 	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
+	struct packet_ctx * pkt_ctx = NULL;
 	struct ring_buff * rb = NULL;
 
 	if (thread_ctx == NULL)
@@ -180,12 +180,12 @@ static void * rx_thread_listen(void * arg)
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	
 	nic_ctx = &thread_ctx->nic_ctx;
+	pkt_ctx = &nic_ctx->generic.pkt_ctx;
 	rb = &nic_ctx->nic_rb;
 	
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN|POLLRDNORM|POLLERR;
 	pfd.fd = nic_ctx->generic.dev_fd;
-
 
 	info("--- Listening ---\n\n");
 
@@ -208,12 +208,16 @@ static void * rx_thread_listen(void * arg)
 			/* TODO Add support for TP_STATUS_COPY */
 			if ((frame_map_pkt_status_get(fm) & TP_STATUS_USER) == TP_STATUS_USER)
 			{
-				pkt_buf = frame_map_pkt_buf_get(fm);
+				pkt_ctx->pkt_buf = frame_map_pkt_buf_get(fm);
+				pkt_ctx->pkt_ts.tv_sec = fm->tp_h.tp_sec;
+				pkt_ctx->pkt_ts.tv_usec = fm->tp_h.tp_usec;
+				pkt_ctx->pkt_len = fm->tp_h.tp_len;
+				pkt_ctx->pkt_snaplen = fm->tp_h.tp_snaplen;
 
 				SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 				{
 					/* TODO think about return values handling */
-					job->rx_job(&nic_ctx->generic, fm);
+					job->rx_job(&nic_ctx->generic);
 				}
 			}
 	

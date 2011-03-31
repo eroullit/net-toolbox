@@ -46,18 +46,17 @@ static const char test_path[] = "res.pcap";
 
 int test_pcap_write(const int fd, const uint8_t * const payload, const ssize_t len)
 {
-	struct tpacket_hdr header;
-	struct timeval ts;
+	struct packet_ctx pkt_ctx;
 
-	gettimeofday(&ts, NULL);
+	memset(&pkt_ctx, 0, sizeof(pkt_ctx));
+	
+	gettimeofday(&pkt_ctx.pkt_ts, NULL);
 
-	memset(&header, 0, sizeof(header));
-	header.tp_sec = ts.tv_sec;
-	header.tp_usec = ts.tv_usec;
-	header.tp_snaplen = len;
-	header.tp_len = len;
+	pkt_ctx.pkt_snaplen = len;
+	pkt_ctx.pkt_len = len;
+	pkt_ctx.pkt_buf = (uint8_t *) payload;
 
-	if (pcap_write_payload(fd, &header, (const struct ethhdr *)payload) != len)
+	if (pcap_write_payload(fd, &pkt_ctx) != len)
 	{
 		return (-1);
 	}

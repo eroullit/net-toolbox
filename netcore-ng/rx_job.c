@@ -53,7 +53,7 @@ void rx_job_list_cleanup(struct rx_job_list * job_list)
 	pthread_spin_destroy(&job_list->lock);
 }
 
-int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct rx_generic_nic_context * const ctx, const struct frame_map * const fm))
+int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct rx_generic_nic_context * const ctx))
 {
 	struct rx_job * cur = NULL;
 	struct rx_job * job = NULL;
@@ -88,12 +88,11 @@ int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const st
 	return (0);
 }
 
-static ssize_t pcap_write_job(const struct rx_generic_nic_context * const ctx, const struct frame_map * const fm)
+static ssize_t pcap_write_job(const struct rx_generic_nic_context * const ctx)
 {
 	assert(ctx);
-	assert(fm);
 
-	return(pcap_write_payload(ctx->pcap_fd, &fm->tp_h, (struct ethhdr *)frame_map_pkt_buf_get(fm)));
+	return(pcap_write_payload(ctx->pcap_fd, &ctx->pkt_ctx));
 }
 
 int pcap_write_job_register(struct rx_job_list * job_list)
@@ -101,12 +100,11 @@ int pcap_write_job_register(struct rx_job_list * job_list)
 	return (rx_job_list_insert(job_list, pcap_write_job));
 }
 
-static ssize_t ethernet_dissector_job(const struct rx_generic_nic_context * const ctx, const struct frame_map * const fm)
+static ssize_t ethernet_dissector_job(const struct rx_generic_nic_context * const ctx)
 {
 	assert(ctx);
-	assert(fm);
 
-	return(ethernet_dissector_run(frame_map_pkt_buf_get(fm), fm->tp_h.tp_len));
+	return(ethernet_dissector_run(ctx->pkt_ctx.pkt_buf, ctx->pkt_ctx.pkt_len));
 }
 
 int ethernet_dissector_register(struct rx_job_list * job_list)
