@@ -59,7 +59,6 @@
 #include <netcore-ng/netdev.h>
 #include <netcore-ng/xmalloc.h>
 #include <netcore-ng/strlcpy.h>
-#include <netcore-ng/dissector/ethernet/dissector.h>
 
 static int sock_dev_bind(const char * dev, int sock)
 {
@@ -235,14 +234,13 @@ void rx_thread_compat_destroy(struct netsniff_ng_rx_thread_compat_context * thre
 	if (thread_config->thread_ctx.thread)
 		pthread_cancel(thread_config->thread_ctx.thread);
 	
-	ethernet_dissector_destroy();
 	thread_context_destroy(&thread_config->thread_ctx);
 	rx_nic_compat_ctx_destroy(&thread_config->nic_ctx);
 
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path, const enum display_type dtype)
+struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
 	struct netsniff_ng_rx_thread_compat_context * thread_config = NULL;
@@ -260,13 +258,6 @@ struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_
 	if ((rc = rx_nic_compat_ctx_init(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize RX NIC context\n");
-		goto error;
-	}
-
-	/* XXX Not its place */
-	if ((rc = ethernet_dissector_init(dtype)) != 0)
-	{
-		warn("Cannot initialize dissector\n");
 		goto error;
 	}
 

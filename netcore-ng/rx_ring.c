@@ -58,7 +58,6 @@
 #include <netcore-ng/bpf.h>
 #include <netcore-ng/xmalloc.h>
 #include <netcore-ng/strlcpy.h>
-#include <netcore-ng/dissector/ethernet/dissector.h>
 
 #ifndef POLLRDNORM
 # define POLLRDNORM      0x0040
@@ -420,13 +419,12 @@ void rx_thread_destroy(struct netsniff_ng_rx_thread_context * thread_config)
 	if (thread_config->thread_ctx.thread)
 		pthread_cancel(thread_config->thread_ctx.thread);
 
-	ethernet_dissector_destroy();
 	thread_context_destroy(&thread_config->thread_ctx);
 	rx_nic_ctx_destroy(&thread_config->nic_ctx);
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path, const enum display_type dtype)
+struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
 	struct netsniff_ng_rx_thread_context * thread_config = NULL;
@@ -445,13 +443,6 @@ struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, 
 	if ((rc = rx_nic_ctx_init(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize RX NIC context\n");
-		goto error;
-	}
-
-	/* XXX Not its place */
-	if ((rc = ethernet_dissector_init(dtype)) != 0)
-	{
-		warn("Cannot initialize dissector\n");
 		goto error;
 	}
 

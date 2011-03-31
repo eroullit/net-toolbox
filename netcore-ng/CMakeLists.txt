@@ -3,7 +3,8 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/${NET-NG}/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/${LIBHASHISH}/include)
 ADD_SUBDIRECTORY(${CMAKE_SOURCE_DIR}/${NET-NG}/tests)
 
-ADD_LIBRARY(netcore-ng 	bpf.c 
+ADD_LIBRARY(netcore-ng 	init.c
+			bpf.c 
 			cursor.c 
 			thread.c 
 			xmalloc.c 

@@ -31,8 +31,10 @@
 #include <netcore-ng/rx_ring.h>
 #include <netcore-ng/rx_ring_compat.h>
 #include <netcore-ng/tx_ring.h>
+#include <netcore-ng/init.h>
 #include <netcore-ng/netdev.h>
 #include <netcore-ng/system.h>
+
 #include <netsniff-ng/config.h>
 
 void start_single_rx_thread(struct system_data * sd)
@@ -66,14 +68,14 @@ void start_single_rx_thread(struct system_data * sd)
 	switch(sd->mode)
 	{
 		case RX_THREAD:
-			thread_ctx.rx = rx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path, sd->dtype);
+			thread_ctx.rx = rx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
 
 			if (thread_ctx.rx == NULL)
 				goto out;
 		break;
 
 		case RX_THREAD_COMPAT:
-			thread_ctx.rx_compat = rx_thread_compat_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path, sd->dtype);
+			thread_ctx.rx_compat = rx_thread_compat_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
 			
 			if (thread_ctx.rx_compat == NULL)
 				goto out;
@@ -125,7 +127,9 @@ int main(int argc, char **argv)
 	init_configuration(&sd);
 	set_configuration(argc, argv, &sd);
 	check_config(&sd);
+	netcore_init(sd.dtype);
 	start_single_rx_thread(&sd);
+	netcore_destroy();
 	clean_config(&sd);
 
 	return 0;

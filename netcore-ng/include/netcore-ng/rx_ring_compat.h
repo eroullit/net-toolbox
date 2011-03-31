@@ -31,7 +31,6 @@
 #include <netcore-ng/thread.h>
 #include <netcore-ng/rx_job.h>
 #include <netcore-ng/rx_generic.h>
-#include <netcore-ng/dissector/dissector_generic.h>
 
 #define RX_RING_COMPAT_DEFAULT_PKT_SIZE	16384
 
@@ -50,7 +49,7 @@ struct netsniff_ng_rx_thread_compat_context
 };
 
 /* Function signatures */
-extern struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * const rx_dev, const char * const bpf_path, const char * const pcap_path, const enum display_type dtype);
+extern struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * const rx_dev, const char * const bpf_path, const char * const pcap_path);
 extern void rx_thread_compat_destroy(struct netsniff_ng_rx_thread_compat_context * thread_config);
 
 #define DEFAULT_RX_RING_COMPAT_SILENT_MESSAGE "Receive ring dumping (Compatibility mode)... |"
