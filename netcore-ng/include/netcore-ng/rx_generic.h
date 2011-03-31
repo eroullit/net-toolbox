@@ -28,6 +28,7 @@
 #include <net/if.h>
 
 #include <netcore-ng/rx_job.h>
+#include <netcore-ng/packet.h>
 #include <netcore-ng/bpf.h>
 
 struct rx_generic_nic_context
@@ -38,6 +39,7 @@ struct rx_generic_nic_context
 	int 					pcap_fd;
 	struct sock_fprog 			bpf;
 	struct rx_job_list			job_list;
+	struct packet_ctx			pkt_ctx;
 };
 
 #endif /* __NET_RX_GENERIC_H__ */

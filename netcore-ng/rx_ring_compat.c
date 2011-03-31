@@ -83,12 +83,10 @@ void * rx_thread_compat_listen(void * arg)
 {
 	struct netsniff_ng_rx_thread_compat_context * thread_ctx = (struct netsniff_ng_rx_thread_compat_context *) arg;
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
+	struct packet_ctx * pkt_ctx = NULL;
 	struct rx_job * job = NULL;
-	struct timeval          now;
 	struct sockaddr_ll      from;
-	struct frame_map *	fm = NULL;
         socklen_t               from_len = sizeof(from);
-	ssize_t pkt_len;
 
 	if (thread_ctx == NULL)
 	{
@@ -96,35 +94,27 @@ void * rx_thread_compat_listen(void * arg)
 	}
 
 	memset(&from, 0, sizeof(from));
-	memset(&fm, 0, sizeof(fm));
 
 	nic_ctx = &thread_ctx->nic_ctx;
-	fm = &nic_ctx->fm;
+	pkt_ctx = &nic_ctx->generic.pkt_ctx;
+
+	pkt_ctx->pkt_buf = nic_ctx->pkt_buf;
 
 	info("--- Listening (Compatibility mode)---\n\n");
 
 	for(;;)
 	{
-		pkt_len = recvfrom(nic_ctx->generic.dev_fd, nic_ctx->pkt_buf, sizeof(nic_ctx->pkt_buf), MSG_TRUNC, (struct sockaddr *) &from, &from_len);
+		pkt_ctx->pkt_len = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->pkt_buf, sizeof(nic_ctx->pkt_buf), MSG_TRUNC, (struct sockaddr *) &from, &from_len);
 
 		if (errno == EINTR)
                         break;
 
-		gettimeofday(&now, NULL);
-
-                fm->tp_h.tp_sec = now.tv_sec;
-                fm->tp_h.tp_usec = now.tv_usec;
-                fm->tp_h.tp_len = fm->tp_h.tp_snaplen = pkt_len;
-
-                /* HACK to use the rx job list */
-                fm->tp_h.tp_mac = sizeof(*fm);
-
-                fm->s_ll = from;
+		gettimeofday(&pkt_ctx->pkt_ts, NULL);
 
 		SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 		{
 			/* TODO think about return values handling */
-			job->rx_job(&nic_ctx->generic, fm);
+			job->rx_job(&nic_ctx->generic, NULL);
 		}
 	}
 
