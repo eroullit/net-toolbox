@@ -236,6 +236,9 @@ int main(int ac, char **av)
 	fputs("# concurrent test: COLL_ENG_RBTREE\n", stderr);
 	test_hashtable(COLL_ENG_RBTREE);
 
+	fputs("# concurrent test: COLL_ENG_LIST_MTF\n", stderr);
+	test_hashtable(COLL_ENG_LIST_MTF);
+
 	fputs("# concurrent test: COLL_ENG_LIST\n", stderr);
 	return test_hashtable(COLL_ENG_LIST);
 }

@@ -239,6 +239,7 @@ int lhi_get_list(const hi_handle_t *hi_handle, const void *key,
 			 * the pointer to the first set, search the right
 			 * set and reorder the set.
 			 */
+		lhi_pthread_mutex_lock(hi_handle->mutex_lock);
 		hi_bucket_obj_t *p, *b_obj = hi_handle->eng.eng_list.bucket_table[bucket];
 
 		for (p = b_obj; b_obj != NULL; b_obj = b_obj->next) {
