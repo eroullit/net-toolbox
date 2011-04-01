@@ -37,17 +37,20 @@
 #define PCAP_VERSION_MINOR          4
 #define PCAP_DEFAULT_SNAPSHOT_LEN   65535
 
-#define LINKTYPE_NULL           0	/* BSD loopback encapsulation */
-#define LINKTYPE_EN10MB         1	/* Ethernet (10Mb) */
-#define LINKTYPE_EN3MB          2	/* Experimental Ethernet (3Mb) */
-#define LINKTYPE_AX25           3	/* Amateur Radio AX.25 */
-#define LINKTYPE_PRONET         4	/* Proteon ProNET Token Ring */
-#define LINKTYPE_CHAOS          5	/* Chaos */
-#define LINKTYPE_IEEE802        6	/* 802.5 Token Ring */
-#define LINKTYPE_ARCNET         7	/* ARCNET, with BSD-style header */
-#define LINKTYPE_SLIP           8	/* Serial Line IP */
-#define LINKTYPE_PPP            9	/* Point-to-point Protocol */
-#define LINKTYPE_FDDI           10	/* FDDI */
+enum pcap_linktype
+{
+	LINKTYPE_NULL = 0,	/* BSD loopback encapsulation */
+	LINKTYPE_EN10MB = 1,	/* Ethernet (10Mb) */
+	LINKTYPE_EN3MB = 2,	/* Experimental Ethernet (3Mb) */
+	LINKTYPE_AX25 = 3,	/* Amateur Radio AX.25 */
+	LINKTYPE_PRONET = 4,	/* Proteon ProNET Token Ring */
+	LINKTYPE_CHAOS = 5,	/* Chaos */
+	LINKTYPE_IEEE802 = 6,	/* 802.5 Token Ring */
+	LINKTYPE_ARCNET = 7,	/* ARCNET, with BSD-style header */
+	LINKTYPE_SLIP = 8,	/* Serial Line IP */
+	LINKTYPE_PPP = 9,	/* Point-to-point Protocol */
+	LINKTYPE_FDDI = 10	/* FDDI */
+};
 
 struct pcap_file_header {
 	uint32_t magic;		/* Magic is 0xa1b2c3d4, if swapped all fields must be swapped */
@@ -92,14 +95,14 @@ struct pcap_sf_pkthdr {
 	int32_t len;		/* length this packet (off wire) */
 };
 
-int pcap_get_link_type(int arp_type, int * pcap_link_type);
+int pcap_get_link_type(int arp_type, enum pcap_linktype * pcap_link_type);
 int pcap_has_packets(const int fd);
 int pcap_validate_header(const int fd);
 size_t pcap_fetch_next_packet(const int fd, struct packet_ctx * pkt_ctx);
 int pcap_write_header(const int fd, const int linktype, const int thiszone, const int snaplen);
 ssize_t pcap_write_payload(const int fd, const struct packet_ctx * const pkt_ctx);
 void pcap_destroy(const int pcap_fd, const char * const pcap_path);
-int pcap_create(const char * const pcap_path, const int linktype);
+int pcap_create(const char * const pcap_path, const enum pcap_linktype linktype);
 int pcap_open(const char * const pcap_path, const int flags);
 int pcap_close(const int fd);
 

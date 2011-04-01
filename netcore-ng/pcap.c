@@ -37,7 +37,7 @@
 #include <netcore-ng/pcap.h>
 #include <netcore-ng/macros.h>
 
-int pcap_get_link_type(int arp_type, int * pcap_link_type)
+int pcap_get_link_type(int arp_type, enum pcap_linktype * pcap_link_type)
 {
 	int rc = 0;
 
@@ -219,7 +219,7 @@ void pcap_destroy(const int pcap_fd, const char * const pcap_path)
 	}
 }
 
-int pcap_create(const char * const pcap_path, const int linktype)
+int pcap_create(const char * const pcap_path, const enum pcap_linktype linktype)
 {
 	assert(pcap_path);
 
