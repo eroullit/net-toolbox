@@ -144,7 +144,7 @@ static void * tx_thread_transmit(void * arg)
 	uint32_t i = 0;
 	struct netsniff_ng_tx_thread_context * thread_ctx = (struct netsniff_ng_tx_thread_context *) arg;
 	struct netsniff_ng_tx_nic_context * nic_ctx = NULL;
-	struct packet_ctx pkt_ctx;
+	struct packet_ctx * pkt_ctx = NULL;
 	struct ring_buff * rb = NULL;
 
 	if (thread_ctx == NULL)
@@ -155,13 +155,13 @@ static void * tx_thread_transmit(void * arg)
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	
 	nic_ctx = &thread_ctx->nic_ctx;
+	pkt_ctx = &nic_ctx->generic.pkt_ctx;
 	rb = &nic_ctx->nic_rb;
 	
-	/* XXX packet context should go in NIC context */
-	memset(&pkt_ctx, 0, sizeof(pkt_ctx));
+	memset(pkt_ctx, 0, sizeof(*pkt_ctx));
 
 	memset(&pfd, 0, sizeof(pfd));
-	pfd.fd = nic_ctx->dev_fd;
+	pfd.fd = nic_ctx->generic.dev_fd;
 	pfd.events = POLLOUT;
 
 	info("--- Transmitting ---\n\n");
@@ -169,30 +169,29 @@ static void * tx_thread_transmit(void * arg)
 	do {
 		for (i = 0; i < rb->layout.tp_block_nr; i++) {
 			header = (struct frame_map *)rb->frames[i].iov_base;
-			pkt_ctx.pkt_buf = (uint8_t *) header + TPACKET_HDRLEN - sizeof(struct sockaddr_ll);
-			info("Slot %u/%u %lx\n", i + 1, rb->layout.tp_block_nr, header->tp_h.tp_status);
+			pkt_ctx->pkt_buf = (uint8_t *) header + TPACKET_HDRLEN - sizeof(struct sockaddr_ll);
 
 			switch (header->tp_h.tp_status) {
 			case TP_STATUS_AVAILABLE:
-				while ((pkt_ctx.pkt_len =
-					pcap_fetch_next_packet(nic_ctx->pcap_fd, &pkt_ctx)) != 0) {
+				while ((pkt_ctx->pkt_len =
+					pcap_fetch_next_packet(nic_ctx->generic.pcap_fd, pkt_ctx)) != 0) {
 					/* If the fetch packet does not match the BPF, take the next one */
-					if (bpf_filter(&nic_ctx->bpf, pkt_ctx.pkt_buf, pkt_ctx.pkt_len)) {
+					if (bpf_filter(&nic_ctx->generic.bpf, pkt_ctx->pkt_buf, pkt_ctx->pkt_len)) {
 						break;
 					}
 				}
 
 				/* No packets to replay or error, time to exit */
-				if (pkt_ctx.pkt_len == 0)
+				if (pkt_ctx->pkt_len == 0)
 					goto flush_pkt;
 
-				gettimeofday(&pkt_ctx.pkt_ts, NULL);
+				gettimeofday(&pkt_ctx->pkt_ts, NULL);
 				
 				/* Mark packet as ready to send */
 				header->tp_h.tp_status = TP_STATUS_SEND_REQUEST;
-				header->tp_h.tp_len = header->tp_h.tp_snaplen = pkt_ctx.pkt_len;
-				header->tp_h.tp_sec = pkt_ctx.pkt_ts.tv_sec;
-				header->tp_h.tp_usec = pkt_ctx.pkt_ts.tv_usec;
+				header->tp_h.tp_len = header->tp_h.tp_snaplen = pkt_ctx->pkt_len;
+				header->tp_h.tp_sec = pkt_ctx->pkt_ts.tv_sec;
+				header->tp_h.tp_usec = pkt_ctx->pkt_ts.tv_usec;
 
 				pkt_put++;
 				break;
@@ -208,7 +207,7 @@ static void * tx_thread_transmit(void * arg)
 		}
 
 flush_pkt:
-		ret = send(nic_ctx->dev_fd, NULL, 0, MSG_DONTWAIT);
+		ret = send(nic_ctx->generic.dev_fd, NULL, 0, MSG_DONTWAIT);
 
 		info("send() returned %i: %s\n", ret, strerror(errno));
 
@@ -220,9 +219,9 @@ flush_pkt:
 		ret = poll(&pfd, 1, -1);
 		
 		if (ret < 0)
-			err("An error occured while polling on %s\n", nic_ctx->tx_dev);
+			err("An error occured while polling on %s\n", nic_ctx->generic.dev_name);
 
-	} while (pkt_ctx.pkt_len);
+	} while (pkt_ctx->pkt_len);
 
 	info("Placed %u packets\n", pkt_put);
 	pthread_exit(NULL);
@@ -332,69 +331,69 @@ static void tx_nic_ctx_destroy(struct netsniff_ng_tx_nic_context * nic_ctx)
 {
 	assert(nic_ctx);
 
-	tx_ring_destroy(nic_ctx->dev_fd, &nic_ctx->nic_rb);
+	tx_ring_destroy(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb);
 
 	/* 
 	 * If there is a BPF filter loaded, then it
 	 * must be unbound from the device and freed
 	 */
 
-	if (nic_ctx->bpf.filter)
+	if (nic_ctx->generic.bpf.filter)
 	{
-		bpf_kernel_reset(nic_ctx->dev_fd);
-		free(nic_ctx->bpf.filter);
+		bpf_kernel_reset(nic_ctx->generic.dev_fd);
+		free(nic_ctx->generic.bpf.filter);
 	}
 
-	close(nic_ctx->dev_fd);
-	close(nic_ctx->pcap_fd);
+	close(nic_ctx->generic.dev_fd);
+	close(nic_ctx->generic.pcap_fd);
 }
 
-static int tx_nic_ctx_init(struct netsniff_ng_tx_thread_context * thread_ctx, const char * tx_dev, const char * bpf_path, const char * pcap_path)
+static int tx_nic_ctx_init(struct netsniff_ng_tx_thread_context * thread_ctx, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
 	struct netsniff_ng_tx_nic_context * nic_ctx = NULL;
 	int rc = 0;
 
 	assert(thread_ctx);
-	assert(tx_dev);
+	assert(dev_name);
 
 	nic_ctx = &thread_ctx->nic_ctx;
 
-	if (!is_device_ready(tx_dev))
+	if (!is_device_ready(dev_name))
 	{
-		warn("Device %s is not ready\n", tx_dev);
+		warn("Device %s is not ready\n", dev_name);
 		return (EAGAIN);
 	}
 
-	strlcpy(nic_ctx->tx_dev, tx_dev, IFNAMSIZ);
-	nic_ctx->dev_fd = get_pf_socket();
+	strlcpy(nic_ctx->generic.dev_name, dev_name, IFNAMSIZ);
+	nic_ctx->generic.dev_fd = get_pf_socket();
 	
-	if (nic_ctx->dev_fd < 0)
+	if (nic_ctx->generic.dev_fd < 0)
 	{
 		warn("Could not open PF_PACKET socket\n");
 		rc = EPERM;
 		goto error;
 	}
 	
-	if ((rc = packet_loss_discard_set(nic_ctx->dev_fd)) != 0)
+	if ((rc = packet_loss_discard_set(nic_ctx->generic.dev_fd)) != 0)
 	{
 		goto error;
 	}
 
 	if (bpf_path)
 	{
-		if(bpf_parse(bpf_path, &nic_ctx->bpf) == 0)
+		if(bpf_parse(bpf_path, &nic_ctx->generic.bpf) == 0)
 		{
 			warn("Could not parse BPF file %s\n", bpf_path);
 			rc = EINVAL;
 			goto error;
 		}
 
-		bpf_kernel_inject(nic_ctx->dev_fd, &nic_ctx->bpf);
+		bpf_kernel_inject(nic_ctx->generic.dev_fd, &nic_ctx->generic.bpf);
 	}
 
 	if (pcap_path)
 	{
-		if ((nic_ctx->pcap_fd = pcap_open(pcap_path, O_RDONLY)) < 0)
+		if ((nic_ctx->generic.pcap_fd = pcap_open(pcap_path, O_RDONLY)) < 0)
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
 			rc = EINVAL;
@@ -402,7 +401,7 @@ static int tx_nic_ctx_init(struct netsniff_ng_tx_thread_context * thread_ctx, co
 		}
 	}
 
-	if ((rc = tx_ring_create(nic_ctx->dev_fd, &nic_ctx->nic_rb, tx_dev)) != 0)
+	if ((rc = tx_ring_create(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb, dev_name)) != 0)
 	{
 		goto error;
 	}
@@ -427,7 +426,7 @@ void tx_thread_destroy(struct netsniff_ng_tx_thread_context * thread_config)
 	xfree(thread_config);
 }
 
-struct netsniff_ng_tx_thread_context * tx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path)
+struct netsniff_ng_tx_thread_context * tx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
 	struct netsniff_ng_tx_thread_context * thread_config = NULL;
@@ -443,7 +442,7 @@ struct netsniff_ng_tx_thread_context * tx_thread_create(const cpu_set_t run_on, 
 		goto error;
 	}
 
-	if ((rc = tx_nic_ctx_init(thread_config, tx_dev, bpf_path, pcap_path)) != 0)
+	if ((rc = tx_nic_ctx_init(thread_config, dev_name, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize TX NIC context\n");
 		goto error;

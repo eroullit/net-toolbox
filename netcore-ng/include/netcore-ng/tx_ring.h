@@ -35,19 +35,13 @@
 #include <netcore-ng/macros.h>
 #include <netcore-ng/types.h>
 #include <netcore-ng/thread.h>
+#include <netcore-ng/rx_job.h> 
+#include <netcore-ng/rx_generic.h>
 
-/* Function signatures */
 /* a tx ring must only belong to one entity */
 struct netsniff_ng_tx_nic_context
 {
-	struct pollfd 				pfd;
-	/* Structure which describe a nic instead? */
-	char 					tx_dev[IFNAMSIZ];
-	/* Maybe multiple ring buffer for one device */
-	uint32_t				flags;
-	int					dev_fd;
-	int 					pcap_fd;
-	struct sock_fprog 			bpf;
+	struct rx_generic_nic_context		generic;
 	struct ring_buff			nic_rb;
 };
 
