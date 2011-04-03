@@ -44,6 +44,7 @@ void start_single_rx_thread(struct system_data * sd)
 	union
 	{
 		struct netsniff_ng_rx_thread_context * 		rx;
+		struct netsniff_ng_tx_thread_context * 		tx;
 		struct netsniff_ng_rx_thread_compat_context * 	rx_compat;
 	}thread_ctx;
 	
@@ -80,6 +81,14 @@ void start_single_rx_thread(struct system_data * sd)
 			if (thread_ctx.rx_compat == NULL)
 				goto out;
 		break;
+		
+		case TX_THREAD:
+			thread_ctx.tx = tx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
+
+			if (thread_ctx.tx == NULL)
+				goto out;
+		break;
+
 
 		default:
 			err("This mode is not supported yet\n");
@@ -99,6 +108,11 @@ void start_single_rx_thread(struct system_data * sd)
 		case RX_THREAD_COMPAT:
 			pthread_cancel(thread_ctx.rx_compat->thread_ctx.thread);
 			rx_thread_compat_destroy(thread_ctx.rx_compat);
+		break;
+		
+		case TX_THREAD:
+			pthread_cancel(thread_ctx.tx->thread_ctx.thread);
+			tx_thread_destroy(thread_ctx.tx);
 		break;
 
 		default:

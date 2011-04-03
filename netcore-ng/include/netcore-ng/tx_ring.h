@@ -58,8 +58,8 @@ struct netsniff_ng_tx_thread_context
 };
 
 /* Function signatures */
-extern struct netsniff_ng_tx_thread_context * create_tx_thread(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path);
-extern void destroy_tx_thread(struct netsniff_ng_tx_thread_context * thread_config);
+extern struct netsniff_ng_tx_thread_context * tx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path);
+extern void tx_thread_destroy(struct netsniff_ng_tx_thread_context * thread_config);
 
 
 #define DEFAULT_TX_RING_SILENT_MESSAGE "Transmitting ... |"

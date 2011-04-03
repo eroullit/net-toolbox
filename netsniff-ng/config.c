@@ -409,9 +409,7 @@ void set_configuration(int argc, char **argv, struct system_data *sd)
 			break;
 			
 			case 'r':
-			warn("Replay mode not supported yet\n");
-			warn("Fallback to capture\n");
-			sd->mode = RX_THREAD;
+			sd->mode = TX_THREAD;
 			break;
 
 			case 'R':
