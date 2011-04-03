@@ -321,27 +321,27 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 	close(nic_ctx->generic.pcap_fd);
 }
 
-static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, const char * rx_dev, const char * bpf_path, const char * pcap_path)
+static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
 	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
 	int dev_arp_type;
 	int rc = 0;
 
 	assert(thread_ctx);
-	assert(rx_dev);
+	assert(dev_name);
 
 	nic_ctx = &thread_ctx->nic_ctx;
 
-	if (!is_device_ready(rx_dev))
+	if (!is_device_ready(dev_name))
 	{
-		warn("Device %s is not ready\n", rx_dev);
+		warn("Device %s is not ready\n", dev_name);
 		return (EAGAIN);
 	}
 
-	strlcpy(nic_ctx->generic.rx_dev, rx_dev, IFNAMSIZ);
+	strlcpy(nic_ctx->generic.dev_name, dev_name, IFNAMSIZ);
 	nic_ctx->generic.dev_fd = get_pf_socket();
 	
-	if ((rc = get_arp_type(nic_ctx->generic.rx_dev, &dev_arp_type)) != 0)
+	if ((rc = get_arp_type(nic_ctx->generic.dev_name, &dev_arp_type)) != 0)
 	{
 		goto error;
 	}
@@ -398,7 +398,7 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		goto error;
 	}
 
-	if ((rc = rx_ring_create(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb, rx_dev)) != 0)
+	if ((rc = rx_ring_create(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb, dev_name)) != 0)
 	{
 		/* If something goes wrong here, the create PCAP must be deleted */
 		pcap_destroy(nic_ctx->generic.pcap_fd, pcap_path);
@@ -424,7 +424,7 @@ void rx_thread_destroy(struct netsniff_ng_rx_thread_context * thread_config)
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * rx_dev, const char * bpf_path, const char * pcap_path)
+struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
 	struct netsniff_ng_rx_thread_context * thread_config = NULL;
@@ -440,7 +440,7 @@ struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, 
 		goto error;
 	}
 
-	if ((rc = rx_nic_ctx_init(thread_config, rx_dev, bpf_path, pcap_path)) != 0)
+	if ((rc = rx_nic_ctx_init(thread_config, dev_name, bpf_path, pcap_path)) != 0)
 	{
 		warn("Cannot initialize RX NIC context\n");
 		goto error;

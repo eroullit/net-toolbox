@@ -36,7 +36,7 @@ struct rx_generic_nic_context
 {
 	/* Structure which describe a nic instead? */
 	/* Add here linktype */
-	char 					rx_dev[IFNAMSIZ];
+	char 					dev_name[IFNAMSIZ];
 	int					dev_fd;
 	int 					pcap_fd;
 	enum pcap_linktype			linktype;
