@@ -138,7 +138,7 @@ static int packet_loss_discard_set(int sock)
 static void * tx_thread_listen(void * arg)
 {
 	struct pollfd pfd;
-	struct tpacket_hdr *header = NULL;
+	struct frame_map *header = NULL;
 	int ret = 0;
 	uint32_t pkt_put = 0;
 	uint32_t i = 0;
@@ -168,16 +168,11 @@ static void * tx_thread_listen(void * arg)
 
 	do {
 		for (i = 0; i < rb->layout.tp_block_nr; i++) {
-			header = (struct tpacket_hdr *)rb->frames[i].iov_base;
-			pkt_ctx.pkt_buf = (uint8_t *) ((uintptr_t) header + TPACKET_HDRLEN - sizeof(struct sockaddr_ll));
-			pkt_ctx.pkt_len = header->tp_len;
-			pkt_ctx.pkt_snaplen = header->tp_snaplen;
-			pkt_ctx.pkt_ts.tv_sec = header->tp_sec;
-			pkt_ctx.pkt_ts.tv_usec = header->tp_usec;
+			header = (struct frame_map *)rb->frames[i].iov_base;
+			pkt_ctx.pkt_buf = (uint8_t *) header + TPACKET_HDRLEN - sizeof(struct sockaddr_ll);
+			info("Slot %u/%u %lx\n", i + 1, rb->layout.tp_block_nr, header->tp_h.tp_status);
 
-			info("Slot %u/%u %lx\n", i + 1, rb->layout.tp_block_nr, header->tp_status);
-
-			switch ((volatile uint32_t)header->tp_status) {
+			switch (header->tp_h.tp_status) {
 			case TP_STATUS_AVAILABLE:
 				while ((pkt_ctx.pkt_len =
 					pcap_fetch_next_packet(nic_ctx->pcap_fd, &pkt_ctx)) != 0) {
@@ -191,8 +186,14 @@ static void * tx_thread_listen(void * arg)
 				if (pkt_ctx.pkt_len == 0)
 					goto flush_pkt;
 
+				gettimeofday(&pkt_ctx.pkt_ts, NULL);
+				
 				/* Mark packet as ready to send */
-				header->tp_status = TP_STATUS_SEND_REQUEST;
+				header->tp_h.tp_status = TP_STATUS_SEND_REQUEST;
+				header->tp_h.tp_len = header->tp_h.tp_snaplen = pkt_ctx.pkt_len;
+				header->tp_h.tp_sec = pkt_ctx.pkt_ts.tv_sec;
+				header->tp_h.tp_usec = pkt_ctx.pkt_ts.tv_usec;
+
 				pkt_put++;
 				break;
 
