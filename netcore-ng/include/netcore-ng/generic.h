@@ -22,8 +22,8 @@
 
  /* __LICENSE_HEADER_END__ */
 
-#ifndef __NET_RX_GENERIC_H__
-#define __NET_RX_GENERIC_H__
+#ifndef __NET_GENERIC_H__
+#define __NET_GENERIC_H__
 
 #include <net/if.h>
 
@@ -32,10 +32,9 @@
 #include <netcore-ng/bpf.h>
 #include <netcore-ng/pcap.h>
 
-struct rx_generic_nic_context
+struct generic_nic_context
 {
 	/* Structure which describe a nic instead? */
-	/* Add here linktype */
 	char 					dev_name[IFNAMSIZ];
 	int					dev_fd;
 	int 					pcap_fd;
@@ -45,4 +44,4 @@ struct rx_generic_nic_context
 	struct packet_ctx			pkt_ctx;
 };
 
-#endif /* __NET_RX_GENERIC_H__ */
+#endif /* __NET_GENERIC_H__ */

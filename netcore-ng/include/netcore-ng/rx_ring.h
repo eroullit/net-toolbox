@@ -30,12 +30,12 @@
 #include <netcore-ng/thread.h> 
 #include <netcore-ng/bpf.h> 
 #include <netcore-ng/rx_job.h> 
-#include <netcore-ng/rx_generic.h> 
+#include <netcore-ng/generic.h> 
 
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_context
 {
-	struct rx_generic_nic_context		generic;
+	struct generic_nic_context		generic;
 	struct ring_buff			nic_rb;
 };
 

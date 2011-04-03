@@ -24,7 +24,7 @@
 
 #include <netcore-ng/types.h>
 #include <netcore-ng/pcap.h>
-#include <netcore-ng/rx_generic.h>
+#include <netcore-ng/generic.h>
 #include <netcore-ng/rx_job.h>
 #include <netcore-ng/dissector/ethernet/dissector.h>
 
@@ -53,7 +53,7 @@ void rx_job_list_cleanup(struct rx_job_list * job_list)
 	pthread_spin_destroy(&job_list->lock);
 }
 
-int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct rx_generic_nic_context * const ctx))
+int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct generic_nic_context * const ctx))
 {
 	struct rx_job * cur = NULL;
 	struct rx_job * job = NULL;
@@ -88,7 +88,7 @@ int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const st
 	return (0);
 }
 
-static ssize_t pcap_write_job(const struct rx_generic_nic_context * const ctx)
+static ssize_t pcap_write_job(const struct generic_nic_context * const ctx)
 {
 	assert(ctx);
 
@@ -100,7 +100,7 @@ int pcap_write_job_register(struct rx_job_list * job_list)
 	return (rx_job_list_insert(job_list, pcap_write_job));
 }
 
-static ssize_t ethernet_dissector_job(const struct rx_generic_nic_context * const ctx)
+static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx)
 {
 	assert(ctx);
 
