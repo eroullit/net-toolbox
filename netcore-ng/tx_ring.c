@@ -135,10 +135,10 @@ static int packet_loss_discard_set(int sock)
 	return (ret);
 }
 
-static void * tx_thread_listen(void * arg)
+static void * tx_thread_transmit(void * arg)
 {
 	struct pollfd pfd;
-	struct frame_map *header = NULL;
+	struct frame_map * header = NULL;
 	int ret = 0;
 	uint32_t pkt_put = 0;
 	uint32_t i = 0;
@@ -449,7 +449,7 @@ struct netsniff_ng_tx_thread_context * tx_thread_create(const cpu_set_t run_on, 
 		goto error;
 	}
 
-	if ((rc = pthread_create(&thread_config->thread_ctx.thread, &thread_config->thread_ctx.thread_attr, tx_thread_listen, thread_config)))
+	if ((rc = pthread_create(&thread_config->thread_ctx.thread, &thread_config->thread_ctx.thread_attr, tx_thread_transmit, thread_config)))
 	{
 		warn("Could not start TX thread\n");
 		goto error;
