@@ -22,8 +22,8 @@
 
  /* __LICENSE_HEADER_END__ */
 
-#ifndef	__RX_JOB_H__
-#define	__RX_JOB_H__
+#ifndef	__JOB_H__
+#define	__JOB_H__
 
 #include <stdlib.h>
 #include <string.h>
@@ -34,23 +34,23 @@
 
 struct generic_nic_context;
 
-struct rx_job
+struct job
 {
-	ssize_t (*rx_job)(const struct generic_nic_context * const ctx);
-	SLIST_ENTRY(rx_job)	entry;
+	ssize_t (*job)(const struct generic_nic_context * const ctx);
+	SLIST_ENTRY(job)	entry;
 };
 
-struct rx_job_list
+struct job_list
 {
 	pthread_spinlock_t		lock;
-	SLIST_HEAD(rx_job_head, rx_job)	head;
+	SLIST_HEAD(job_head, job)	head;
 };
 
-int rx_job_list_init(struct rx_job_list * job_list);
-void rx_job_list_cleanup(struct rx_job_list * job_list);
-int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct generic_nic_context * const ctx));
+int job_list_init(struct job_list * job_list);
+void job_list_cleanup(struct job_list * job_list);
+int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx));
 
-int pcap_write_job_register(struct rx_job_list * job_list);
-int ethernet_dissector_register(struct rx_job_list * job_list);
+int pcap_write_job_register(struct job_list * job_list);
+int ethernet_dissector_register(struct job_list * job_list);
 
-#endif	/* __RX_JOB_H__ */
+#endif	/* __JOB_H__ */

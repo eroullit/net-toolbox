@@ -52,7 +52,6 @@
 #include <netcore-ng/cursor.h>
 #include <netcore-ng/macros.h>
 #include <netcore-ng/types.h>
-#include <netcore-ng/rx_job.h>
 #include <netcore-ng/rx_ring.h>
 #include <netcore-ng/netdev.h>
 #include <netcore-ng/bpf.h>
@@ -162,7 +161,7 @@ static inline void frame_buffer_destroy(struct ring_buff * rb)
 
 static void * rx_thread_listen(void * arg)
 {
-	struct rx_job * job = NULL;
+	struct job * job = NULL;
 	struct pollfd pfd;
 	int rc;
 	struct frame_map * fm = NULL;
@@ -216,7 +215,7 @@ static void * rx_thread_listen(void * arg)
 				SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 				{
 					/* TODO think about return values handling */
-					job->rx_job(&nic_ctx->generic);
+					job->job(&nic_ctx->generic);
 				}
 			}
 	
@@ -304,7 +303,7 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 	assert(nic_ctx);
 
 	rx_ring_destroy(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb);
-	rx_job_list_cleanup(&nic_ctx->generic.job_list);
+	job_list_cleanup(&nic_ctx->generic.job_list);
 
 	/* 
 	 * If there is a BPF filter loaded, then it
@@ -358,7 +357,7 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		goto error;
 	}
 
-	if ((rc = rx_job_list_init(&nic_ctx->generic.job_list)) != 0)
+	if ((rc = job_list_init(&nic_ctx->generic.job_list)) != 0)
 	{
 		warn("Could not create job list\n");
 		goto error;

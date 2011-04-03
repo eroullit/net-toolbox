@@ -33,7 +33,7 @@
 
 #include <sys/stat.h>
 
-#include <netcore-ng/rx_job.h>
+#include <netcore-ng/job.h>
 #include <netcore-ng/pcap.h>
 #include <netcore-ng/macros.h>
 

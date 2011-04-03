@@ -35,7 +35,6 @@
 #include <netcore-ng/macros.h>
 #include <netcore-ng/types.h>
 #include <netcore-ng/thread.h>
-#include <netcore-ng/rx_job.h> 
 #include <netcore-ng/generic.h>
 
 /* a tx ring must only belong to one entity */

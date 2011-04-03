@@ -13,7 +13,7 @@ ADD_LIBRARY(netcore-ng 	init.c
 			rx_ring.c 
 			rx_ring_compat.c 
 			tx_ring.c 
-			rx_job.c 
+			job.c 
 			strlcpy.c 
 			system.c 
 			oui_hash.c 

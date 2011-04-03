@@ -29,7 +29,6 @@
 #include <net/if.h>
 #include <netcore-ng/bpf.h>
 #include <netcore-ng/thread.h>
-#include <netcore-ng/rx_job.h>
 #include <netcore-ng/generic.h>
 
 #define RX_RING_COMPAT_DEFAULT_PKT_SIZE	16384

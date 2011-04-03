@@ -27,7 +27,7 @@
 
 #include <net/if.h>
 
-#include <netcore-ng/rx_job.h>
+#include <netcore-ng/job.h>
 #include <netcore-ng/packet.h>
 #include <netcore-ng/bpf.h>
 #include <netcore-ng/pcap.h>
@@ -40,7 +40,7 @@ struct generic_nic_context
 	int 					pcap_fd;
 	enum pcap_linktype			linktype;
 	struct sock_fprog 			bpf;
-	struct rx_job_list			job_list;
+	struct job_list				job_list;
 	struct packet_ctx			pkt_ctx;
 };
 

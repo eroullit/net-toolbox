@@ -25,10 +25,10 @@
 #include <netcore-ng/types.h>
 #include <netcore-ng/pcap.h>
 #include <netcore-ng/generic.h>
-#include <netcore-ng/rx_job.h>
+#include <netcore-ng/job.h>
 #include <netcore-ng/dissector/ethernet/dissector.h>
 
-int rx_job_list_init(struct rx_job_list * job_list)
+int job_list_init(struct job_list * job_list)
 {
 	assert(job_list);
 	
@@ -37,9 +37,9 @@ int rx_job_list_init(struct rx_job_list * job_list)
 	return (pthread_spin_init(&job_list->lock, PTHREAD_PROCESS_SHARED));
 }
 
-void rx_job_list_cleanup(struct rx_job_list * job_list)
+void job_list_cleanup(struct job_list * job_list)
 {
-	struct rx_job * job = NULL;
+	struct job * job = NULL;
 
 	assert(job_list);
 
@@ -53,35 +53,35 @@ void rx_job_list_cleanup(struct rx_job_list * job_list)
 	pthread_spin_destroy(&job_list->lock);
 }
 
-int rx_job_list_insert(struct rx_job_list * job_list, ssize_t (*rx_job)(const struct generic_nic_context * const ctx))
+int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx))
 {
-	struct rx_job * cur = NULL;
-	struct rx_job * job = NULL;
+	struct job * cur = NULL;
+	struct job * jobp = NULL;
 
 	assert(job_list);
 
-	if ((job = malloc(sizeof(*job))) == NULL)
+	if ((jobp = malloc(sizeof(*jobp))) == NULL)
 	{
 		return (ENOMEM);
 	}
 	
-	memset(job, 0, sizeof(*job));
-	job->rx_job = rx_job;
+	memset(jobp, 0, sizeof(*jobp));
+	jobp->job = job;
 
 	pthread_spin_lock(&job_list->lock);
 
 	SLIST_FOREACH(cur, &job_list->head, entry)
 	{
 		/* Check if the same job is already registered */
-		if (cur->rx_job == rx_job)
+		if (cur->job == job)
 		{
 			pthread_spin_unlock(&job_list->lock);
-			free(job);
+			free(jobp);
 			return (EINVAL);
 		}
 	}
 
-	SLIST_INSERT_HEAD(&job_list->head, job, entry);
+	SLIST_INSERT_HEAD(&job_list->head, jobp, entry);
 	
 	pthread_spin_unlock(&job_list->lock);
 
@@ -95,9 +95,9 @@ static ssize_t pcap_write_job(const struct generic_nic_context * const ctx)
 	return(pcap_write_payload(ctx->pcap_fd, &ctx->pkt_ctx));
 }
 
-int pcap_write_job_register(struct rx_job_list * job_list)
+int pcap_write_job_register(struct job_list * job_list)
 {
-	return (rx_job_list_insert(job_list, pcap_write_job));
+	return (job_list_insert(job_list, pcap_write_job));
 }
 
 static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx)
@@ -107,7 +107,7 @@ static ssize_t ethernet_dissector_job(const struct generic_nic_context * const c
 	return(ethernet_dissector_run(ctx->pkt_ctx.pkt_buf, ctx->pkt_ctx.pkt_len));
 }
 
-int ethernet_dissector_register(struct rx_job_list * job_list)
+int ethernet_dissector_register(struct job_list * job_list)
 {
-	return (rx_job_list_insert(job_list, ethernet_dissector_job));
+	return (job_list_insert(job_list, ethernet_dissector_job));
 }

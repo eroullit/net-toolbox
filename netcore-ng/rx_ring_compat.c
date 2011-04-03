@@ -83,7 +83,7 @@ void * rx_thread_compat_listen(void * arg)
 	struct netsniff_ng_rx_thread_compat_context * thread_ctx = (struct netsniff_ng_rx_thread_compat_context *) arg;
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
 	struct packet_ctx * pkt_ctx = NULL;
-	struct rx_job * job = NULL;
+	struct job * job = NULL;
 	struct sockaddr_ll      from;
         socklen_t               from_len = sizeof(from);
 
@@ -115,7 +115,7 @@ void * rx_thread_compat_listen(void * arg)
 		SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 		{
 			/* TODO think about return values handling */
-			job->rx_job(&nic_ctx->generic);
+			job->job(&nic_ctx->generic);
 		}
 	}
 
@@ -126,7 +126,7 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 {
 	assert(nic_ctx);
 	
-	rx_job_list_cleanup(&nic_ctx->generic.job_list);
+	job_list_cleanup(&nic_ctx->generic.job_list);
 
 	if (nic_ctx->generic.bpf.filter)
 	{
@@ -181,7 +181,7 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		goto error;
 	}
 
-	if ((rc = rx_job_list_init(&nic_ctx->generic.job_list)) != 0)
+	if ((rc = job_list_init(&nic_ctx->generic.job_list)) != 0)
 	{
 		warn("Could not create job list\n");
 		goto error;
