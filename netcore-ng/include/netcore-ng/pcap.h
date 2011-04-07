@@ -1,3 +1,9 @@
+/**
+ * \file pcap.h
+ * \author written by Emmanuel Roullit emmanuel@netsniff-ng.org (c) 2009-2011
+ * \date 2011
+ */
+
 /* __LICENSE_HEADER_BEGIN__ */
 
 /*
