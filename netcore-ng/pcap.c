@@ -122,6 +122,7 @@ int pcap_has_packets(const int fd)
  *      	- the maxumum packet length
  *      \param	fd[in]	PCAP file descriptor
  *      \return	0 if the PCAP file header is valid
+ *      	EINVAL if PCAP file descriptor is invalid
  *      	EIO if PCAP file header could not be read or is invalid
  */
 
@@ -130,9 +131,8 @@ int pcap_validate_header(const int fd)
 	struct pcap_file_header hdr;
 
 	if (fd < 0) {
-		/* FIXME Do not return 0 here */
 		warn("Invalid file descriptor.\n");
-		return (0);
+		return (EINVAL);
 	}
 
 	if (read(fd, (char *)&hdr, sizeof(hdr)) != sizeof(hdr)) {
