@@ -91,7 +91,7 @@ static ssize_t pcap_write_job(const struct generic_nic_context * const ctx)
 {
 	assert(ctx);
 
-	return(pcap_write_payload(ctx->pcap_fd, &ctx->pkt_ctx));
+	return(pcap_write(ctx->pcap_fd, &ctx->pkt_ctx));
 }
 
 int pcap_write_job_register(struct job_list * job_list)

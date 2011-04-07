@@ -49,7 +49,7 @@
  *      \return	0 on sucess, EINVAL when the ARP type is not supported
  */
 
-int pcap_get_link_type(int arp_type, enum pcap_linktype * pcap_link_type)
+int pcap_link_type_get(int arp_type, enum pcap_linktype * pcap_link_type)
 {
 	int rc = 0;
 
@@ -126,7 +126,8 @@ int pcap_has_packets(const int fd)
  *      	EIO if PCAP file header could not be read or is invalid
  */
 
-int pcap_validate_header(const int fd)
+/* TODO redo error values */
+int pcap_is_valid(const int fd)
 {
 	struct pcap_file_header hdr;
 
@@ -159,7 +160,7 @@ int pcap_validate_header(const int fd)
  *      	0 if packet header or packet payload could not be read
  */
 
-size_t pcap_fetch_next_packet(const int fd, struct packet_ctx * pkt_ctx)
+size_t pcap_read(const int fd, struct packet_ctx * pkt_ctx)
 {
 	struct pcap_sf_pkthdr sf_hdr;
 
@@ -192,7 +193,7 @@ size_t pcap_fetch_next_packet(const int fd, struct packet_ctx * pkt_ctx)
  *      \return	0 on success, -1 if PCAP file header could not be written
  */
 
-int pcap_write_header(const int fd, const int linktype, const int thiszone, const int snaplen)
+int pcap_file_header_write(const int fd, const int linktype, const int thiszone, const int snaplen)
 {
 	struct pcap_file_header hdr;
 
@@ -224,7 +225,7 @@ int pcap_write_header(const int fd, const int linktype, const int thiszone, cons
  *      	-1 if either the packet header or packet payload could not be written
  */
 
-ssize_t pcap_write_payload(const int fd, const struct packet_ctx * const pkt_ctx)
+ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
 {
 	struct pcap_sf_pkthdr sf_hdr;
 	ssize_t written = 0;
@@ -307,7 +308,7 @@ int pcap_create(const char * const pcap_path, const enum pcap_linktype linktype)
 	}
 	
 	/* TODO make it configurable instead of using default values */
-	if (pcap_write_header(fd, linktype, 0, PCAP_DEFAULT_SNAPSHOT_LEN))
+	if (pcap_file_header_write(fd, linktype, 0, PCAP_DEFAULT_SNAPSHOT_LEN))
 	{
 		/* When the PCAP header cannot be written the file
 		 * must be closed and then deleted
@@ -348,7 +349,7 @@ int pcap_open(const char * const pcap_path, int flags)
 		return (-1);
 	}
 
-	if (pcap_validate_header(fd))
+	if (pcap_is_valid(fd))
 	{
 		err("Failed to validate PCAP");
 		close(fd);

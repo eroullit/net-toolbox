@@ -55,7 +55,7 @@ int test_pcap_write(const int fd, const uint8_t * const payload, const ssize_t l
 	pkt_ctx.pkt_len = len;
 	pkt_ctx.pkt_buf = (uint8_t *) payload;
 
-	if (pcap_write_payload(fd, &pkt_ctx) != len)
+	if (pcap_write(fd, &pkt_ctx) != len)
 	{
 		return (-1);
 	}

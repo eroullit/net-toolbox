@@ -173,7 +173,7 @@ static void * tx_thread_transmit(void * arg)
 			switch (header->tp_h.tp_status) {
 			case TP_STATUS_AVAILABLE:
 				while ((pkt_ctx->pkt_len =
-					pcap_fetch_next_packet(nic_ctx->generic.pcap_fd, pkt_ctx)) != 0) {
+					pcap_read(nic_ctx->generic.pcap_fd, pkt_ctx)) != 0) {
 					/* If the fetch packet does not match the BPF, take the next one */
 					if (bpf_filter(&nic_ctx->generic.bpf, pkt_ctx->pkt_buf, pkt_ctx->pkt_len)) {
 						break;

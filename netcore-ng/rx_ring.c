@@ -344,7 +344,7 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		goto error;
 	}
 
-	if ((rc = pcap_get_link_type(dev_arp_type, &nic_ctx->generic.linktype)) != 0)
+	if ((rc = pcap_link_type_get(dev_arp_type, &nic_ctx->generic.linktype)) != 0)
 	{
 		goto error;
 	}
