@@ -1,3 +1,9 @@
+/**
+ * \file bpf.c
+ * \author written by Emmanuel Roullit emmanuel@netsniff-ng.org (c) 2009-2011
+ * \date 2011
+ */
+
 /* __LICENSE_HEADER_BEGIN__ */
 
 /*
@@ -58,6 +64,7 @@
 /*
  * The instruction encodings.
  */
+
 /* instruction classes */
 #define BPF_CLASS(code) ((code) & 0x07)
 #define		BPF_LD		0x00
@@ -122,10 +129,13 @@
 #endif				/* BPF_MEMWORDS */
 
 /**
- * bpf_dump - Prints bpf program in human readable format. Switch-case code taken 
- *            with the above copyright.
- * @bpf:     bpf program
+ *      \brief	Print a human readable format of a BPF block
+ *      \param	bpf[in]	Pointer to the BPF block to print
+ *      \param	n[in]	Index of the BPF expression in the whole BPF expression
+ *      \return	Pointer to human readable string of the input BPF block
+ *      \note 	The code contained within the switch-case statement is taken from BSD licensed code.
  */
+
 static char *bpf_dump(const struct sock_filter * bpf, int n)
 {
 	int v;
@@ -374,10 +384,10 @@ static char *bpf_dump(const struct sock_filter * bpf, int n)
 }
 
 /**
- * bpf_dump_all - Returns non-wireless bitrate in Mb/s (via ethtool)
- * @bpf:         bpf program
- * @len:         len of bpf
+ *      \brief	Print a human readable format of a whole BPF expression
+ *      \param	bpf[in]	Pointer to the BPF expression to print
  */
+
 void bpf_dump_all(const struct sock_fprog * const bpf)
 {
 	int i;
@@ -392,10 +402,11 @@ void bpf_dump_all(const struct sock_fprog * const bpf)
 }
 
 /**
- * bpf_is_valid - Does basic validation of the user-defined BPF input
- * @bpf:         bpf program
- * @len:         len of bpf
+ *      \brief	Checks the input BPF expression validity
+ *      \param	bpf[in]	Pointer to the BPF expression to check
+ *      \return	0 is BPF is not valid, 1 when valid
  */
+
 int bpf_is_valid(const struct sock_fprog * const bpf)
 {
 	uint32_t i, from;
@@ -522,11 +533,12 @@ int bpf_is_valid(const struct sock_fprog * const bpf)
 }
 
 /**
- * bpf_filter - Berkeley packet filter userspace VM, needed as a 
- *              packet filter for pcap replay
- * @bpf:       bpf program
- * @packet:    network packet
- * @plen:      len of packet
+ *      \brief	Checks the input packet matches the BPF expression
+ *      \param	fcode[in]	Pointer to the BPF expression to use against the input packet
+ *      \param	packet[in]	Pointer to the packet to match
+ *      \param	plen[in]	Valid packet length
+ *      \return	0 if the packet does not match the BPF expression
+ *      	1 if it does or if the input BPF is an empty expression
  */
 
 uint32_t bpf_filter(const struct sock_fprog * const fcode, uint8_t * packet, size_t plen)
@@ -758,6 +770,20 @@ uint32_t bpf_filter(const struct sock_fprog * const fcode, uint8_t * packet, siz
 
 	}
 }
+
+/**
+ *      \brief	Parse a BPF file representing a BPF expression
+ *      \param	bpf_path[in]	BPF file path
+ *      \param	bpf[out]	Pointer the parse BPF expression
+ *      \return	-1 if the BPF file could not be read-only opened
+ *      	or the same return value as bpf_is_valid
+ *      \see	bpf_is_valid
+ *      \note	a BPF block contained in a BPF file should look like
+ *      	{ 0xNN, (0|1), (0|1), 0xNNNNNNNN },
+ *      	(e.g { 0x15, 0, 1, 0x00000806 },)
+ *      	Lines which does not respect this convention are counted
+ *      	as comments
+ */
 
 int bpf_parse(const char * const bpf_path, struct sock_fprog *bpf)
 {
