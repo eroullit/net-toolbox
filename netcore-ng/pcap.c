@@ -121,9 +121,11 @@ int pcap_has_packets(const int fd)
  *      	- the timezone
  *      	- the maxumum packet length
  *      \param	fd[in]	PCAP file descriptor
- *      \return	0 if the PCAP file header is valid
- *      	EINVAL if PCAP file descriptor is invalid
- *      	EIO if PCAP file header could not be read or is invalid
+ *      \return	0 if the PCAP file header is not valid
+ *      	1 if it is.
+ *      	If PCAP file header is invalid, errno is set to
+ *      	EINVAL if PCAP file descriptor or file header is invalid
+ *      	EIO if PCAP file header could not be read
  */
 
 /* TODO redo error values */
@@ -133,12 +135,14 @@ int pcap_is_valid(const int fd)
 
 	if (fd < 0) {
 		warn("Invalid file descriptor.\n");
-		return (EINVAL);
+		errno = EINVAL;
+		return (0);
 	}
 
 	if (read(fd, (char *)&hdr, sizeof(hdr)) != sizeof(hdr)) {
 		err("Error reading dump file");
-		return (EIO);
+		errno = EIO;
+		return (0);
 	}
 
 	if (hdr.magic != TCPDUMP_MAGIC
@@ -146,10 +150,10 @@ int pcap_is_valid(const int fd)
 	    || hdr.version_minor != PCAP_VERSION_MINOR || hdr.linktype != LINKTYPE_EN10MB) {
 		errno = EINVAL;
 		err("This file is certainly not a valid pcap");
-		return (EIO);
+		return (0);
 	}
 
-	return (0);
+	return (1);
 }
 
 /**
@@ -349,7 +353,7 @@ int pcap_open(const char * const pcap_path, int flags)
 		return (-1);
 	}
 
-	if (pcap_is_valid(fd))
+	if (pcap_is_valid(fd) == 0)
 	{
 		err("Failed to validate PCAP");
 		close(fd);
