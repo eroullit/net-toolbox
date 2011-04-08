@@ -278,9 +278,9 @@ ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
 void pcap_destroy(const int fd, const char * const pcap_path)
 {
 	assert(pcap_path);
-	assert(pcap_fd > 0);
+	assert(fd > 0);
 
-	close(pcap_fd);
+	close(fd);
 
 	if (unlink(pcap_path))
 	{
