@@ -43,10 +43,10 @@
 #include <netcore-ng/macros.h>
 
 /**
- *      \brief		Get PCAP link type from NIC ARP type
- *      \param[in]	arp_type		ARP type value
- *      \param[out]		pcap_link_type		Pointer to the PCAP link type
- *      \return		0 on sucess, EINVAL when the ARP type is not supported
+ * \brief Get PCAP link type from NIC ARP type
+ * \param[in] arp_type ARP type value
+ * \param[out] pcap_link_type Pointer to the PCAP link type
+ * \return 0 on sucess, \c EINVAL when the ARP type is not supported
  */
 
 int pcap_link_type_get(int arp_type, enum pcap_linktype * pcap_link_type)
@@ -71,11 +71,11 @@ int pcap_link_type_get(int arp_type, enum pcap_linktype * pcap_link_type)
 }
 
 /**
- *      \brief		Test if a PCAP still has packets
- *      \param[in]	fd	PCAP file descriptor
- *      \return	-1 if file descriptor is invalid
- *      	0 if it is the end of the PCAP
- *      	1 if there are packets left
+ * \brief Test if a PCAP still has packets
+ * \param[in] fd PCAP file descriptor
+ * \return 	-1 if file descriptor is invalid \n
+ * 		0 if it is the end of the PCAP	\n
+ * 		1 if there are packets left
  */
 
 int pcap_has_packets(const int fd)
@@ -113,22 +113,21 @@ int pcap_has_packets(const int fd)
 }
 
 /**
- *      \brief	Validate PCAP file header
- *      Every PCAP file has a file header which contains:
- *      	- the PCAP magic (0xa1b2c3d4)
- *      	- the PCAP version major/minor
- *      	- the PCAP linktype
- *      	- the timezone
- *      	- the maxumum packet length
- *      \param[in]	fd	PCAP file descriptor
- *      \return	0 if the PCAP file header is not valid
- *      	1 if it is.
- *      	If PCAP file header is invalid, errno is set to
- *      	EINVAL if PCAP file descriptor or file header is invalid
- *      	EIO if PCAP file header could not be read
+ * \brief Validate PCAP file header
+ * Every PCAP file has a file header which contains:
+ * 	- the PCAP magic (\c 0xa1b2c3d4)
+ * 	- the PCAP version major/minor
+ * 	- the PCAP linktype
+ * 	- the timezone
+ * 	- the maxumum packet length
+ * \param[in] fd PCAP file descriptor
+ * \return	0 if the PCAP file header is not valid \n
+ * 		1 if it is. \n
+ * 		If PCAP file header is invalid, errno is set to \n
+ * 		\c EINVAL if PCAP file descriptor or file header is invalid \n
+ * 		\c EIO if PCAP file header could not be read
  */
 
-/* TODO redo error values */
 int pcap_is_valid(const int fd)
 {
 	struct pcap_file_header hdr;
@@ -157,11 +156,11 @@ int pcap_is_valid(const int fd)
 }
 
 /**
- *      \brief		Fetches the following packet in a PCAP
- *      \param[in]	fd		PCAP file descriptor
- *      \param[out]	pkt_ctx		Pointer to the packet context to set
- *      \return	Length valid date in the fetched packet.
- *      	0 if packet header or packet payload could not be read
+ * \brief Fetches the following packet in a PCAP
+ * \param[in] fd PCAP file descriptor
+ * \param[out] pkt_ctx Pointer to the packet context to set
+ * \return	Length valid date in the fetched packet. \n
+ * 		0 if packet header or packet payload could not be read
  */
 
 size_t pcap_read(const int fd, struct packet_ctx * pkt_ctx)
@@ -189,12 +188,12 @@ size_t pcap_read(const int fd, struct packet_ctx * pkt_ctx)
 }
 
 /**
- *      \brief		Write the PCAP file header on a file descriptor
- *      \param[in]	fd		PCAP file descriptor
- *      \param[in]	linktype	PCAP link type
- *      \param[in]	thiszone	Timezone where the PCAP is created
- *      \param[in]	snaplen		Maximum length of a captured packet
- *      \return	0 on success, -1 if PCAP file header could not be written
+ * \brief Write the PCAP file header on a file descriptor
+ * \param[in] fd PCAP file descriptor
+ * \param[in] linktype PCAP link type
+ * \param[in] thiszone Timezone where the PCAP is created
+ * \param[in] snaplen Maximum length of a captured packet
+ * \return 0 on success, -1 if PCAP file header could not be written
  */
 
 int pcap_file_header_write(const int fd, const int linktype, const int thiszone, const int snaplen)
@@ -222,11 +221,11 @@ int pcap_file_header_write(const int fd, const int linktype, const int thiszone,
 }
 
 /**
- *      \brief		Write the packet payload on a file descriptor
- *      \param[in]	fd		PCAP file descriptor
- *      \param[in]	pkt_ctx		Pointer to the packet context
- *      \return	Length of written packet on success, 
- *      	-1 if either the packet header or packet payload could not be written
+ * \brief Write the packet payload on a file descriptor
+ * \param[in] fd PCAP file descriptor
+ * \param[in] pkt_ctx Pointer to the packet context
+ * \return	Length of written packet on success, 
+ * 		-1 if either the packet header or packet payload could not be written
  */
 
 ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
@@ -271,12 +270,12 @@ ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
 }
 
 /**
- *      \brief		Destroy a PCAP file
- *      \param[in]	fd		PCAP file descriptor
- *      \param[in]	pcap_path	PCAP file path
+ * \brief Destroy a PCAP file
+ * \param[in] fd PCAP file descriptor
+ * \param[in] pcap_path	PCAP file path
  */
 
-void pcap_destroy(const int pcap_fd, const char * const pcap_path)
+void pcap_destroy(const int fd, const char * const pcap_path)
 {
 	assert(pcap_path);
 	assert(pcap_fd > 0);
@@ -290,13 +289,12 @@ void pcap_destroy(const int pcap_fd, const char * const pcap_path)
 }
 
 /**
- *      \brief		Create a PCAP file
- *      \param[in]	pcap_path	PCAP file path
- *      \param[in]	linktype	PCAP link type
- *      \return	PCAP file descriptor on sucess, -1 on failure
- *      \note	It creates a PCAP file with default permissions
- *      \note	A created PCAP will have by default a snapshot
- *      	length of 65535 bytes.
+ * \brief Create a PCAP file
+ * \param[in] pcap_path	PCAP file path
+ * \param[in] linktype PCAP link type
+ * \return PCAP file descriptor on sucess, -1 on failure
+ * \note It creates a PCAP file with default permissions
+ * \note A created PCAP will have by default a snapshot length of 65535 bytes.
  */
 
 int pcap_create(const char * const pcap_path, const enum pcap_linktype linktype)
@@ -325,12 +323,11 @@ int pcap_create(const char * const pcap_path, const enum pcap_linktype linktype)
 }
 
 /**
- *      \brief		Open a PCAP file
- *      \param[in]	pcap_path	PCAP file path
- *      \param[in]	flags		flags for open()
- *      \return	PCAP file descriptor on sucess, -1 on failure
- *      \note	The flags given as parameter are directly given to open(2)
- *      \see	open
+ * \brief Open a PCAP file
+ * \param[in] pcap_path	PCAP file path
+ * \param[in] flags flags for \c open(2)
+ * \return PCAP file descriptor on sucess, -1 on failure
+ * \note The flags given as parameter are directly given to \c open(2)
  */
 
 int pcap_open(const char * const pcap_path, int flags)
@@ -374,10 +371,9 @@ int pcap_open(const char * const pcap_path, int flags)
 }
 
 /**
- *      \brief		Close a PCAP file
- *      \param[in]	fd	PCAP file descriptor
- *      \return		same error values as close(2)
- *      \see	close
+ * \brief Close a PCAP file
+ * \param[in] fd PCAP file descriptor
+ * \return same error values as \c close(2)
  */
 
 int pcap_close(const int fd)

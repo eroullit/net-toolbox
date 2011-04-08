@@ -58,11 +58,11 @@ enum pcap_linktype
 	LINKTYPE_FDDI = 10	/**< FDDI */
 };
 
-/**	\brief	Enum regrouping all possible PCAP link types */
+/**	\brief	Structure describing a PCAP file header */
 struct pcap_file_header {
 	uint32_t magic;		/**< Magic is 0xa1b2c3d4, if swapped all fields must be swapped */
-	uint16_t version_major;
-	uint16_t version_minor;
+	uint16_t version_major; /**< PCAP file major version */
+	uint16_t version_minor; /**< PCAP file minor version */
 	int32_t thiszone;	/**< GMT to local correction leave it zero */
 	uint32_t sigfigs;	/**< accuracy of timestamps. Set on 0 */
 	uint32_t snaplen;	/**< max length saved portion of each pkt. normally 65535, can be more */
@@ -70,8 +70,8 @@ struct pcap_file_header {
 };
 
 /**
- * 	\brief	Timestamp structure used in a PCAP file
- * 	
+ * 	\brief PCAP specifix timestamp
+ *
  * 	This is a timeval as stored in a savefile.
  * 	It has to use the same types everywhere, independent of the actual
  * 	`struct timeval'; `struct timeval' has 32-bit tv_sec values on some
@@ -87,9 +87,7 @@ struct pcap_timeval {
 };
 
 /**
- * 	\brief	Structure describing a PCAP packet header
- * 
- * 	Generic per-packet information, as supplied by libpcap.
+ * 	\brief Structure describing per-packet information
  *
  * 	The time stamp can and should be a "struct timeval", regardless of
  * 	whether your system supports 32-bit tv_sec in "struct timeval",
