@@ -129,11 +129,11 @@
 #endif				/* BPF_MEMWORDS */
 
 /**
- *      \brief	Print a human readable format of a BPF block
- *      \param	bpf[in]	Pointer to the BPF block to print
- *      \param	n[in]	Index of the BPF expression in the whole BPF expression
- *      \return	Pointer to human readable string of the input BPF block
- *      \note 	The code contained within the switch-case statement is taken from BSD licensed code.
+ *      \brief		Print a human readable format of a BPF block
+ *      \param[in]	bpf	Pointer to the BPF block to print
+ *      \param[in]	n	Index of the BPF expression in the whole BPF expression
+ *      \return		Pointer to human readable string of the input BPF block
+ *      \note 		The code contained within the switch-case statement is taken from BSD licensed code.
  */
 
 static char *bpf_dump(const struct sock_filter * bpf, int n)
@@ -384,8 +384,8 @@ static char *bpf_dump(const struct sock_filter * bpf, int n)
 }
 
 /**
- *      \brief	Print a human readable format of a whole BPF expression
- *      \param	bpf[in]	Pointer to the BPF expression to print
+ *      \brief		Print a human readable format of a whole BPF expression
+ *      \param[in]	bpf	Pointer to the BPF expression to print
  */
 
 void bpf_dump_all(const struct sock_fprog * const bpf)
@@ -402,8 +402,8 @@ void bpf_dump_all(const struct sock_fprog * const bpf)
 }
 
 /**
- *      \brief	Checks the input BPF expression validity
- *      \param	bpf[in]	Pointer to the BPF expression to check
+ *      \brief		Checks the input BPF expression validity
+ *      \param[in]	bpf	Pointer to the BPF expression to check
  *      \return	0 is BPF is not valid, 1 when valid
  */
 
@@ -533,10 +533,10 @@ int bpf_is_valid(const struct sock_fprog * const bpf)
 }
 
 /**
- *      \brief	Checks the input packet matches the BPF expression
- *      \param	fcode[in]	Pointer to the BPF expression to use against the input packet
- *      \param	packet[in]	Pointer to the packet to match
- *      \param	plen[in]	Valid packet length
+ *      \brief		Checks the input packet matches the BPF expression
+ *      \param[in]	fcode	Pointer to the BPF expression to use against the input packet
+ *      \param[in]	packet	Pointer to the packet to match
+ *      \param[in]	plen	Valid packet length
  *      \return	0 if the packet does not match the BPF expression
  *      	1 if it does or if the input BPF is an empty expression
  */
@@ -772,12 +772,15 @@ uint32_t bpf_filter(const struct sock_fprog * const fcode, uint8_t * packet, siz
 }
 
 /**
- *      \brief	Parse a BPF file representing a BPF expression
- *      \param	bpf_path[in]	BPF file path
- *      \param	bpf[out]	Pointer the parse BPF expression
+ *      \brief		Parse a BPF file representing a BPF expression
+ *      \param[in]	bpf_path	BPF file path
+ *      \param[out]	bpf	Pointer the parse BPF expression
+ *
  *      \return	-1 if the BPF file could not be read-only opened
  *      	or the same return value as bpf_is_valid
+ *
  *      \see	bpf_is_valid
+ *
  *      \note	a BPF block contained in a BPF file should look like
  *      	{ 0xNN, (0|1), (0|1), 0xNNNNNNNN },
  *      	(e.g { 0x15, 0, 1, 0x00000806 },)
