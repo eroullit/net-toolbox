@@ -33,7 +33,7 @@
 #include <netcore-ng/macros.h>
 #include <netcore-ng/thread.h>
 
-static int thread_attr_init(struct netsniff_ng_thread_context * thread_ctx, const int sched_prio, const int sched_policy, const cpu_set_t * const run_on)
+static int thread_attr_init(struct thread_context * thread_ctx, const int sched_prio, const int sched_policy, const cpu_set_t * const run_on)
 {
 	struct sched_param sp = { .sched_priority = sched_prio };
 	int rc = 0;
@@ -61,7 +61,7 @@ static int thread_attr_init(struct netsniff_ng_thread_context * thread_ctx, cons
 	return (rc);
 }
 
-int thread_context_init(struct netsniff_ng_thread_context * thread_ctx, const cpu_set_t run_on, const int sched_prio, const int sched_policy, const enum netsniff_ng_thread_type thread_type)
+int thread_context_init(struct thread_context * thread_ctx, const cpu_set_t run_on, const int sched_prio, const int sched_policy, const enum thread_type thread_type)
 {
 	int rc;
 	assert(thread_ctx);
@@ -112,7 +112,7 @@ int thread_context_init(struct netsniff_ng_thread_context * thread_ctx, const cp
 	return(rc);
 }
 
-void thread_context_destroy(struct netsniff_ng_thread_context * thread_ctx)
+void thread_context_destroy(struct thread_context * thread_ctx)
 {
 	assert(thread_ctx);
 
@@ -122,9 +122,9 @@ void thread_context_destroy(struct netsniff_ng_thread_context * thread_ctx)
 	pthread_spin_destroy(&thread_ctx->config_lock);
 }
 
-enum netsniff_ng_thread_status thread_status_get(struct netsniff_ng_thread_context * thread_ctx)
+enum thread_status thread_status_get(struct thread_context * thread_ctx)
 {
-	enum netsniff_ng_thread_status ret = STOPPED;
+	enum thread_status ret = STOPPED;
 
 	assert(thread_ctx);
 
@@ -135,7 +135,7 @@ enum netsniff_ng_thread_status thread_status_get(struct netsniff_ng_thread_conte
 	return (thread_ctx->status);
 }
 
-void thread_status_set(struct netsniff_ng_thread_context * thread_ctx, enum netsniff_ng_thread_status new_status)
+void thread_status_set(struct thread_context * thread_ctx, enum thread_status new_status)
 {
 	assert(thread_ctx);
 
@@ -144,12 +144,12 @@ void thread_status_set(struct netsniff_ng_thread_context * thread_ctx, enum nets
 	pthread_spin_unlock(&thread_ctx->config_lock);
 }
 
-int thread_should_stop(struct netsniff_ng_thread_context * thread_ctx)
+int thread_should_stop(struct thread_context * thread_ctx)
 {
 	return (thread_status_get(thread_ctx) == SHOULD_STOP);
 }
 
-void thread_stop(struct netsniff_ng_thread_context * thread_ctx)
+void thread_stop(struct thread_context * thread_ctx)
 {
 	thread_status_set(thread_ctx, SHOULD_STOP);
 }

@@ -164,8 +164,8 @@ static void * rx_thread_listen(void * arg)
 	struct pollfd pfd;
 	int rc;
 	struct frame_map * fm = NULL;
-	struct netsniff_ng_rx_thread_context * thread_ctx = (struct netsniff_ng_rx_thread_context *) arg;
-	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
+	struct rx_thread_context * thread_ctx = (struct rx_thread_context *) arg;
+	struct rx_nic_context * nic_ctx = NULL;
 	struct packet_ctx * pkt_ctx = NULL;
 	struct ring_buff * rb = NULL;
 
@@ -297,7 +297,7 @@ static void rx_ring_destroy(int sock, struct ring_buff * rb)
 }
 
 
-static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
+static void rx_nic_ctx_destroy(struct rx_nic_context * nic_ctx)
 {
 	assert(nic_ctx);
 
@@ -319,9 +319,9 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 	close(nic_ctx->generic.pcap_fd);
 }
 
-static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, const char * dev_name, const char * bpf_path, const char * pcap_path)
+static int rx_nic_ctx_init(struct rx_thread_context * thread_ctx, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
-	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
+	struct rx_nic_context * nic_ctx = NULL;
 	int dev_arp_type;
 	int rc = 0;
 
@@ -410,7 +410,7 @@ error:
 	return (rc);
 }
 
-void rx_thread_destroy(struct netsniff_ng_rx_thread_context * thread_config)
+void rx_thread_destroy(struct rx_thread_context * thread_config)
 {
 	assert(thread_config);
 
@@ -422,10 +422,10 @@ void rx_thread_destroy(struct netsniff_ng_rx_thread_context * thread_config)
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * dev_name, const char * bpf_path, const char * pcap_path)
+struct rx_thread_context * rx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
-	struct netsniff_ng_rx_thread_context * thread_config = NULL;
+	struct rx_thread_context * thread_config = NULL;
 
 	if ((thread_config = xzmalloc(sizeof(*thread_config))) == NULL)
 	{

@@ -79,8 +79,8 @@ static int sock_dev_bind(const char * dev, int sock)
 
 void * rx_thread_compat_listen(void * arg)
 {
-	struct netsniff_ng_rx_thread_compat_context * thread_ctx = (struct netsniff_ng_rx_thread_compat_context *) arg;
-	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
+	struct rx_thread_compat_context * thread_ctx = (struct rx_thread_compat_context *) arg;
+	struct rx_nic_compat_context * nic_ctx = NULL;
 	struct packet_ctx * pkt_ctx = NULL;
 	struct job * job = NULL;
 	struct sockaddr_ll      from;
@@ -121,7 +121,7 @@ void * rx_thread_compat_listen(void * arg)
 	pthread_exit(NULL);
 }
 
-void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ctx)
+void rx_nic_compat_ctx_destroy(struct rx_nic_compat_context * nic_ctx)
 {
 	assert(nic_ctx);
 	
@@ -137,9 +137,9 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 	close(nic_ctx->generic.pcap_fd);
 }
 
-int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_ctx, const char * dev_name, const char * bpf_path, const char * pcap_path)
+int rx_nic_compat_ctx_init(struct rx_thread_compat_context * thread_ctx, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
-	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
+	struct rx_nic_compat_context * nic_ctx = NULL;
 	int dev_arp_type;
 	int rc;
 
@@ -226,7 +226,7 @@ error:
 	return(rc);
 }
 
-void rx_thread_compat_destroy(struct netsniff_ng_rx_thread_compat_context * thread_config)
+void rx_thread_compat_destroy(struct rx_thread_compat_context * thread_config)
 {
 	assert(thread_config);
 
@@ -239,10 +239,10 @@ void rx_thread_compat_destroy(struct netsniff_ng_rx_thread_compat_context * thre
 	xfree(thread_config);
 }
 
-struct netsniff_ng_rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * dev_name, const char * bpf_path, const char * pcap_path)
+struct rx_thread_compat_context * rx_thread_compat_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
 	int rc;
-	struct netsniff_ng_rx_thread_compat_context * thread_config = NULL;
+	struct rx_thread_compat_context * thread_config = NULL;
 
 	thread_config = xzmalloc(sizeof(*thread_config));
 

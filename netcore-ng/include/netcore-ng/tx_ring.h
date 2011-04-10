@@ -37,21 +37,21 @@
 #include <netcore-ng/generic.h>
 
 /* a tx ring must only belong to one entity */
-struct netsniff_ng_tx_nic_context
+struct tx_nic_context
 {
 	struct generic_nic_context		generic;
 	struct ring_buff			nic_rb;
 };
 
-struct netsniff_ng_tx_thread_context
+struct tx_thread_context
 {
-	struct netsniff_ng_thread_context	thread_ctx;
-	struct netsniff_ng_tx_nic_context	nic_ctx;
+	struct thread_context	thread_ctx;
+	struct tx_nic_context	nic_ctx;
 };
 
 /* Function signatures */
-extern struct netsniff_ng_tx_thread_context * tx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path);
-extern void tx_thread_destroy(struct netsniff_ng_tx_thread_context * thread_config);
+extern struct tx_thread_context * tx_thread_create(const cpu_set_t run_on, const int sched_prio, const int sched_policy, const char * tx_dev, const char * bpf_path, const char * pcap_path);
+extern void tx_thread_destroy(struct tx_thread_context * thread_config);
 
 
 #define DEFAULT_TX_RING_SILENT_MESSAGE "Transmitting ... |"

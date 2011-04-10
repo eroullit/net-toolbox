@@ -60,7 +60,7 @@ struct system_data {
 	char * dev;
 	char * cpu_set_str;
 	enum display_type dtype;
-	enum netsniff_ng_thread_type mode;
+	enum thread_type mode;
 };
 
 extern void init_configuration(struct system_data *config);

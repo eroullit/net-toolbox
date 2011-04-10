@@ -42,9 +42,9 @@ void start_single_rx_thread(struct system_data * sd)
 	short nic_flags;
 	union
 	{
-		struct netsniff_ng_rx_thread_context * 		rx;
-		struct netsniff_ng_tx_thread_context * 		tx;
-		struct netsniff_ng_rx_thread_compat_context * 	rx_compat;
+		struct rx_thread_context * 		rx;
+		struct tx_thread_context * 		tx;
+		struct rx_thread_compat_context * 	rx_compat;
 	}thread_ctx;
 	
 	if (sd->cpu_set_str)
