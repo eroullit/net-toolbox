@@ -31,7 +31,7 @@
 
 struct packet_ctx
 {
-	struct pcap_sf_pkthdr	pkt_hdr_buf;
+	struct pcap_sf_pkthdr	pkt_hdr;
 	size_t			mtu;
 	uint8_t *		pkt_buf;
 	/* packet decapsulation info here ? */

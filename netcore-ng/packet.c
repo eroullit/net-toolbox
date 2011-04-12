@@ -43,6 +43,8 @@ void packet_vector_destroy(struct packet_vector * pkt_vec)
 		packet_context_destroy(&pkt_vec->pkt[a]);
 	}
 
+	free(pkt_vec->pkt_hdr_vec);
+	free(pkt_vec->pkt_buf_vec);
 	free(pkt_vec->pkt);
 
 	memset(pkt_vec, 0, sizeof(*pkt_vec));
@@ -59,15 +61,20 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 
 	memset(pkt_vec, 0, sizeof(*pkt_vec));
 
-	if ((pkt_vec->pkt = malloc(sizeof(*pkt_vec->pkt) * pkt_nr)) == NULL)
+	pkt_vec->pkt = malloc(sizeof(*pkt_vec->pkt) * pkt_nr);
+	pkt_vec->pkt_hdr_vec = malloc(sizeof(*pkt_vec->pkt_hdr_vec) * pkt_nr);
+	pkt_vec->pkt_buf_vec = malloc(sizeof(*pkt_vec->pkt_buf_vec) * pkt_nr);
+
+	if (pkt_vec->pkt == NULL || pkt_vec->pkt_hdr_vec == NULL || pkt_vec->pkt_buf_vec == NULL)
 	{
 		rc = ENOMEM;
 		goto error;
 	}
 
 	memset(pkt_vec->pkt, 0, sizeof(*pkt_vec->pkt) * pkt_nr);
-	pkt_vec->pkt_nr = pkt_nr;
-
+	memset(pkt_vec->pkt_hdr_vec, 0, sizeof(*pkt_vec->pkt_hdr_vec) * pkt_nr);
+	memset(pkt_vec->pkt_buf_vec, 0, sizeof(*pkt_vec->pkt_buf_vec) * pkt_nr);
+	
 	for (a = 0; a < pkt_nr; a++)
 	{
 		if ((rc = packet_context_create(&pkt_vec->pkt[a])) != 0)
@@ -75,6 +82,17 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 			goto error;
 		}
 	}
+
+	for (a = 0; a < pkt_nr; a++)
+	{
+		pkt_vec->pkt_hdr_vec[a].iov_base = &pkt_vec->pkt[a].pkt_hdr;
+		pkt_vec->pkt_hdr_vec[a].iov_len = sizeof(pkt_vec->pkt[a].pkt_hdr);
+
+		pkt_vec->pkt_buf_vec[a].iov_base = pkt_vec->pkt[a].pkt_buf;
+		pkt_vec->pkt_buf_vec[a].iov_len = sizeof(*pkt_vec->pkt[a].pkt_buf) * pkt_vec->pkt[a].mtu;
+	}
+
+	pkt_vec->pkt_nr = pkt_nr;
 
 	return (0);
 
