@@ -43,8 +43,7 @@ void packet_vector_destroy(struct packet_vector * pkt_vec)
 		packet_context_destroy(&pkt_vec->pkt[a]);
 	}
 
-	free(pkt_vec->pkt_hdr_vec);
-	free(pkt_vec->pkt_buf_vec);
+	free(pkt_vec->pkt_io_vec);
 	free(pkt_vec->pkt);
 
 	memset(pkt_vec, 0, sizeof(*pkt_vec));
@@ -54,6 +53,7 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 {
 	size_t a;
 	int rc = 0;
+	size_t setup_pkt;
 
 	assert(pkt_vec);
 	assert(pkt_nr);
@@ -61,21 +61,23 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 
 	memset(pkt_vec, 0, sizeof(*pkt_vec));
 
-	pkt_vec->pkt = malloc(sizeof(*pkt_vec->pkt) * pkt_nr);
-	pkt_vec->pkt_hdr_vec = malloc(sizeof(*pkt_vec->pkt_hdr_vec) * pkt_nr);
-	pkt_vec->pkt_buf_vec = malloc(sizeof(*pkt_vec->pkt_buf_vec) * pkt_nr);
+	/* One vector for the PCAP header, one for the packet itself */
+	pkt_vec->pkt_io_vec_nr = pkt_nr * 2;
+	pkt_vec->pkt_nr = pkt_nr;
 
-	if (pkt_vec->pkt == NULL || pkt_vec->pkt_hdr_vec == NULL || pkt_vec->pkt_buf_vec == NULL)
+	pkt_vec->pkt = malloc(sizeof(*pkt_vec->pkt) * pkt_nr);
+	pkt_vec->pkt_io_vec = malloc(sizeof(*pkt_vec->pkt_hdr_vec) * vector_nr);
+
+	if (pkt_vec->pkt == NULL || pkt_vec->pkt_io_vec == NULL)
 	{
 		rc = ENOMEM;
 		goto error;
 	}
 
-	memset(pkt_vec->pkt, 0, sizeof(*pkt_vec->pkt) * pkt_nr);
-	memset(pkt_vec->pkt_hdr_vec, 0, sizeof(*pkt_vec->pkt_hdr_vec) * pkt_nr);
-	memset(pkt_vec->pkt_buf_vec, 0, sizeof(*pkt_vec->pkt_buf_vec) * pkt_nr);
+	memset(pkt_vec->pkt, 0, sizeof(*pkt_vec->pkt) * pkt_vec->pkt_nr);
+	memset(pkt_vec->pkt_io_vec, 0, sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->vector_nr);
 	
-	for (a = 0; a < pkt_nr; a++)
+	for (a = 0; a < pkt_vec->pkt_nr; a++)
 	{
 		if ((rc = packet_context_create(&pkt_vec->pkt[a])) != 0)
 		{
@@ -83,17 +85,23 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 		}
 	}
 
-	for (a = 0; a < pkt_nr; a++)
+	for (a = 0, setup_pkt = 0; a < pkt_vec->vector_nr; a++)
 	{
-		pkt_vec->pkt_hdr_vec[a].iov_base = &pkt_vec->pkt[a].pkt_hdr;
-		pkt_vec->pkt_hdr_vec[a].iov_len = sizeof(pkt_vec->pkt[a].pkt_hdr);
+		if (a % 2 == 0)
+		{
+			pkt_vec->pkt_io_vec[a].iov_base = &pkt_vec->pkt[setup_pkt].pkt_hdr;
+			pkt_vec->pkt_hdr_vec[a].iov_len = sizeof(pkt_vec->pkt[setup_pkt].pkt_hdr);
+		}
+		else
+		{
+			pkt_vec->pkt_buf_vec[a].iov_base = pkt_vec->pkt[setup_pkt].pkt_buf;
+			/* The ring routine must set the valid packet length in the IO vector */
+			pkt_vec->pkt_buf_vec[a].iov_len = 0;
 
-		pkt_vec->pkt_buf_vec[a].iov_base = pkt_vec->pkt[a].pkt_buf;
-		/* The ring routine must set the valid packet length in the IO vector */
-		pkt_vec->pkt_buf_vec[a].iov_len = 0;
+			/* At this point, the packet buffer has its PCAP header, so setup the next one*/
+			setup_pkt++;
+		}
 	}
-
-	pkt_vec->pkt_nr = pkt_nr;
 
 	return (0);
 

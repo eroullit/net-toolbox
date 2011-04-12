@@ -39,9 +39,9 @@ struct packet_ctx
 
 struct packet_vector
 {
-	struct iovec *		pkt_hdr_vec;
-	struct iovec *		pkt_buf_vec;
+	size_t			pkt_io_vec_nr;
 	size_t			pkt_nr;
+	struct iovec *		pkt_io_vec;
 	struct packet_ctx *	pkt;
 }
 
