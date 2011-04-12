@@ -29,6 +29,8 @@
 #include <sys/time.h>
 #include <pcap.h>
 
+#include <sys/uio.h>
+
 struct packet_ctx
 {
 	struct pcap_sf_pkthdr	pkt_hdr;
@@ -44,5 +46,7 @@ struct packet_vector
 	struct iovec *		pkt_io_vec;
 	struct packet_ctx *	pkt;
 }
+
+void packet_vector_reset(struct packet_vector * pkt_vec);
 
 #endif				/* __PACKET_H__ */

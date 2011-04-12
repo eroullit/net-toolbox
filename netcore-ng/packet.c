@@ -90,7 +90,8 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 		if (a % 2 == 0)
 		{
 			pkt_vec->pkt_io_vec[a].iov_base = &pkt_vec->pkt[setup_pkt].pkt_hdr;
-			pkt_vec->pkt_hdr_vec[a].iov_len = sizeof(pkt_vec->pkt[setup_pkt].pkt_hdr);
+			/* The ring routine must set the valid PCAP packet header in the IO vector */
+			pkt_vec->pkt_hdr_vec[a].iov_len = 0;
 		}
 		else
 		{
@@ -108,4 +109,15 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 error:
 	packet_vector_destroy(pkt_vec);
 	return (rc);
+}
+
+void packet_vector_reset(struct packet_vector * pkt_vec)
+{
+	size_t a;
+	
+	/* Only the length need to be reset */
+	for (a = 0; a < pkt_vec->pkt_io_nr; a++)
+	{
+		pkt_vec->pkt_io_vec[a].iov_len = 0;
+	}
 }

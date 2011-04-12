@@ -40,6 +40,7 @@
 
 #include <netcore-ng/job.h>
 #include <netcore-ng/pcap.h>
+#include <netcore-ng/packet.h>
 #include <netcore-ng/macros.h>
 
 /**
@@ -265,6 +266,21 @@ ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
 		err("Cannot write pcap payload wrote %zi/%u bytes", written, sf_hdr.len);
 		return(-1);
 	}
+
+	return (written);
+}
+
+ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)
+{
+	size_t a;
+	ssize_t written = 0;
+
+	assert(fd > 0);
+	assert(pkt_vec);
+
+	written = writev(fd, pkt_vec->pkt_io_vec, pkt_vec->pkt_io_nr);
+
+	packet_vector_reset(pkt_vec);
 
 	return (written);
 }
