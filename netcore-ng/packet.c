@@ -89,7 +89,8 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 		pkt_vec->pkt_hdr_vec[a].iov_len = sizeof(pkt_vec->pkt[a].pkt_hdr);
 
 		pkt_vec->pkt_buf_vec[a].iov_base = pkt_vec->pkt[a].pkt_buf;
-		pkt_vec->pkt_buf_vec[a].iov_len = sizeof(*pkt_vec->pkt[a].pkt_buf) * pkt_vec->pkt[a].mtu;
+		/* The ring routine must set the valid packet length in the IO vector */
+		pkt_vec->pkt_buf_vec[a].iov_len = 0;
 	}
 
 	pkt_vec->pkt_nr = pkt_nr;
