@@ -13,6 +13,7 @@ ADD_LIBRARY(netcore-ng 	init.c
 			cursor.c 
 			thread.c 
 			xmalloc.c 
+			packet.c 
 			netdev.c 
 			pcap.c 
 			rx_ring.c 

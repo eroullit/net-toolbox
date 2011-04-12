@@ -27,14 +27,22 @@
 
 #include <stdint.h>
 #include <sys/time.h>
+#include <pcap.h>
 
 struct packet_ctx
 {
-	struct timeval          pkt_ts;
-	size_t			pkt_snaplen;
-	size_t			pkt_len;
+	struct pcap_sf_pkthdr	pkt_hdr_buf;
+	size_t			mtu;
 	uint8_t *		pkt_buf;
 	/* packet decapsulation info here ? */
 };
+
+struct packet_vector
+{
+	struct iovec *		pkt_hdr_vec;
+	struct iovec *		pkt_buf_vec;
+	size_t			pkt_nr;
+	struct packet_ctx *	pkt;
+}
 
 #endif				/* __PACKET_H__ */
