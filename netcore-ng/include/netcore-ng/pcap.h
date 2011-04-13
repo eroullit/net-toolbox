@@ -35,8 +35,6 @@
 #include <netinet/if_ether.h>
 #include <linux/if_packet.h>
 
-#include <netcore-ng/packet.h>
-
 #define TCPDUMP_MAGIC               0xa1b2c3d4
 #define PCAP_VERSION_MAJOR          2
 #define PCAP_VERSION_MINOR          4
@@ -105,16 +103,19 @@ struct pcap_sf_pkthdr {
 	int32_t len;		/**< length this packet (off wire) */
 };
 
+struct packet_ctx;
+struct packet_vector;
+
 int pcap_link_type_get(int arp_type, enum pcap_linktype * pcap_link_type);
 int pcap_has_packets(const int fd);
 int pcap_is_valid(const int fd);
-size_t pcap_read(const int fd, struct packet_ctx * pkt_ctx);
+//size_t pcap_read(const int fd, struct packet_ctx * pkt_ctx);
 int pcap_file_header_write(const int fd, const int linktype, const int thiszone, const int snaplen);
-ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx);
+//ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx);
+ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec);
 void pcap_destroy(const int pcap_fd, const char * const pcap_path);
 int pcap_create(const char * const pcap_path, const enum pcap_linktype linktype);
 int pcap_open(const char * const pcap_path, int flags);
 int pcap_close(const int fd);
-
 
 #endif				/* _PCAP_H_ */

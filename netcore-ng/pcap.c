@@ -156,6 +156,7 @@ int pcap_is_valid(const int fd)
 	return (1);
 }
 
+#if 0
 /**
  * \brief Fetches the following packet in a PCAP
  * \param[in] fd PCAP file descriptor
@@ -187,7 +188,7 @@ size_t pcap_read(const int fd, struct packet_ctx * pkt_ctx)
 
 	return (sf_hdr.len);
 }
-
+#endif
 /**
  * \brief Write the PCAP file header on a file descriptor
  * \param[in] fd PCAP file descriptor
@@ -221,6 +222,7 @@ int pcap_file_header_write(const int fd, const int linktype, const int thiszone,
 	return (0);
 }
 
+#if 0
 /**
  * \brief Write the packet payload on a file descriptor
  * \param[in] fd PCAP file descriptor
@@ -269,18 +271,17 @@ ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
 
 	return (written);
 }
-
+#endif
 ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)
 {
-	size_t a;
-	ssize_t written = 0;
+	ssize_t written;
 
 	assert(fd > 0);
 	assert(pkt_vec);
 
-	written = writev(fd, pkt_vec->pkt_io_vec, pkt_vec->pkt_io_nr);
-
-	packet_vector_reset(pkt_vec);
+	written = writev(fd, pkt_vec->pkt_io_vec, pkt_vec->pkt_io_vec_nr);
+	
+	info("writev() %zu packet %zi bytes\n", pkt_vec->pkt_io_vec_nr, written);
 
 	return (written);
 }

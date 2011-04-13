@@ -36,8 +36,6 @@
 struct netsniff_ng_rx_nic_compat_context
 {
 	struct generic_nic_context		generic;
-	struct frame_map			fm;
-	uint8_t					pkt_buf[RX_RING_COMPAT_DEFAULT_PKT_SIZE];
 };
 
 struct netsniff_ng_rx_thread_compat_context

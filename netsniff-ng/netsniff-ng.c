@@ -42,8 +42,8 @@ void start_single_rx_thread(struct system_data * sd)
 	short nic_flags;
 	union
 	{
-		struct netsniff_ng_rx_thread_context * 		rx;
-		struct netsniff_ng_tx_thread_context * 		tx;
+		//struct netsniff_ng_rx_thread_context * 		rx;
+		//struct netsniff_ng_tx_thread_context * 		tx;
 		struct netsniff_ng_rx_thread_compat_context * 	rx_compat;
 	}thread_ctx;
 	
@@ -68,9 +68,9 @@ void start_single_rx_thread(struct system_data * sd)
 	switch(sd->mode)
 	{
 		case RX_THREAD:
-			thread_ctx.rx = rx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
+			//thread_ctx.rx = rx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
 
-			if (thread_ctx.rx == NULL)
+			//if (thread_ctx.rx == NULL)
 				goto out;
 		break;
 
@@ -82,9 +82,9 @@ void start_single_rx_thread(struct system_data * sd)
 		break;
 		
 		case TX_THREAD:
-			thread_ctx.tx = tx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
+			//thread_ctx.tx = tx_thread_create(cpu_bitmask, 0, SCHED_FIFO, sd->dev, sd->bpf_path, sd->pcap_path);
 
-			if (thread_ctx.tx == NULL)
+			//if (thread_ctx.tx == NULL)
 				goto out;
 		break;
 
@@ -99,9 +99,9 @@ void start_single_rx_thread(struct system_data * sd)
 	switch(sd->mode)
 	{
 		case RX_THREAD:
-			pthread_cancel(thread_ctx.rx->thread_ctx.thread);
-			net_stat(thread_ctx.rx->nic_ctx.generic.dev_fd);
-			rx_thread_destroy(thread_ctx.rx);
+			//pthread_cancel(thread_ctx.rx->thread_ctx.thread);
+			//net_stat(thread_ctx.rx->nic_ctx.generic.dev_fd);
+			//rx_thread_destroy(thread_ctx.rx);
 		break;
 
 		case RX_THREAD_COMPAT:
@@ -110,8 +110,8 @@ void start_single_rx_thread(struct system_data * sd)
 		break;
 		
 		case TX_THREAD:
-			pthread_cancel(thread_ctx.tx->thread_ctx.thread);
-			tx_thread_destroy(thread_ctx.tx);
+			//pthread_cancel(thread_ctx.tx->thread_ctx.thread);
+			//tx_thread_destroy(thread_ctx.tx);
 		break;
 
 		default:

@@ -40,7 +40,7 @@ struct generic_nic_context
 	enum pcap_linktype			linktype;
 	struct sock_fprog 			bpf;
 	struct job_list				job_list;
-	struct packet_ctx			pkt_ctx;
+	struct packet_vector			pkt_vec;
 };
 
 #endif /* __NET_GENERIC_H__ */

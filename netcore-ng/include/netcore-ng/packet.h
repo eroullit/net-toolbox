@@ -27,9 +27,9 @@
 
 #include <stdint.h>
 #include <sys/time.h>
-#include <pcap.h>
-
 #include <sys/uio.h>
+
+#include <netcore-ng/pcap.h>
 
 struct packet_ctx
 {
@@ -45,8 +45,10 @@ struct packet_vector
 	size_t			pkt_nr;
 	struct iovec *		pkt_io_vec;
 	struct packet_ctx *	pkt;
-}
+};
 
 void packet_vector_reset(struct packet_vector * pkt_vec);
+void packet_vector_destroy(struct packet_vector * pkt_vec);
+int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, const size_t mtu);
 
 #endif				/* __PACKET_H__ */

@@ -87,23 +87,24 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	return (0);
 }
 
-static ssize_t pcap_write_job(const struct generic_nic_context * const ctx)
+static ssize_t pcap_writev_job(const struct generic_nic_context * const ctx)
 {
 	assert(ctx);
 
-	return(pcap_write(ctx->pcap_fd, &ctx->pkt_ctx));
+	return(pcap_writev(ctx->pcap_fd, &ctx->pkt_vec));
 }
 
-int pcap_write_job_register(struct job_list * job_list)
+int pcap_writev_job_register(struct job_list * job_list)
 {
-	return (job_list_insert(job_list, pcap_write_job));
+	return (job_list_insert(job_list, pcap_writev_job));
 }
 
 static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx)
 {
 	assert(ctx);
 
-	return(ethernet_dissector_run(ctx->pkt_ctx.pkt_buf, ctx->pkt_ctx.pkt_len));
+	//return(ethernet_dissector_run(ctx->pkt_ctx.pkt_buf, ctx->pkt_ctx.pkt_len));
+	return (0);
 }
 
 int ethernet_dissector_register(struct job_list * job_list)

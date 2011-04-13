@@ -16,9 +16,7 @@ ADD_LIBRARY(netcore-ng 	init.c
 			packet.c 
 			netdev.c 
 			pcap.c 
-			rx_ring.c 
 			rx_ring_compat.c 
-			tx_ring.c 
 			job.c 
 			strlcpy.c 
 			system.c 

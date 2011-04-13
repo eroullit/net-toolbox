@@ -81,10 +81,13 @@ void * rx_thread_compat_listen(void * arg)
 {
 	struct netsniff_ng_rx_thread_compat_context * thread_ctx = (struct netsniff_ng_rx_thread_compat_context *) arg;
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
+	struct packet_vector * pkt_vec = NULL;
 	struct packet_ctx * pkt_ctx = NULL;
-	struct job * job = NULL;
+	struct timeval		now;
 	struct sockaddr_ll      from;
         socklen_t               from_len = sizeof(from);
+        size_t a;
+        size_t read;
 
 	if (thread_ctx == NULL)
 	{
@@ -94,28 +97,47 @@ void * rx_thread_compat_listen(void * arg)
 	memset(&from, 0, sizeof(from));
 
 	nic_ctx = &thread_ctx->nic_ctx;
-	pkt_ctx = &nic_ctx->generic.pkt_ctx;
-
-	pkt_ctx->pkt_buf = nic_ctx->pkt_buf;
+	pkt_vec = &nic_ctx->generic.pkt_vec;
 
 	info("--- Listening (Compatibility mode)---\n\n");
 
 	for(;;)
 	{
-		pkt_ctx->pkt_len = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->pkt_buf, sizeof(nic_ctx->pkt_buf), MSG_TRUNC, (struct sockaddr *) &from, &from_len);
-
-		if (errno == EINTR)
-                        break;
-
-		gettimeofday(&pkt_ctx->pkt_ts, NULL);
-
-		pkt_ctx->pkt_snaplen = pkt_ctx->pkt_len;
-
-		SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
+		for(a = 0; a < pkt_vec->pkt_nr; a++)
 		{
-			/* TODO think about return values handling */
-			job->job(&nic_ctx->generic);
+			pkt_ctx = &pkt_vec->pkt[a];
+
+			read = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->pkt_buf, pkt_ctx->mtu, MSG_TRUNC, (struct sockaddr *) &from, &from_len);
+
+			if (errno == EINTR)
+				break;
+
+			pkt_ctx->pkt_hdr.len = read;
+			pkt_ctx->pkt_hdr.caplen = read;
+			
+			gettimeofday(&now, NULL);
+
+			pkt_ctx->pkt_hdr.ts.tv_sec = now.tv_sec;
+			pkt_ctx->pkt_hdr.ts.tv_usec = now.tv_usec;
+
+			info("pkt %zu/%zu len %zu at %i.%i s\n", a, pkt_vec->pkt_nr, read, pkt_ctx->pkt_hdr.ts.tv_sec, pkt_ctx->pkt_hdr.ts.tv_usec);
+
+			pkt_vec->pkt_io_vec[a * 2].iov_len = sizeof(pkt_ctx->pkt_hdr);
+			pkt_vec->pkt_io_vec[(a * 2) + 1].iov_len = read;
+
+#if 0
+			SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
+			{
+				/* TODO think about return values handling */
+				job->job(&nic_ctx->generic);
+			}
+#endif
 		}
+
+		info("Will call writev()\n");
+
+		pcap_writev(nic_ctx->generic.pcap_fd, pkt_vec);
+		packet_vector_reset(pkt_vec);
 	}
 
 	pthread_exit(NULL);
@@ -125,6 +147,7 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 {
 	assert(nic_ctx);
 	
+	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
 	job_list_cleanup(&nic_ctx->generic.job_list);
 
 	if (nic_ctx->generic.bpf.filter)
@@ -186,6 +209,12 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		goto error;
 	}
 
+	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, 32, get_mtu(nic_ctx->generic.dev_name))) != 0)
+	{
+		warn("Could not create packet vector\n");
+		goto error;
+	}
+
 	if (bpf_path)
 	{
 		if(bpf_parse(bpf_path, &nic_ctx->generic.bpf) == 0)
@@ -204,12 +233,6 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		{
 			warn("Failed to prepare pcap : %s\n", pcap_path);
 			rc = EINVAL;
-			goto error;
-		}
-
-		if ((rc = pcap_write_job_register(&nic_ctx->generic.job_list)) != 0)
-		{
-			warn("Could not register pcap write job\n");
 			goto error;
 		}
 	}
