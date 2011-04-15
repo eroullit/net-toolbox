@@ -120,7 +120,7 @@ void * rx_thread_compat_listen(void * arg)
 			pkt_ctx->pkt_hdr.ts.tv_sec = now.tv_sec;
 			pkt_ctx->pkt_hdr.ts.tv_usec = now.tv_usec;
 
-			info("pkt %zu/%zu len %zu at %i.%i s\n", a, pkt_vec->pkt_nr, read, pkt_ctx->pkt_hdr.ts.tv_sec, pkt_ctx->pkt_hdr.ts.tv_usec);
+			//info("pkt %zu/%zu len %zu at %i.%i s\n", a, pkt_vec->pkt_nr, read, pkt_ctx->pkt_hdr.ts.tv_sec, pkt_ctx->pkt_hdr.ts.tv_usec);
 
 			pkt_vec->pkt_io_vec[a * 2].iov_len = sizeof(pkt_ctx->pkt_hdr);
 			pkt_vec->pkt_io_vec[(a * 2) + 1].iov_len = read;
@@ -134,7 +134,7 @@ void * rx_thread_compat_listen(void * arg)
 #endif
 		}
 
-		info("Will call writev()\n");
+		//info("Will call writev()\n");
 
 		pcap_writev(nic_ctx->generic.pcap_fd, pkt_vec);
 		packet_vector_reset(pkt_vec);
