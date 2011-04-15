@@ -209,7 +209,7 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		goto error;
 	}
 
-	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, 32, get_mtu(nic_ctx->generic.dev_name))) != 0)
+	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, 1024, get_mtu(nic_ctx->generic.dev_name))) != 0)
 	{
 		warn("Could not create packet vector\n");
 		goto error;
