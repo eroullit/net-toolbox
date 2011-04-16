@@ -122,3 +122,8 @@ void packet_vector_reset(struct packet_vector * pkt_vec)
 
 	pkt_vec->used_pkt_io_vec = 0;
 }
+
+int packet_vector_is_full(const struct packet_vector * const pkt_vec)
+{
+	return (pkt_vec->used_pkt_io_vec == pkt_vec->total_pkt_io_vec);
+}

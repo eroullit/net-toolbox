@@ -49,7 +49,7 @@ int job_list_init(struct job_list * job_list);
 void job_list_cleanup(struct job_list * job_list);
 int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx));
 
-int pcap_write_job_register(struct job_list * job_list);
+int pcap_writev_job_register(struct job_list * processing_job_list, struct job_list * cleanup_job_list);
 int ethernet_dissector_register(struct job_list * job_list);
 
 #endif	/* __JOB_H__ */

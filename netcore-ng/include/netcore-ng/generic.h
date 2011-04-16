@@ -39,7 +39,8 @@ struct generic_nic_context
 	int 					pcap_fd;
 	enum pcap_linktype			linktype;
 	struct sock_fprog 			bpf;
-	struct job_list				job_list;
+	struct job_list				processing_job_list;
+	struct job_list				cleanup_job_list;
 	struct packet_vector			pkt_vec;
 };
 

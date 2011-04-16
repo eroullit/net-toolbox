@@ -38,15 +38,15 @@ int job_list_init(struct job_list * job_list)
 
 void job_list_cleanup(struct job_list * job_list)
 {
-	struct job * job = NULL;
+	struct job * jobp = NULL;
 
 	assert(job_list);
 
 	while(SLIST_EMPTY(&job_list->head) == 0)
 	{
-		job = SLIST_FIRST(&job_list->head);
+		jobp = SLIST_FIRST(&job_list->head);
 		SLIST_REMOVE_HEAD(&job_list->head, entry);
-		free(job);
+		free(jobp);
 	}
 
 	pthread_spin_destroy(&job_list->lock);
@@ -87,16 +87,34 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	return (0);
 }
 
-static ssize_t pcap_writev_job(const struct generic_nic_context * const ctx)
+static ssize_t pcap_writev_processing_job(const struct generic_nic_context * const ctx)
 {
+	ssize_t written = 0;
+
 	assert(ctx);
 
+	if (packet_vector_is_full(&ctx->pkt_vec))
+		written = pcap_writev(ctx->pcap_fd, &ctx->pkt_vec);
+
+	return(written);
+}
+
+static ssize_t pcap_writev_cleanup_job(const struct generic_nic_context * const ctx)
+{
+	assert(ctx);
 	return(pcap_writev(ctx->pcap_fd, &ctx->pkt_vec));
 }
 
-int pcap_writev_job_register(struct job_list * job_list)
+int pcap_writev_job_register(struct job_list * processing_job_list, struct job_list * cleanup_job_list)
 {
-	return (job_list_insert(job_list, pcap_writev_job));
+	int rc;
+
+	rc = job_list_insert(processing_job_list, pcap_writev_processing_job);
+
+	if (!rc)
+		rc = job_list_insert(cleanup_job_list, pcap_writev_cleanup_job);
+
+	return (rc);
 }
 
 static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx)

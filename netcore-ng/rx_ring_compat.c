@@ -83,6 +83,7 @@ void * rx_thread_compat_listen(void * arg)
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
 	struct packet_vector * pkt_vec = NULL;
 	struct packet_ctx * pkt_ctx = NULL;
+	struct job * job = NULL;
 	struct timeval		now;
 	struct sockaddr_ll      from;
         socklen_t               from_len = sizeof(from);
@@ -127,18 +128,13 @@ void * rx_thread_compat_listen(void * arg)
 
 			pkt_vec->used_pkt_io_vec += 2;
 
-#if 0
-			SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
+			SLIST_FOREACH(job, &nic_ctx->generic.processing_job_list.head, entry)
 			{
 				/* TODO think about return values handling */
 				job->job(&nic_ctx->generic);
 			}
-#endif
 		}
 
-		//info("Will call writev()\n");
-
-		pcap_writev(nic_ctx->generic.pcap_fd, pkt_vec);
 		packet_vector_reset(pkt_vec);
 	}
 
@@ -147,10 +143,19 @@ void * rx_thread_compat_listen(void * arg)
 
 void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ctx)
 {
+	struct job * jobp = NULL;
+
 	assert(nic_ctx);
 	
 	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
-	job_list_cleanup(&nic_ctx->generic.job_list);
+	job_list_cleanup(&nic_ctx->generic.processing_job_list);
+
+	SLIST_FOREACH(jobp, &nic_ctx->generic.cleanup_job_list.head, entry)
+	{
+		jobp->job(&nic_ctx->generic);
+	}
+	
+	job_list_cleanup(&nic_ctx->generic.cleanup_job_list);
 
 	if (nic_ctx->generic.bpf.filter)
 	{
@@ -205,9 +210,15 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		goto error;
 	}
 
-	if ((rc = job_list_init(&nic_ctx->generic.job_list)) != 0)
+	if ((rc = job_list_init(&nic_ctx->generic.processing_job_list)) != 0)
 	{
-		warn("Could not create job list\n");
+		warn("Could not create processing job list\n");
+		goto error;
+	}
+
+	if ((rc = job_list_init(&nic_ctx->generic.cleanup_job_list)) != 0)
+	{
+		warn("Could not create cleanup job list\n");
 		goto error;
 	}
 
@@ -237,9 +248,16 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 			rc = EINVAL;
 			goto error;
 		}
+		
+		if ((rc = pcap_writev_job_register(&nic_ctx->generic.processing_job_list, &nic_ctx->generic.cleanup_job_list)) != 0)
+		{
+			warn("Could not register pcap write job\n");
+			goto error;
+		}
+
 	}
 
-	if ((rc = ethernet_dissector_register(&nic_ctx->generic.job_list)) != 0)
+	if ((rc = ethernet_dissector_register(&nic_ctx->generic.processing_job_list)) != 0)
 	{
 		warn("Could not register ethernet dissector job\n");
 		goto error;

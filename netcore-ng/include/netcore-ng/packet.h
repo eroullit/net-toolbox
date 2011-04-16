@@ -51,5 +51,6 @@ struct packet_vector
 void packet_vector_reset(struct packet_vector * pkt_vec);
 void packet_vector_destroy(struct packet_vector * pkt_vec);
 int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, const size_t mtu);
+int packet_vector_is_full(const struct packet_vector * const pkt_vec);
 
 #endif				/* __PACKET_H__ */
