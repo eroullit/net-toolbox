@@ -41,7 +41,8 @@ struct packet_ctx
 
 struct packet_vector
 {
-	size_t			pkt_io_vec_nr;
+	size_t			used_pkt_io_vec;
+	size_t			total_pkt_io_vec;
 	size_t			pkt_nr;
 	struct iovec *		pkt_io_vec;
 	struct packet_ctx *	pkt;

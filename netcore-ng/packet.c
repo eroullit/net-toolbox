@@ -61,11 +61,11 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 	memset(pkt_vec, 0, sizeof(*pkt_vec));
 
 	/* One vector for the PCAP header, one for the packet itself */
-	pkt_vec->pkt_io_vec_nr = pkt_nr * 2;
+	pkt_vec->total_pkt_io_vec = pkt_nr * 2;
 	pkt_vec->pkt_nr = pkt_nr;
 
 	pkt_vec->pkt = malloc(sizeof(*pkt_vec->pkt) * pkt_nr);
-	pkt_vec->pkt_io_vec = malloc(sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->pkt_io_vec_nr);
+	pkt_vec->pkt_io_vec = malloc(sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->total_pkt_io_vec);
 
 	if (pkt_vec->pkt == NULL || pkt_vec->pkt_io_vec == NULL)
 	{
@@ -74,7 +74,7 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 	}
 
 	memset(pkt_vec->pkt, 0, sizeof(*pkt_vec->pkt) * pkt_vec->pkt_nr);
-	memset(pkt_vec->pkt_io_vec, 0, sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->pkt_io_vec_nr);
+	memset(pkt_vec->pkt_io_vec, 0, sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->total_pkt_io_vec);
 	
 	for (a = 0; a < pkt_vec->pkt_nr; a++)
 	{
@@ -84,7 +84,7 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 		}
 	}
 
-	for (a = 0, setup_pkt = 0; a < pkt_vec->pkt_io_vec_nr; a++)
+	for (a = 0, setup_pkt = 0; a < pkt_vec->total_pkt_io_vec; a++)
 	{
 		if (a % 2 == 0)
 		{
@@ -115,8 +115,10 @@ void packet_vector_reset(struct packet_vector * pkt_vec)
 	size_t a;
 	
 	/* Only the length need to be reset */
-	for (a = 0; a < pkt_vec->pkt_io_vec_nr; a++)
+	for (a = 0; a < pkt_vec->total_pkt_io_vec; a++)
 	{
 		pkt_vec->pkt_io_vec[a].iov_len = 0;
 	}
+
+	pkt_vec->used_pkt_io_vec = 0;
 }

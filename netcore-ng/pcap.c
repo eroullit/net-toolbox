@@ -279,9 +279,9 @@ ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)
 	assert(fd > 0);
 	assert(pkt_vec);
 
-	written = writev(fd, pkt_vec->pkt_io_vec, pkt_vec->pkt_io_vec_nr);
+	written = writev(fd, pkt_vec->pkt_io_vec, pkt_vec->used_pkt_io_vec);
 	
-	info("writev() %zu packet %zi bytes\n", pkt_vec->pkt_io_vec_nr, written);
+	info("writev() %zu vectors %zi bytes\n", pkt_vec->used_pkt_io_vec, written);
 
 	return (written);
 }

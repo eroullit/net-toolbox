@@ -125,6 +125,8 @@ void * rx_thread_compat_listen(void * arg)
 			pkt_vec->pkt_io_vec[a * 2].iov_len = sizeof(pkt_ctx->pkt_hdr);
 			pkt_vec->pkt_io_vec[(a * 2) + 1].iov_len = read;
 
+			pkt_vec->used_pkt_io_vec += 2;
+
 #if 0
 			SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
 			{
@@ -209,7 +211,7 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		goto error;
 	}
 
-	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, 1024, get_mtu(nic_ctx->generic.dev_name))) != 0)
+	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, UIO_MAXIOV, get_mtu(nic_ctx->generic.dev_name))) != 0)
 	{
 		warn("Could not create packet vector\n");
 		goto error;
