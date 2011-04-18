@@ -84,7 +84,6 @@ void * rx_thread_compat_listen(void * arg)
 	struct packet_vector * pkt_vec = NULL;
 	struct packet_ctx * pkt_ctx = NULL;
 	struct job * job = NULL;
-	struct timeval		now;
 	struct sockaddr_ll      from;
         socklen_t               from_len = sizeof(from);
         size_t a;
@@ -113,17 +112,10 @@ void * rx_thread_compat_listen(void * arg)
 			if (errno == EINTR)
 				break;
 
-			pkt_ctx->pkt_hdr.len = read;
-			pkt_ctx->pkt_hdr.caplen = read;
-			
-			gettimeofday(&now, NULL);
-
-			pkt_ctx->pkt_hdr.ts.tv_sec = now.tv_sec;
-			pkt_ctx->pkt_hdr.ts.tv_usec = now.tv_usec;
+			pcap_packet_header_set(&pkt_vec->pkt_io_vec[a * 2], read);
 
 			//info("pkt %zu/%zu len %zu at %i.%i s\n", a, pkt_vec->pkt_nr, read, pkt_ctx->pkt_hdr.ts.tv_sec, pkt_ctx->pkt_hdr.ts.tv_usec);
 
-			pkt_vec->pkt_io_vec[a * 2].iov_len = sizeof(pkt_ctx->pkt_hdr);
 			pkt_vec->pkt_io_vec[(a * 2) + 1].iov_len = read;
 
 			pkt_vec->used_pkt_io_vec += 2;
