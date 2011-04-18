@@ -43,7 +43,8 @@ struct packet_vector
 {
 	size_t			used_pkt_io_vec;
 	size_t			total_pkt_io_vec;
-	size_t			pkt_nr;
+	size_t			total_pkt_nr;
+	size_t			used_pkt_nr;
 	struct iovec *		pkt_io_vec;
 	struct packet_ctx *	pkt;
 };
@@ -52,5 +53,8 @@ void packet_vector_reset(struct packet_vector * pkt_vec);
 void packet_vector_destroy(struct packet_vector * pkt_vec);
 int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, const size_t mtu);
 int packet_vector_is_full(const struct packet_vector * const pkt_vec);
+
+struct packet_ctx * packet_vector_packet_context_get(const struct packet_vector * const pkt_vec);
+int packet_vector_next(struct packet_vector * pkt_vec);
 
 #endif				/* __PACKET_H__ */

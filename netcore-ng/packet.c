@@ -37,7 +37,7 @@ void packet_vector_destroy(struct packet_vector * pkt_vec)
 
 	assert(pkt_vec);
 
-	for (a = 0; a < pkt_vec->pkt_nr; a++)
+	for (a = 0; a < pkt_vec->total_pkt_nr; a++)
 	{
 		packet_context_destroy(&pkt_vec->pkt[a]);
 	}
@@ -48,23 +48,23 @@ void packet_vector_destroy(struct packet_vector * pkt_vec)
 	memset(pkt_vec, 0, sizeof(*pkt_vec));
 }
 
-int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, const size_t mtu)
+int packet_vector_create(struct packet_vector * pkt_vec, const size_t total_pkt_nr, const size_t mtu)
 {
 	size_t a;
 	int rc = 0;
 	size_t setup_pkt;
 
 	assert(pkt_vec);
-	assert(pkt_nr);
+	assert(total_pkt_nr);
 	assert(mtu);
 
 	memset(pkt_vec, 0, sizeof(*pkt_vec));
 
 	/* One vector for the PCAP header, one for the packet itself */
-	pkt_vec->total_pkt_io_vec = pkt_nr * 2;
-	pkt_vec->pkt_nr = pkt_nr;
+	pkt_vec->total_pkt_io_vec = total_pkt_nr * 2;
+	pkt_vec->total_pkt_nr = total_pkt_nr;
 
-	pkt_vec->pkt = malloc(sizeof(*pkt_vec->pkt) * pkt_nr);
+	pkt_vec->pkt = malloc(sizeof(*pkt_vec->pkt) * total_pkt_nr);
 	pkt_vec->pkt_io_vec = malloc(sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->total_pkt_io_vec);
 
 	if (pkt_vec->pkt == NULL || pkt_vec->pkt_io_vec == NULL)
@@ -73,10 +73,10 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, co
 		goto error;
 	}
 
-	memset(pkt_vec->pkt, 0, sizeof(*pkt_vec->pkt) * pkt_vec->pkt_nr);
+	memset(pkt_vec->pkt, 0, sizeof(*pkt_vec->pkt) * pkt_vec->total_pkt_nr);
 	memset(pkt_vec->pkt_io_vec, 0, sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->total_pkt_io_vec);
 	
-	for (a = 0; a < pkt_vec->pkt_nr; a++)
+	for (a = 0; a < pkt_vec->total_pkt_nr; a++)
 	{
 		if ((rc = packet_context_create(&pkt_vec->pkt[a], mtu)) != 0)
 		{
@@ -119,11 +119,32 @@ void packet_vector_reset(struct packet_vector * pkt_vec)
 	{
 		pkt_vec->pkt_io_vec[a].iov_len = 0;
 	}
-
+	
 	pkt_vec->used_pkt_io_vec = 0;
+	pkt_vec->used_pkt_nr = 0;
 }
 
 int packet_vector_is_full(const struct packet_vector * const pkt_vec)
 {
-	return (pkt_vec->used_pkt_io_vec == pkt_vec->total_pkt_io_vec);
+	assert(pkt_vec);
+	return (pkt_vec->used_pkt_nr == pkt_vec->total_pkt_nr);
+}
+
+struct packet_ctx * packet_vector_packet_context_get(const struct packet_vector * const pkt_vec)
+{
+	if (packet_vector_is_full(pkt_vec))
+		return (NULL);
+
+	return (&pkt_vec->pkt[pkt_vec->used_pkt_nr]);
+}
+
+int packet_vector_next(struct packet_vector * pkt_vec)
+{
+	if (packet_vector_is_full(pkt_vec))
+		return (EAGAIN);
+
+	pkt_vec->used_pkt_nr++;
+	pkt_vec->used_pkt_io_vec += 2;
+
+	return (0);
 }
