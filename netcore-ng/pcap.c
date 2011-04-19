@@ -273,23 +273,19 @@ ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
 }
 #endif
 
-void pcap_packet_header_set(struct iovec * pcap_hdr_vec, const size_t len)
+void pcap_packet_header_set(struct packet_ctx * pkt_ctx, const struct timeval * ts)
 {
 	struct pcap_sf_pkthdr * hdr;
-	struct timeval now;
 
-	assert(pcap_hdr_vec);
-	assert(pcap_hdr_vec->iov_base);
+	assert(pkt_ctx);
+	assert(ts);
 
-	hdr = pcap_hdr_vec->iov_base;
-	pcap_hdr_vec->iov_len = sizeof(*hdr);
+	hdr = &pkt_ctx->pcap_hdr;
 
-	gettimeofday(&now, NULL);
-
-	hdr->ts.tv_sec = now.tv_sec;
-	hdr->ts.tv_usec = now.tv_usec;
-	hdr->len = len;
-	hdr->caplen = len;
+	hdr->ts.tv_sec = ts->tv_sec;
+	hdr->ts.tv_usec = ts->tv_usec;
+	hdr->len = pkt_ctx->len;
+	hdr->caplen = pkt_ctx->len;
 }
 
 ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)

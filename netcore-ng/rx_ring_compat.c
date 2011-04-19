@@ -84,10 +84,9 @@ void * rx_thread_compat_listen(void * arg)
 	struct packet_vector * pkt_vec = NULL;
 	struct packet_ctx * pkt_ctx = NULL;
 	struct job * job = NULL;
+	struct timeval		now;
 	struct sockaddr_ll      from;
         socklen_t               from_len = sizeof(from);
-        size_t a;
-        size_t read;
 
 	if (thread_ctx == NULL)
 	{
@@ -103,31 +102,26 @@ void * rx_thread_compat_listen(void * arg)
 
 	for(;;)
 	{
-		for(a = 0; a < pkt_vec->pkt_nr; a++)
+		for(packet_vector_reset(pkt_vec); packet_vector_is_full(pkt_vec); packet_vector_next(pkt_vec))
 		{
-			pkt_ctx = &pkt_vec->pkt[a];
+			pkt_ctx = packet_vector_packet_context_get(pkt_vec);
 
-			read = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->pkt_buf, pkt_ctx->mtu, MSG_TRUNC, (struct sockaddr *) &from, &from_len);
+			pkt_ctx->len = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->buf, pkt_ctx->mtu, MSG_TRUNC, (struct sockaddr *) &from, &from_len);
 
 			if (errno == EINTR)
 				break;
 
-			pcap_packet_header_set(&pkt_vec->pkt_io_vec[a * 2], read);
+			gettimeofday(&now, NULL);
+			pcap_packet_header_set(pkt_ctx, &now);
+			packet_vector_set(pkt_vec, pkt_ctx);
 
 			//info("pkt %zu/%zu len %zu at %i.%i s\n", a, pkt_vec->pkt_nr, read, pkt_ctx->pkt_hdr.ts.tv_sec, pkt_ctx->pkt_hdr.ts.tv_usec);
-
-			pkt_vec->pkt_io_vec[(a * 2) + 1].iov_len = read;
-
-			pkt_vec->used_pkt_io_vec += 2;
-
 			SLIST_FOREACH(job, &nic_ctx->generic.processing_job_list.head, entry)
 			{
 				/* TODO think about return values handling */
 				job->job(&nic_ctx->generic);
 			}
 		}
-
-		packet_vector_reset(pkt_vec);
 	}
 
 	pthread_exit(NULL);

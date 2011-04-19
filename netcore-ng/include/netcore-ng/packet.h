@@ -33,9 +33,10 @@
 
 struct packet_ctx
 {
-	struct pcap_sf_pkthdr	pkt_hdr;
+	struct pcap_sf_pkthdr	pcap_hdr;
 	size_t			mtu;
-	uint8_t *		pkt_buf;
+	size_t			len;
+	uint8_t *		buf;
 	/* packet decapsulation info here ? */
 };
 
@@ -56,5 +57,6 @@ int packet_vector_is_full(const struct packet_vector * const pkt_vec);
 
 struct packet_ctx * packet_vector_packet_context_get(const struct packet_vector * const pkt_vec);
 int packet_vector_next(struct packet_vector * pkt_vec);
+void packet_vector_set(struct packet_vector * pkt_vec, struct packet_ctx * pkt_ctx);
 
 #endif				/* __PACKET_H__ */

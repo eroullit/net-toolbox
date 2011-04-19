@@ -112,7 +112,7 @@ int pcap_is_valid(const int fd);
 //size_t pcap_read(const int fd, struct packet_ctx * pkt_ctx);
 int pcap_file_header_write(const int fd, const int linktype, const int thiszone, const int snaplen);
 //ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx);
-void pcap_packet_header_set(struct iovec * pcap_hdr_vec, const size_t len);
+void pcap_packet_header_set(struct packet_ctx * pkt_ctx, const struct timeval * ts);
 ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec);
 void pcap_destroy(const int pcap_fd, const char * const pcap_path);
 int pcap_create(const char * const pcap_path, const enum pcap_linktype linktype);

@@ -9,7 +9,7 @@ void packet_context_destroy(struct packet_ctx * pkt_ctx)
 {
 	assert(pkt_ctx);
 
-	free(pkt_ctx->pkt_buf);
+	free(pkt_ctx->buf);
 	memset(pkt_ctx, 0, sizeof(*pkt_ctx));
 }
 
@@ -20,12 +20,12 @@ int packet_context_create(struct packet_ctx * pkt_ctx, const size_t mtu)
 
 	memset(pkt_ctx, 0, sizeof(*pkt_ctx));
 
-	if ((pkt_ctx->pkt_buf = malloc(sizeof(*pkt_ctx->pkt_buf) * mtu)) == NULL)
+	if ((pkt_ctx->buf = malloc(sizeof(*pkt_ctx->buf) * mtu)) == NULL)
 	{
 		return (ENOMEM);
 	}
 
-	memset(pkt_ctx->pkt_buf, 0, sizeof(*pkt_ctx->pkt_buf) * mtu);
+	memset(pkt_ctx->buf, 0, sizeof(*pkt_ctx->buf) * mtu);
 	pkt_ctx->mtu = mtu;
 
 	return (0);
@@ -88,13 +88,13 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t total_pkt_
 	{
 		if (a % 2 == 0)
 		{
-			pkt_vec->pkt_io_vec[a].iov_base = &pkt_vec->pkt[setup_pkt].pkt_hdr;
+			pkt_vec->pkt_io_vec[a].iov_base = &pkt_vec->pkt[setup_pkt].pcap_hdr;
 			/* The ring routine must set the valid PCAP packet header in the IO vector */
 			pkt_vec->pkt_io_vec[a].iov_len = 0;
 		}
 		else
 		{
-			pkt_vec->pkt_io_vec[a].iov_base = pkt_vec->pkt[setup_pkt].pkt_buf;
+			pkt_vec->pkt_io_vec[a].iov_base = pkt_vec->pkt[setup_pkt].buf;
 			/* The ring routine must set the valid packet length in the IO vector */
 			pkt_vec->pkt_io_vec[a].iov_len = 0;
 
@@ -147,4 +147,13 @@ int packet_vector_next(struct packet_vector * pkt_vec)
 	pkt_vec->used_pkt_io_vec += 2;
 
 	return (0);
+}
+
+void packet_vector_set(struct packet_vector * pkt_vec, struct packet_ctx * pkt_ctx)
+{
+	assert(pkt_vec);
+	assert(pkt_ctx);
+
+	pkt_vec->pkt_io_vec[pkt_vec->used_pkt_io_vec].iov_len = sizeof(pkt_ctx->pcap_hdr);
+	pkt_vec->pkt_io_vec[pkt_vec->used_pkt_io_vec + 1].iov_len = pkt_ctx->len;
 }
