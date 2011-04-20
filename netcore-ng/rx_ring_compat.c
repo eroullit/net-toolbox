@@ -106,6 +106,9 @@ void * rx_thread_compat_listen(void * arg)
 		{
 			pkt_ctx = packet_vector_packet_context_get(pkt_vec);
 
+			if (!pkt_ctx)
+				break;
+
 			pkt_ctx->len = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->buf, pkt_ctx->mtu, MSG_TRUNC, (struct sockaddr *) &from, &from_len);
 
 			if (errno == EINTR)
