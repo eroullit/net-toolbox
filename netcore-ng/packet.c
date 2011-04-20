@@ -112,13 +112,7 @@ error:
 
 void packet_vector_reset(struct packet_vector * pkt_vec)
 {
-	size_t a;
-	
-	/* Only the length need to be reset */
-	for (a = 0; a < pkt_vec->total_pkt_io_vec; a++)
-	{
-		pkt_vec->pkt_io_vec[a].iov_len = 0;
-	}
+	memset(pkt_vec->pkt_io_vec, 0, sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->total_pkt_io_vec);
 	
 	pkt_vec->used_pkt_io_vec = 0;
 	pkt_vec->used_pkt_nr = 0;
@@ -154,6 +148,8 @@ void packet_vector_set(struct packet_vector * pkt_vec, struct packet_ctx * pkt_c
 	assert(pkt_vec);
 	assert(pkt_ctx);
 
+	pkt_vec->pkt_io_vec[pkt_vec->used_pkt_io_vec].iov_base = &pkt_ctx->pcap_hdr;
 	pkt_vec->pkt_io_vec[pkt_vec->used_pkt_io_vec].iov_len = sizeof(pkt_ctx->pcap_hdr);
+	pkt_vec->pkt_io_vec[pkt_vec->used_pkt_io_vec + 1].iov_base = pkt_ctx->buf;
 	pkt_vec->pkt_io_vec[pkt_vec->used_pkt_io_vec + 1].iov_len = pkt_ctx->len;
 }
