@@ -127,7 +127,7 @@ void packet_vector_reset(struct packet_vector * pkt_vec)
 int packet_vector_is_full(const struct packet_vector * const pkt_vec)
 {
 	assert(pkt_vec);
-	return (pkt_vec->used_pkt_nr == pkt_vec->total_pkt_nr);
+	return (pkt_vec->used_pkt_nr >= pkt_vec->total_pkt_nr);
 }
 
 struct packet_ctx * packet_vector_packet_context_get(const struct packet_vector * const pkt_vec)
