@@ -102,7 +102,7 @@ void * rx_thread_compat_listen(void * arg)
 
 	for(;;)
 	{
-		for(packet_vector_reset(pkt_vec); packet_vector_is_full(pkt_vec); packet_vector_next(pkt_vec))
+		for(packet_vector_reset(pkt_vec); !packet_vector_is_full(pkt_vec); packet_vector_next(pkt_vec))
 		{
 			pkt_ctx = packet_vector_packet_context_get(pkt_vec);
 
