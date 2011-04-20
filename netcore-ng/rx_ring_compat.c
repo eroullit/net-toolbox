@@ -125,6 +125,12 @@ void * rx_thread_compat_listen(void * arg)
 				job->job(&nic_ctx->generic);
 			}
 		}
+
+		SLIST_FOREACH(job, &nic_ctx->generic.cleanup_job_list.head, entry)
+		{
+			/* TODO think about return values handling */
+			job->job(&nic_ctx->generic);
+		}
 	}
 
 	pthread_exit(NULL);
