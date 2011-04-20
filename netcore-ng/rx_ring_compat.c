@@ -133,7 +133,6 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 
 	assert(nic_ctx);
 	
-	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
 	job_list_cleanup(&nic_ctx->generic.processing_job_list);
 
 	SLIST_FOREACH(jobp, &nic_ctx->generic.cleanup_job_list.head, entry)
@@ -142,6 +141,8 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 	}
 	
 	job_list_cleanup(&nic_ctx->generic.cleanup_job_list);
+
+	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
 
 	if (nic_ctx->generic.bpf.filter)
 	{
