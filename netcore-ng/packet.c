@@ -20,12 +20,11 @@ int packet_context_create(struct packet_ctx * pkt_ctx, const size_t mtu)
 
 	memset(pkt_ctx, 0, sizeof(*pkt_ctx));
 
-	if ((pkt_ctx->buf = malloc(sizeof(*pkt_ctx->buf) * mtu)) == NULL)
+	if ((pkt_ctx->buf = calloc(mtu, sizeof(*pkt_ctx->buf))) == NULL)
 	{
 		return (ENOMEM);
 	}
 
-	memset(pkt_ctx->buf, 0, sizeof(*pkt_ctx->buf) * mtu);
 	pkt_ctx->mtu = mtu;
 
 	return (0);
@@ -63,8 +62,8 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t total_pkt_
 	pkt_vec->total_pkt_io_vec = total_pkt_nr * 2;
 	pkt_vec->total_pkt_nr = total_pkt_nr;
 
-	pkt_vec->pkt = malloc(sizeof(*pkt_vec->pkt) * total_pkt_nr);
-	pkt_vec->pkt_io_vec = malloc(sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->total_pkt_io_vec);
+	pkt_vec->pkt = calloc(total_pkt_nr, sizeof(*pkt_vec->pkt));
+	pkt_vec->pkt_io_vec = calloc(pkt_vec->total_pkt_io_vec, sizeof(*pkt_vec->pkt_io_vec));
 
 	if (pkt_vec->pkt == NULL || pkt_vec->pkt_io_vec == NULL)
 	{
@@ -72,9 +71,6 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t total_pkt_
 		goto error;
 	}
 
-	memset(pkt_vec->pkt, 0, sizeof(*pkt_vec->pkt) * pkt_vec->total_pkt_nr);
-	memset(pkt_vec->pkt_io_vec, 0, sizeof(*pkt_vec->pkt_io_vec) * pkt_vec->total_pkt_io_vec);
-	
 	for (a = 0; a < pkt_vec->total_pkt_nr; a++)
 	{
 		if ((rc = packet_context_create(&pkt_vec->pkt[a], mtu)) != 0)
