@@ -52,7 +52,6 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t total_pkt_
 {
 	size_t a;
 	int rc = 0;
-	size_t setup_pkt;
 
 	assert(pkt_vec);
 	assert(total_pkt_nr);
@@ -81,25 +80,6 @@ int packet_vector_create(struct packet_vector * pkt_vec, const size_t total_pkt_
 		if ((rc = packet_context_create(&pkt_vec->pkt[a], mtu)) != 0)
 		{
 			goto error;
-		}
-	}
-
-	for (a = 0, setup_pkt = 0; a < pkt_vec->total_pkt_io_vec; a++)
-	{
-		if (a % 2 == 0)
-		{
-			pkt_vec->pkt_io_vec[a].iov_base = &pkt_vec->pkt[setup_pkt].pcap_hdr;
-			/* The ring routine must set the valid PCAP packet header in the IO vector */
-			pkt_vec->pkt_io_vec[a].iov_len = 0;
-		}
-		else
-		{
-			pkt_vec->pkt_io_vec[a].iov_base = pkt_vec->pkt[setup_pkt].buf;
-			/* The ring routine must set the valid packet length in the IO vector */
-			pkt_vec->pkt_io_vec[a].iov_len = 0;
-
-			/* At this point, the packet buffer has its PCAP header, so setup the next one*/
-			setup_pkt++;
 		}
 	}
 
