@@ -109,7 +109,7 @@ void * rx_thread_compat_listen(void * arg)
 			if (!pkt_ctx)
 				break;
 
-			pkt_ctx->len = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->buf, pkt_ctx->mtu, MSG_TRUNC, (struct sockaddr *) &from, &from_len);
+			pkt_ctx->len = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->buf, pkt_ctx->mtu, 0, (struct sockaddr *) &from, &from_len);
 
 			if (errno == EINTR)
 				break;
