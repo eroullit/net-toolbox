@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <errno.h>
 
-#include <netcore-ng/packet.h>
+#include <netcore-ng/packet_vector.h>
 
 void packet_context_destroy(struct packet_ctx * pkt_ctx)
 {
