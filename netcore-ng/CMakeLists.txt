@@ -14,6 +14,7 @@ ADD_LIBRARY(netcore-ng 	init.c
 			thread.c 
 			xmalloc.c 
 			packet_mmap.c 
+			packet_compat.c 
 			packet_vector.c 
 			netdev.c 
 			pcap.c 

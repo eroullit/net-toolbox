@@ -157,3 +157,49 @@ out:
 	packet_mmap_ctx_destroy(pkt_mmap_ctx);
 	return (rc);
 }
+
+unsigned long packet_mmap_ctx_status_get(struct packet_mmap_ctx * pkt_mmap_ctx)
+{
+	struct packet_mmap_header * mmap_hdr;
+
+	assert(pkt_mmap_ctx);
+
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+
+	return (mmap_hdr->tp_h.tp_status);
+}
+
+void packet_mmap_ctx_status_set(struct packet_mmap_ctx * pkt_mmap_ctx, const int status)
+{
+	struct packet_mmap_header * mmap_hdr;
+
+	assert(pkt_mmap_ctx);
+
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+
+	mmap_hdr->tp_h.tp_status = status;
+}
+
+int packet_mmap_ctx_is_full(const struct packet_mmap_ctx * pkt_mmap_ctx)
+{
+	assert(pkt_mmap_ctx);
+
+	return (pkt_mmap_ctx->used >= pkt_mmap_ctx->layout.tp_frame_size);
+}
+
+int packet_mmap_ctx_next(struct packet_mmap_ctx * pkt_mmap_ctx)
+{
+	if (packet_mmap_ctx_is_full(pkt_mmap_ctx))
+		return (EAGAIN);
+
+	pkt_mmap_ctx->used++;
+
+	return (0);
+}
+
+void packet_mmap_ctx_reset(struct packet_mmap_ctx * pkt_mmap_ctx)
+{
+	assert(pkt_mmap_ctx);
+
+	pkt_mmap_ctx->used = 0;
+}

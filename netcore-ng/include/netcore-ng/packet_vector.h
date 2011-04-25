@@ -26,37 +26,23 @@
 #define __PACKET_H__
 
 #include <stdint.h>
-#include <sys/time.h>
 #include <sys/uio.h>
 
 #include <netcore-ng/pcap.h>
 
-struct packet_ctx
-{
-	struct pcap_sf_pkthdr	pcap_hdr;
-	size_t			mtu;
-	size_t			len;
-	uint8_t *		buf;
-	/* packet decapsulation info here ? */
-};
-
 struct packet_vector
 {
-	size_t			used_pkt_io_vec;
-	size_t			total_pkt_io_vec;
-	size_t			total_pkt_nr;
-	size_t			used_pkt_nr;
+	size_t			used;
+	size_t			total;
+	struct pcap_sf_pkthdr *	pkt_pcap_hdr;
 	struct iovec *		pkt_io_vec;
-	struct packet_ctx *	pkt;
 };
 
 void packet_vector_reset(struct packet_vector * pkt_vec);
 void packet_vector_destroy(struct packet_vector * pkt_vec);
-int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr, const size_t mtu);
+int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr);
 int packet_vector_is_full(const struct packet_vector * const pkt_vec);
 
-struct packet_ctx * packet_vector_packet_context_get(const struct packet_vector * const pkt_vec);
 int packet_vector_next(struct packet_vector * pkt_vec);
-void packet_vector_set(struct packet_vector * pkt_vec, struct packet_ctx * pkt_ctx);
-
+void packet_vector_set(struct packet_vector * pkt_vec, uint8_t * pkt, const size_t len, const struct timeval * ts);
 #endif				/* __PACKET_H__ */

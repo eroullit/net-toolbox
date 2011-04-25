@@ -17,6 +17,7 @@ struct packet_mmap_ctx
 	int 				sock;
 	int 				ifindex;
 	struct tpacket_req		layout;
+	size_t 				used;
 	struct iovec *			mmap_vec;
 	uint8_t *			mmap_buf;
 };

@@ -82,7 +82,8 @@ void * rx_thread_compat_listen(void * arg)
 	struct netsniff_ng_rx_thread_compat_context * thread_ctx = (struct netsniff_ng_rx_thread_compat_context *) arg;
 	struct netsniff_ng_rx_nic_compat_context * nic_ctx = NULL;
 	struct packet_vector * pkt_vec = NULL;
-	struct packet_ctx * pkt_ctx = NULL;
+	struct packet_compat_ctx * pkt_ctx = NULL;
+	struct packet * pkt = NULL;
 	struct job * job = NULL;
 	struct timeval		now;
 	struct sockaddr_ll      from;
@@ -96,27 +97,28 @@ void * rx_thread_compat_listen(void * arg)
 	memset(&from, 0, sizeof(from));
 
 	nic_ctx = &thread_ctx->nic_ctx;
+	pkt_ctx = &nic_ctx->pkt_ctx;
 	pkt_vec = &nic_ctx->generic.pkt_vec;
 
 	info("--- Listening (Compatibility mode)---\n\n");
 
 	for(;;)
 	{
-		for(packet_vector_reset(pkt_vec); !packet_vector_is_full(pkt_vec); packet_vector_next(pkt_vec))
+		for(packet_vector_reset(pkt_vec), packet_compat_ctx_reset(pkt_ctx); 
+				!packet_vector_is_full(pkt_vec) && !packet_compat_ctx_is_full(pkt_ctx); 
+				packet_vector_next(pkt_vec), packet_compat_ctx_next(pkt_ctx))
 		{
-			pkt_ctx = packet_vector_packet_context_get(pkt_vec);
+			pkt = packet_compat_ctx_get(pkt_ctx);
 
-			if (!pkt_ctx)
-				break;
+			pkt->len = recvfrom(nic_ctx->generic.dev_fd, pkt->buf, pkt->mtu, 0, (struct sockaddr *) &from, &from_len);
 
-			pkt_ctx->len = recvfrom(nic_ctx->generic.dev_fd, pkt_ctx->buf, pkt_ctx->mtu, 0, (struct sockaddr *) &from, &from_len);
+			info("Got %zu/%zu bytes\n", pkt->len, pkt->mtu);
 
 			if (errno == EINTR)
 				break;
 
 			gettimeofday(&now, NULL);
-			pcap_packet_header_set(pkt_ctx, &now);
-			packet_vector_set(pkt_vec, pkt_ctx);
+			packet_vector_set(pkt_vec, pkt->buf, pkt->len, &now);
 
 			//info("pkt %zu/%zu len %zu at %i.%i s\n", a, pkt_vec->pkt_nr, read, pkt_ctx->pkt_hdr.ts.tv_sec, pkt_ctx->pkt_hdr.ts.tv_usec);
 			SLIST_FOREACH(job, &nic_ctx->generic.processing_job_list.head, entry)
@@ -152,6 +154,7 @@ void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ct
 	job_list_cleanup(&nic_ctx->generic.cleanup_job_list);
 
 	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
+	packet_compat_ctx_destroy(&nic_ctx->pkt_ctx);
 
 	if (nic_ctx->generic.bpf.filter)
 	{
@@ -218,7 +221,13 @@ int rx_nic_compat_ctx_init(struct netsniff_ng_rx_thread_compat_context * thread_
 		goto error;
 	}
 
-	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, UIO_MAXIOV, get_mtu(nic_ctx->generic.dev_name))) != 0)
+	if ((rc = packet_compat_ctx_create(&nic_ctx->pkt_ctx, 128, get_mtu(nic_ctx->generic.dev_name), ethdev_to_ifindex(nic_ctx->generic.dev_name), nic_ctx->generic.dev_fd)))
+	{
+		warn("Could not create packet context\n");
+		goto error;
+	}
+
+	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, 128)) != 0)
 	{
 		warn("Could not create packet vector\n");
 		goto error;

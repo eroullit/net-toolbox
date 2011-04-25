@@ -29,13 +29,13 @@
 #include <netcore-ng/bpf.h>
 #include <netcore-ng/thread.h>
 #include <netcore-ng/generic.h>
-
-#define RX_RING_COMPAT_DEFAULT_PKT_SIZE	16384
+#include <netcore-ng/packet_compat.h>
 
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_compat_context
 {
 	struct generic_nic_context		generic;
+	struct packet_compat_ctx		pkt_ctx;
 };
 
 struct netsniff_ng_rx_thread_compat_context

@@ -273,19 +273,15 @@ ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
 }
 #endif
 
-void pcap_packet_header_set(struct packet_ctx * pkt_ctx, const struct timeval * ts)
+void pcap_packet_header_set(struct pcap_sf_pkthdr * pcap_pkt_hdr, const struct timeval * ts, const size_t len)
 {
-	struct pcap_sf_pkthdr * hdr;
-
-	assert(pkt_ctx);
+	assert(pcap_pkt_hdr);
 	assert(ts);
 
-	hdr = &pkt_ctx->pcap_hdr;
-
-	hdr->ts.tv_sec = ts->tv_sec;
-	hdr->ts.tv_usec = ts->tv_usec;
-	hdr->len = pkt_ctx->len;
-	hdr->caplen = pkt_ctx->len;
+	pcap_pkt_hdr->ts.tv_sec = ts->tv_sec;
+	pcap_pkt_hdr->ts.tv_usec = ts->tv_usec;
+	pcap_pkt_hdr->len = len;
+	pcap_pkt_hdr->caplen = len;
 }
 
 ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)
@@ -296,8 +292,8 @@ ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)
 	assert(fd > 0);
 	assert(pkt_vec);
 
-	iov_chunks = pkt_vec->used_pkt_io_vec / UIO_MAXIOV;
-	iov_rest = pkt_vec->used_pkt_io_vec - (iov_chunks * UIO_MAXIOV);
+	iov_chunks = pkt_vec->used / UIO_MAXIOV;
+	iov_rest = pkt_vec->used - (iov_chunks * UIO_MAXIOV);
 
 	info("There are %zu chucks of size %i and rest %zu\n", iov_chunks, UIO_MAXIOV, iov_rest);
 
@@ -307,7 +303,7 @@ ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)
 	if (iov_rest)
 		written += writev(fd, &pkt_vec->pkt_io_vec[iov_chunks * UIO_MAXIOV], iov_rest);
 	
-	info("writev() %zu vectors %zi bytes\n", pkt_vec->used_pkt_io_vec, written);
+	info("writev() %zu vectors %zi bytes\n", pkt_vec->used, written);
 
 	return (written);
 }
