@@ -112,8 +112,6 @@ void * rx_thread_compat_listen(void * arg)
 
 			pkt->len = recvfrom(nic_ctx->generic.dev_fd, pkt->buf, pkt->mtu, 0, (struct sockaddr *) &from, &from_len);
 
-			info("Got %zu/%zu bytes\n", pkt->len, pkt->mtu);
-
 			if (errno == EINTR)
 				break;
 
