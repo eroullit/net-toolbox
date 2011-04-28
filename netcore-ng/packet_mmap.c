@@ -158,6 +158,28 @@ out:
 	return (rc);
 }
 
+uint8_t * packet_mmap_ctx_payload_get(struct packet_mmap_ctx * pkt_mmap_ctx)
+{
+	struct packet_mmap_header * mmap_hdr;
+
+	assert(pkt_mmap_ctx);
+
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+
+	return ((uint8_t *) mmap_hdr + mmap_hdr->tp_h.tp_mac);
+}
+
+size_t packet_mmap_ctx_payload_len_get(struct packet_mmap_ctx * pkt_mmap_ctx)
+{
+	struct packet_mmap_header * mmap_hdr;
+
+	assert(pkt_mmap_ctx);
+
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+
+	return (mmap_hdr->tp_h.tp_len);
+}
+
 unsigned long packet_mmap_ctx_status_get(struct packet_mmap_ctx * pkt_mmap_ctx)
 {
 	struct packet_mmap_header * mmap_hdr;

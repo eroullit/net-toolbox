@@ -64,110 +64,15 @@
 # define POLLWRNORM      0x0100
 #endif
 
-static int rx_ring_register(int sock, struct tpacket_req * req)
-{
-	/* Loop to reduce requested ring buffer is it cannot be allocated */
-	/* Break when not supported */
-
-	if (setsockopt(sock, SOL_PACKET, PACKET_RX_RING, (void *)(req), sizeof(*req)) < 0) {
-		err("setsockopt: creation of rx_ring failed");
-		return (EAGAIN);
-	}
-
-	return (0);
-}
-
-static void rx_ring_unregister(int sock)
-{
-	struct tpacket_req req;
-	memset(&req, 0, sizeof(req));
-	setsockopt(sock, SOL_PACKET, PACKET_RX_RING, (void *)&req, sizeof(req));
-}
-
-static int rx_ring_mmap(int sock, struct ring_buff * rb)
-{
-	assert(rb);
-
-	rb->buffer = mmap(0, rb->size, PROT_READ | PROT_WRITE, MAP_SHARED, sock, 0);
-	if (rb->buffer == MAP_FAILED) {
-		err("mmap: cannot mmap the rx_ring");
-		return (EINVAL);
-	}
-
-	return (0);
-}
-
-static void rx_ring_munmap(struct ring_buff * rb)
-{
-	assert(rb);
-
-	if (rb->buffer)
-	{
-		munmap(rb->buffer, rb->size);
-		rb->buffer = NULL;
-		rb->size = 0;
-	}
-}
-
-static int rx_ring_bind(int sock, int ifindex)
-{
-	struct sockaddr_ll sll;
-
-	memset(&sll, 0, sizeof(sll));
-
-	sll.sll_family = AF_PACKET;
-	sll.sll_protocol = htons(ETH_P_ALL);
-	sll.sll_ifindex = ifindex;
-
-	if (bind(sock, (struct sockaddr *)&sll, sizeof(sll)) < 0) {
-		err("bind: cannot bind device");
-		return (EINVAL);
-	}
-
-	/* Check error and if dev is ready */
-
-	return (0);
-}
-
-static inline int frame_buffer_create(struct ring_buff * rb, struct tpacket_req req)
-{
-	uint32_t i = 0;
-
-	assert(rb);
-
-	rb->frames = malloc(req.tp_frame_nr * sizeof(*rb->frames));
-	if (!rb->frames) {
-		err("No mem left");
-		return (ENOMEM);
-	}
-
-	memset(rb->frames, 0, req.tp_frame_nr * sizeof(*rb->frames));
-
-	for (i = 0; i < req.tp_frame_nr; ++i) {
-		rb->frames[i].iov_base = (uint8_t *) ((long)rb->buffer) + (i * req.tp_frame_size);
-		rb->frames[i].iov_len = req.tp_frame_size;
-	}
-
-	return (0);
-}
-
-static inline void frame_buffer_destroy(struct ring_buff * rb)
-{
-	assert(rb);
-
-	free(rb->frames);
-}
-
 static void * rx_thread_listen(void * arg)
 {
 	struct job * job = NULL;
 	struct pollfd pfd;
 	int rc;
-	struct frame_map * fm = NULL;
 	struct netsniff_ng_rx_thread_context * thread_ctx = (struct netsniff_ng_rx_thread_context *) arg;
 	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
-	struct packet_ctx * pkt_ctx = NULL;
-	struct ring_buff * rb = NULL;
+	struct packet_mmap_ctx pkt_mmap_ctx = NULL;
+	struct packet_vector_ctx * pkt_vec = NULL;
 
 	if (thread_ctx == NULL)
 	{
@@ -177,8 +82,7 @@ static void * rx_thread_listen(void * arg)
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	
 	nic_ctx = &thread_ctx->nic_ctx;
-	pkt_ctx = &nic_ctx->generic.pkt_ctx;
-	rb = &nic_ctx->nic_rb;
+	pkt_vec = &nic_ctx->generic.pkt_vec;
 	
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN|POLLRDNORM|POLLERR;
@@ -186,6 +90,28 @@ static void * rx_thread_listen(void * arg)
 
 	info("--- Listening ---\n\n");
 
+	for (packet_mmap_ctx_reset(pkt_mmap_ctx), packet_vector_reset(pkt_vec);
+			!packet_mmap_ctx_is_full(pkt_mmap_ctx) && !packet_vector_is_full(pkt_vec);
+			packet_mmap_ctx_next(pkt_mmap_ctx), packet_vector_next(pkt_vec))
+	{
+		if ((packet_mmap_ctx_status_get(pkt_mmap_ctx) & TP_STATUS_KERNEL) == TP_STATUS_KERNEL)
+		{
+			/* Force sleep here when the user wants */
+			if ((rc = poll(&pfd, 1, -1)) < 0)
+			{
+				err("polling error %i", rc);
+				continue;
+			}
+		}
+
+		/* TODO Add support for TP_STATUS_COPY */
+		if ((packet_mmap_ctx_status_get(fm) & TP_STATUS_USER) == TP_STATUS_USER)
+		{
+			packet_vector_set(pkt_vec, packet_mmap_ctx_payload_get(pkt_mmap_ctx), packet_mmap_ctx_payload_get(pkt_mmap_ctx));
+		}
+	}
+
+#if 0
 	for(;;)
 	{
 		while (rb->cur_frame < rb->layout.tp_frame_nr)
@@ -222,86 +148,16 @@ static void * rx_thread_listen(void * arg)
 			rb->cur_frame = (rb->cur_frame + 1) % rb->layout.tp_frame_nr;
 		}
 	}
-
+#endif
 	pthread_exit(NULL);
 }
-
-
-static int rx_ring_create(int sock, struct ring_buff * rb, const char *ifname)
-{
-	struct tpacket_req req;
-
-	assert(rb);
-	assert(ifname);
-
-	memset(&req, 0, sizeof(req));
-	/* max: getpagesize() << 11 for i386 */
-	req.tp_block_size = getpagesize() << 2;
-
-	/* tp_frame_size should be carefully chosen to fit closely to snapshot len */
-	req.tp_frame_size = TPACKET_ALIGNMENT << 7;
-
-	req.tp_block_nr = ((1024 * 1024) / req.tp_block_size);
-	req.tp_frame_nr = req.tp_block_size / req.tp_frame_size * req.tp_block_nr;
-
-	if (rx_ring_register(sock, &req))
-	{
-		err("Cannot register RX ring buffer for %s", ifname);
-		return (EAGAIN);
-	}
-
-	rb->size = req.tp_block_size * req.tp_block_nr;
-
-	if (rx_ring_mmap(sock, rb))
-	{
-		rx_ring_unregister(sock);
-		err("Cannot prepare RX ring buffer for interface %s for userspace", ifname);
-		return (EAGAIN);
-	}
-
-	if (frame_buffer_create(rb, req))
-	{
-		rx_ring_munmap(rb);
-		rx_ring_unregister(sock);
-		err("Cannot allocate RX ring buffer frame buffer for %s", ifname);
-		return (ENOMEM);
-	}
-
-	if (rx_ring_bind(sock, ethdev_to_ifindex(ifname)))
-	{
-		frame_buffer_destroy(rb);
-		rx_ring_munmap(rb);
-		rx_ring_unregister(sock);
-		err("Cannot bind %s to RX ring buffer frame buffer", ifname);
-		return (EAGAIN);
-	}
-
-	rb->layout = req;
-
-	/* XXX Make it human readable */
-	info("%.2f MB allocated for receive ring \n", 1.f * rb->size / (1024 * 1024));
-	info(" [ %d blocks, %d frames ] \n", req.tp_block_nr, req.tp_frame_nr);
-	info(" [ %d frames per block ]\n", req.tp_block_size / req.tp_frame_size);
-	info(" [ framesize: %d bytes, blocksize: %d bytes ]\n\n", req.tp_frame_size, req.tp_block_size);
-
-	return (0);
-}
-
-static void rx_ring_destroy(int sock, struct ring_buff * rb)
-{
-	assert(rb);
-
-	rx_ring_munmap(rb);
-	rx_ring_unregister(sock);
-	frame_buffer_destroy(rb);
-}
-
 
 static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 {
 	assert(nic_ctx);
 
-	rx_ring_destroy(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb);
+	packet_mmap_ctx_destroy(&nic_ctx->pkt_mmap_ctx);
+	packet_vector_ctx_destroy(&nic_ctx->generic.pkt_vec);
 	job_list_cleanup(&nic_ctx->generic.job_list);
 
 	/* 
@@ -321,6 +177,7 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 
 static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, const char * dev_name, const char * bpf_path, const char * pcap_path)
 {
+	struct tpacket_req layout;
 	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
 	int dev_arp_type;
 	int rc = 0;
@@ -329,6 +186,14 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 	assert(dev_name);
 
 	nic_ctx = &thread_ctx->nic_ctx;
+	
+	memset(&layout, 0, sizeof(layout));
+
+	/* tp_frame_size should be carefully chosen to fit closely to snapshot len */
+	layout.tp_frame_size = TPACKET_ALIGNMENT << 7;
+	layout.tp_block_size = getpagesize() << 2;
+	layout.tp_block_nr = ((1024 * 1024) / layout.tp_block_size); /* 1MB mmap */
+	layout.tp_frame_nr = layout.tp_block_size / layout.tp_frame_size * layout.tp_block_nr;
 
 	if (!is_device_ready(dev_name))
 	{
@@ -389,7 +254,7 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 			goto error;
 		}
 	}
-
+#if 0
 	if ((rc = ethernet_dissector_register(&nic_ctx->generic.job_list)) != 0)
 	{
 		warn("Could not register ethernet dissector job\n");
@@ -399,6 +264,19 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 	if ((rc = rx_ring_create(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb, dev_name)) != 0)
 	{
 		/* If something goes wrong here, the create PCAP must be deleted */
+		pcap_destroy(nic_ctx->generic.pcap_fd, pcap_path);
+		goto error;
+	}
+
+#endif
+	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, layout.tp_frame_nr) != 0))
+	{
+		pcap_destroy(nic_ctx->generic.pcap_fd, pcap_path);
+		goto error;
+	}
+
+	if ((rc = packet_mmap_ctx_create(&nic_ctx->pkt_mmap_ctx, &layout, ethdev_to_ifindex(dev_name), nic_ctx->generic.dev_fd, PACKET_MMAP_RX)) != 0)
+	{
 		pcap_destroy(nic_ctx->generic.pcap_fd, pcap_path);
 		goto error;
 	}

@@ -34,7 +34,7 @@
 struct netsniff_ng_rx_nic_context
 {
 	struct generic_nic_context		generic;
-	struct ring_buff			nic_rb;
+	struct packet_mmap_ctx 			pkt_mmap_ctx;
 };
 
 struct netsniff_ng_rx_thread_context
