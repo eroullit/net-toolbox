@@ -66,13 +66,14 @@
 
 static void * rx_thread_listen(void * arg)
 {
-	struct job * job = NULL;
+	struct job * job;
 	struct pollfd pfd;
 	int rc;
+	struct timeval pkt_ts;
 	struct netsniff_ng_rx_thread_context * thread_ctx = (struct netsniff_ng_rx_thread_context *) arg;
 	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
-	struct packet_mmap_ctx pkt_mmap_ctx = NULL;
-	struct packet_vector_ctx * pkt_vec = NULL;
+	struct packet_mmap_ctx * pkt_mmap_ctx = NULL;
+	struct packet_vector * pkt_vec = NULL;
 
 	if (thread_ctx == NULL)
 	{
@@ -82,6 +83,7 @@ static void * rx_thread_listen(void * arg)
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	
 	nic_ctx = &thread_ctx->nic_ctx;
+	pkt_mmap_ctx = &nic_ctx->pkt_mmap_ctx;
 	pkt_vec = &nic_ctx->generic.pkt_vec;
 	
 	memset(&pfd, 0, sizeof(pfd));
@@ -90,24 +92,35 @@ static void * rx_thread_listen(void * arg)
 
 	info("--- Listening ---\n\n");
 
-	for (packet_mmap_ctx_reset(pkt_mmap_ctx), packet_vector_reset(pkt_vec);
-			!packet_mmap_ctx_is_full(pkt_mmap_ctx) && !packet_vector_is_full(pkt_vec);
-			packet_mmap_ctx_next(pkt_mmap_ctx), packet_vector_next(pkt_vec))
+	for (;;)
 	{
-		if ((packet_mmap_ctx_status_get(pkt_mmap_ctx) & TP_STATUS_KERNEL) == TP_STATUS_KERNEL)
+		for (packet_mmap_ctx_reset(pkt_mmap_ctx), packet_vector_reset(pkt_vec);
+				!packet_mmap_ctx_is_full(pkt_mmap_ctx) && !packet_vector_is_full(pkt_vec);
+				packet_mmap_ctx_next(pkt_mmap_ctx), packet_vector_next(pkt_vec))
 		{
-			/* Force sleep here when the user wants */
-			if ((rc = poll(&pfd, 1, -1)) < 0)
+			if ((packet_mmap_ctx_status_get(pkt_mmap_ctx) & TP_STATUS_KERNEL) == TP_STATUS_KERNEL)
 			{
-				err("polling error %i", rc);
-				continue;
+				/* Force sleep here when the user wants */
+				if ((rc = poll(&pfd, 1, -1)) < 0)
+				{
+					err("polling error %i", rc);
+					continue;
+				}
+			}
+
+			/* TODO Add support for TP_STATUS_COPY */
+			if ((packet_mmap_ctx_status_get(pkt_mmap_ctx) & TP_STATUS_USER) == TP_STATUS_USER)
+			{
+				info("Packet event\n");
+				pkt_ts = packet_mmap_ctx_ts_get(pkt_mmap_ctx);
+				packet_vector_set(pkt_vec, packet_mmap_ctx_payload_get(pkt_mmap_ctx), packet_mmap_ctx_payload_len_get(pkt_mmap_ctx), &pkt_ts);
 			}
 		}
 
-		/* TODO Add support for TP_STATUS_COPY */
-		if ((packet_mmap_ctx_status_get(fm) & TP_STATUS_USER) == TP_STATUS_USER)
+		SLIST_FOREACH(job, &nic_ctx->generic.cleanup_job_list.head, entry)
 		{
-			packet_vector_set(pkt_vec, packet_mmap_ctx_payload_get(pkt_mmap_ctx), packet_mmap_ctx_payload_get(pkt_mmap_ctx));
+			/* TODO think about return values handling */
+			job->job(&nic_ctx->generic);
 		}
 	}
 
@@ -154,11 +167,21 @@ static void * rx_thread_listen(void * arg)
 
 static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 {
+	struct job * job;
+
 	assert(nic_ctx);
 
 	packet_mmap_ctx_destroy(&nic_ctx->pkt_mmap_ctx);
-	packet_vector_ctx_destroy(&nic_ctx->generic.pkt_vec);
-	job_list_cleanup(&nic_ctx->generic.job_list);
+	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
+	
+	SLIST_FOREACH(job, &nic_ctx->generic.cleanup_job_list.head, entry)
+	{
+		/* TODO think about return values handling */
+		job->job(&nic_ctx->generic);
+	}
+	
+	job_list_cleanup(&nic_ctx->generic.processing_job_list);
+	job_list_cleanup(&nic_ctx->generic.cleanup_job_list);
 
 	/* 
 	 * If there is a BPF filter loaded, then it
@@ -221,11 +244,13 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		goto error;
 	}
 
+#if 0
 	if ((rc = job_list_init(&nic_ctx->generic.job_list)) != 0)
 	{
 		warn("Could not create job list\n");
 		goto error;
 	}
+#endif
 
 	if (bpf_path)
 	{
@@ -247,8 +272,8 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 			rc = EINVAL;
 			goto error;
 		}
-
-		if ((rc = pcap_write_job_register(&nic_ctx->generic.job_list)) != 0)
+		
+		if ((rc = pcap_writev_job_register(&nic_ctx->generic.processing_job_list, &nic_ctx->generic.cleanup_job_list)) != 0)
 		{
 			warn("Could not register pcap write job\n");
 			goto error;

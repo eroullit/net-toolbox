@@ -158,6 +158,21 @@ out:
 	return (rc);
 }
 
+struct timeval packet_mmap_ctx_ts_get(struct packet_mmap_ctx * pkt_mmap_ctx)
+{
+	struct timeval ts;
+	struct packet_mmap_header * mmap_hdr;
+
+	assert(pkt_mmap_ctx);
+
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+
+	ts.tv_sec = mmap_hdr->tp_h.tp_sec;
+	ts.tv_usec = mmap_hdr->tp_h.tp_usec;
+
+	return (ts);
+}
+
 uint8_t * packet_mmap_ctx_payload_get(struct packet_mmap_ctx * pkt_mmap_ctx)
 {
 	struct packet_mmap_header * mmap_hdr;
@@ -221,7 +236,16 @@ int packet_mmap_ctx_next(struct packet_mmap_ctx * pkt_mmap_ctx)
 
 void packet_mmap_ctx_reset(struct packet_mmap_ctx * pkt_mmap_ctx)
 {
+	struct packet_mmap_header * mmap_hdr;
+	size_t a;
+
 	assert(pkt_mmap_ctx);
+
+	for (a = 0; a < pkt_mmap_ctx->layout.tp_frame_nr; a++)
+	{
+		mmap_hdr = pkt_mmap_ctx->mmap_vec[a].iov_base;
+		mmap_hdr->tp_h.tp_status = TP_STATUS_KERNEL;
+	}
 
 	pkt_mmap_ctx->used = 0;
 }

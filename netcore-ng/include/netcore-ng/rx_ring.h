@@ -29,6 +29,7 @@
 #include <netcore-ng/thread.h> 
 #include <netcore-ng/bpf.h> 
 #include <netcore-ng/generic.h> 
+#include <netcore-ng/packet_mmap.h> 
 
 /* a rx ring must only belong to one entity */
 struct netsniff_ng_rx_nic_context
