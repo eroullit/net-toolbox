@@ -244,13 +244,17 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		goto error;
 	}
 
-#if 0
-	if ((rc = job_list_init(&nic_ctx->generic.job_list)) != 0)
+	if ((rc = job_list_init(&nic_ctx->generic.processing_job_list)) != 0)
 	{
-		warn("Could not create job list\n");
+		warn("Could not create processing job list\n");
 		goto error;
 	}
-#endif
+
+		if ((rc = job_list_init(&nic_ctx->generic.cleanup_job_list)) != 0)
+	{
+		warn("Could not create cleanup job list\n");
+		goto error;
+	}
 
 	if (bpf_path)
 	{
