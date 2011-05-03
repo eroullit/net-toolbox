@@ -45,7 +45,7 @@ void start_single_rx_thread(struct system_data * sd)
 		struct netsniff_ng_rx_thread_context * 		rx;
 		//struct netsniff_ng_tx_thread_context * 		tx;
 		struct netsniff_ng_rx_thread_compat_context * 	rx_compat;
-	}thread_ctx;
+	} thread_ctx = { NULL };
 	
 	if (sd->cpu_set_str)
 	{
