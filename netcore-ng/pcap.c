@@ -245,7 +245,7 @@ ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
 	memset(&sf_hdr, 0, sizeof(sf_hdr));
 
 	sf_hdr.ts.tv_sec = pkt_ctx->pkt_ts.tv_sec;
-	sf_hdr.ts.tv_usec = pkt_ctx->pkt_ts.tv_sec;
+	sf_hdr.ts.tv_usec = pkt_ctx->pkt_ts.tv_usec;
 	sf_hdr.caplen = pkt_ctx->pkt_snaplen;
 	sf_hdr.len = pkt_ctx->pkt_snaplen;
 
