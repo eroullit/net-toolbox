@@ -171,14 +171,14 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 
 	assert(nic_ctx);
 
-	packet_mmap_ctx_destroy(&nic_ctx->pkt_mmap_ctx);
-	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
-	
-	SLIST_FOREACH(job, &nic_ctx->generic.cleanup_job_list.head, entry)
+        SLIST_FOREACH(job, &nic_ctx->generic.cleanup_job_list.head, entry)
 	{
 		/* TODO think about return values handling */
 		job->job(&nic_ctx->generic);
 	}
+
+	packet_mmap_ctx_destroy(&nic_ctx->pkt_mmap_ctx);
+	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
 	
 	job_list_cleanup(&nic_ctx->generic.processing_job_list);
 	job_list_cleanup(&nic_ctx->generic.cleanup_job_list);
