@@ -94,9 +94,9 @@ static void * rx_thread_listen(void * arg)
 
 	for (;;)
 	{
-		for (packet_mmap_ctx_reset(pkt_mmap_ctx), packet_vector_reset(pkt_vec);
-				!packet_mmap_ctx_is_full(pkt_mmap_ctx) && !packet_vector_is_full(pkt_vec);
-				packet_mmap_ctx_next(pkt_mmap_ctx), packet_vector_next(pkt_vec))
+		packet_vector_reset(pkt_vec);
+
+		for(packet_mmap_ctx_reset(pkt_mmap_ctx); !packet_mmap_ctx_end(pkt_mmap_ctx); packet_mmap_ctx_next(pkt_mmap_ctx))
 		{
 			if ((packet_mmap_ctx_status_get(pkt_mmap_ctx) & TP_STATUS_KERNEL) == TP_STATUS_KERNEL)
 			{
@@ -113,7 +113,9 @@ static void * rx_thread_listen(void * arg)
 			{
 				info("Packet event\n");
 				pkt_ts = packet_mmap_ctx_ts_get(pkt_mmap_ctx);
+				packet_mmap_ctx_set(pkt_mmap_ctx);
 				packet_vector_set(pkt_vec, packet_mmap_ctx_payload_get(pkt_mmap_ctx), packet_mmap_ctx_payload_len_get(pkt_mmap_ctx), &pkt_ts);
+				packet_vector_next(pkt_vec);
 			}
 		}
 

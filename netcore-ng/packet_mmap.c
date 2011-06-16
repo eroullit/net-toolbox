@@ -85,6 +85,10 @@ static int packet_mmap_ctx_vector_create(struct packet_mmap_ctx * pkt_mmap_ctx)
 	assert(pkt_mmap_ctx);
 	assert(pkt_mmap_ctx->mmap_buf);
 
+	/* XXX Limit tp_frame_nr to fit to bitmask size */
+	pkt_mmap_ctx->layout.tp_frame_nr = 64;
+
+
 	pkt_mmap_ctx->mmap_vec = calloc(pkt_mmap_ctx->layout.tp_frame_nr, sizeof(*pkt_mmap_ctx->mmap_vec));
 
 	if (!pkt_mmap_ctx->mmap_vec)
@@ -165,7 +169,7 @@ struct timeval packet_mmap_ctx_ts_get(struct packet_mmap_ctx * pkt_mmap_ctx)
 
 	assert(pkt_mmap_ctx);
 
-	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->current].iov_base;
 
 	ts.tv_sec = mmap_hdr->tp_h.tp_sec;
 	ts.tv_usec = mmap_hdr->tp_h.tp_usec;
@@ -179,7 +183,7 @@ uint8_t * packet_mmap_ctx_payload_get(struct packet_mmap_ctx * pkt_mmap_ctx)
 
 	assert(pkt_mmap_ctx);
 
-	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->current].iov_base;
 
 	return ((uint8_t *) mmap_hdr + mmap_hdr->tp_h.tp_mac);
 }
@@ -190,7 +194,7 @@ size_t packet_mmap_ctx_payload_len_get(struct packet_mmap_ctx * pkt_mmap_ctx)
 
 	assert(pkt_mmap_ctx);
 
-	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->current].iov_base;
 
 	return (mmap_hdr->tp_h.tp_len);
 }
@@ -201,7 +205,7 @@ unsigned long packet_mmap_ctx_status_get(struct packet_mmap_ctx * pkt_mmap_ctx)
 
 	assert(pkt_mmap_ctx);
 
-	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->current].iov_base;
 
 	return (mmap_hdr->tp_h.tp_status);
 }
@@ -212,26 +216,33 @@ void packet_mmap_ctx_status_set(struct packet_mmap_ctx * pkt_mmap_ctx, const int
 
 	assert(pkt_mmap_ctx);
 
-	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->used].iov_base;
+	mmap_hdr = pkt_mmap_ctx->mmap_vec[pkt_mmap_ctx->current].iov_base;
 
 	mmap_hdr->tp_h.tp_status = status;
 }
 
-int packet_mmap_ctx_is_full(const struct packet_mmap_ctx * pkt_mmap_ctx)
+int packet_mmap_ctx_end(const struct packet_mmap_ctx * pkt_mmap_ctx)
 {
 	assert(pkt_mmap_ctx);
 
-	return (pkt_mmap_ctx->used >= pkt_mmap_ctx->layout.tp_frame_size);
+	return (pkt_mmap_ctx->current >= pkt_mmap_ctx->layout.tp_frame_nr);
 }
 
 int packet_mmap_ctx_next(struct packet_mmap_ctx * pkt_mmap_ctx)
 {
-	if (packet_mmap_ctx_is_full(pkt_mmap_ctx))
+	if (packet_mmap_ctx_end(pkt_mmap_ctx))
 		return (EAGAIN);
 
-	pkt_mmap_ctx->used++;
+	pkt_mmap_ctx->current++;
 
 	return (0);
+}
+
+void packet_mmap_ctx_set(struct packet_mmap_ctx * pkt_mmap_ctx)
+{
+	assert(pkt_mmap_ctx);
+
+	pkt_mmap_ctx->used_mask |= 1 << pkt_mmap_ctx->current;
 }
 
 void packet_mmap_ctx_reset(struct packet_mmap_ctx * pkt_mmap_ctx)
@@ -243,9 +254,13 @@ void packet_mmap_ctx_reset(struct packet_mmap_ctx * pkt_mmap_ctx)
 
 	for (a = 0; a < pkt_mmap_ctx->layout.tp_frame_nr; a++)
 	{
-		mmap_hdr = pkt_mmap_ctx->mmap_vec[a].iov_base;
-		mmap_hdr->tp_h.tp_status = TP_STATUS_KERNEL;
+		if (pkt_mmap_ctx->used_mask & 1 << a)
+		{
+			mmap_hdr = pkt_mmap_ctx->mmap_vec[a].iov_base;
+			mmap_hdr->tp_h.tp_status = TP_STATUS_KERNEL;
+		}
 	}
 
-	pkt_mmap_ctx->used = 0;
+	pkt_mmap_ctx->current = 0;
+	pkt_mmap_ctx->used_mask = 0;
 }
