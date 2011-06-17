@@ -104,9 +104,9 @@ void * rx_thread_compat_listen(void * arg)
 
 	for(;;)
 	{
-		for(packet_vector_reset(pkt_vec), packet_compat_ctx_reset(pkt_ctx); 
-				!packet_vector_is_full(pkt_vec) && !packet_compat_ctx_is_full(pkt_ctx); 
-				packet_vector_next(pkt_vec), packet_compat_ctx_next(pkt_ctx))
+		packet_vector_reset(pkt_vec);
+
+		for(packet_compat_ctx_reset(pkt_ctx); !packet_compat_ctx_is_full(pkt_ctx); packet_compat_ctx_next(pkt_ctx))
 		{
 			pkt = packet_compat_ctx_get(pkt_ctx);
 
@@ -124,6 +124,8 @@ void * rx_thread_compat_listen(void * arg)
 				/* TODO think about return values handling */
 				job->job(&nic_ctx->generic);
 			}
+
+			packet_vector_next(pkt_vec);
 		}
 
 		SLIST_FOREACH(job, &nic_ctx->generic.cleanup_job_list.head, entry)
