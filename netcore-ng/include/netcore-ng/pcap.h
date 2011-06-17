@@ -104,7 +104,7 @@ struct pcap_sf_pkthdr {
 };
 
 struct packet_ctx;
-struct packet_vector;
+struct packet_iovec;
 
 int pcap_link_type_get(int arp_type, enum pcap_linktype * pcap_link_type);
 int pcap_has_packets(const int fd);
@@ -113,7 +113,7 @@ int pcap_is_valid(const int fd);
 int pcap_file_header_write(const int fd, const int linktype, const int thiszone, const int snaplen);
 //ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx);
 void pcap_packet_header_set(struct pcap_sf_pkthdr * pcap_pkt_hdr, const struct timeval * ts, const size_t len);
-ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec);
+ssize_t pcap_writev(const int fd, const struct packet_iovec * const pkt_vec);
 void pcap_destroy(const int pcap_fd, const char * const pcap_path);
 int pcap_create(const char * const pcap_path, const enum pcap_linktype linktype);
 int pcap_open(const char * const pcap_path, int flags);

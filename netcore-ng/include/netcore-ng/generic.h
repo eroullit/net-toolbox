@@ -41,7 +41,7 @@ struct generic_nic_context
 	struct sock_fprog 			bpf;
 	struct job_list				processing_job_list;
 	struct job_list				cleanup_job_list;
-	struct packet_vector			pkt_vec;
+	struct packet_iovec			pkt_vec;
 };
 
 #endif /* __NET_GENERIC_H__ */

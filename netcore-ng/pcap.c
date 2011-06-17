@@ -200,7 +200,7 @@ void pcap_packet_header_set(struct pcap_sf_pkthdr * pcap_pkt_hdr, const struct t
 	pcap_pkt_hdr->caplen = len;
 }
 
-ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)
+ssize_t pcap_writev(const int fd, const struct packet_iovec * const pkt_vec)
 {
 	assert(fd > 0);
 	assert(pkt_vec);

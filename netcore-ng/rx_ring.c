@@ -73,7 +73,7 @@ static void * rx_thread_listen(void * arg)
 	struct netsniff_ng_rx_thread_context * thread_ctx = (struct netsniff_ng_rx_thread_context *) arg;
 	struct netsniff_ng_rx_nic_context * nic_ctx = NULL;
 	struct packet_mmap_ctx * pkt_mmap_ctx = NULL;
-	struct packet_vector * pkt_vec = NULL;
+	struct packet_iovec * pkt_vec = NULL;
 
 	if (thread_ctx == NULL)
 	{
@@ -94,7 +94,7 @@ static void * rx_thread_listen(void * arg)
 
 	for (;;)
 	{
-		packet_vector_reset(pkt_vec);
+		packet_iovec_reset(pkt_vec);
 
 		for(packet_mmap_ctx_reset(pkt_mmap_ctx); !packet_mmap_ctx_end(pkt_mmap_ctx); packet_mmap_ctx_next(pkt_mmap_ctx))
 		{
@@ -113,7 +113,7 @@ static void * rx_thread_listen(void * arg)
 			{
 				pkt_ts = packet_mmap_ctx_ts_get(pkt_mmap_ctx);
 				packet_mmap_ctx_set(pkt_mmap_ctx);
-				packet_vector_set(pkt_vec, packet_mmap_ctx_payload_get(pkt_mmap_ctx), packet_mmap_ctx_payload_len_get(pkt_mmap_ctx), &pkt_ts);
+				packet_iovec_set(pkt_vec, packet_mmap_ctx_payload_get(pkt_mmap_ctx), packet_mmap_ctx_payload_len_get(pkt_mmap_ctx), &pkt_ts);
 
 				SLIST_FOREACH(job, &nic_ctx->generic.processing_job_list.head, entry)
 				{
@@ -121,7 +121,7 @@ static void * rx_thread_listen(void * arg)
 					job->job(&nic_ctx->generic);
 				}
 
-				packet_vector_next(pkt_vec);
+				packet_iovec_next(pkt_vec);
 			}
 		}
 
@@ -148,7 +148,7 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 	}
 
 	packet_mmap_ctx_destroy(&nic_ctx->pkt_mmap_ctx);
-	packet_vector_destroy(&nic_ctx->generic.pkt_vec);
+	packet_iovec_destroy(&nic_ctx->generic.pkt_vec);
 	
 	job_list_cleanup(&nic_ctx->generic.processing_job_list);
 	job_list_cleanup(&nic_ctx->generic.cleanup_job_list);
@@ -260,7 +260,7 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 		goto error;
 	}
 
-	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, layout.tp_frame_nr) != 0))
+	if ((rc = packet_iovec_create(&nic_ctx->generic.pkt_vec, layout.tp_frame_nr) != 0))
 	{
 		pcap_destroy(nic_ctx->generic.pcap_fd, pcap_path);
 		goto error;

@@ -30,7 +30,7 @@
 
 #include <netcore-ng/pcap.h>
 
-struct packet_vector
+struct packet_iovec
 {
 	size_t			used;
 	size_t			total;
@@ -38,13 +38,13 @@ struct packet_vector
 	struct iovec *		pkt_io_vec;
 };
 
-void packet_vector_reset(struct packet_vector * pkt_vec);
-void packet_vector_destroy(struct packet_vector * pkt_vec);
-int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr);
-int packet_vector_end(const struct packet_vector * const pkt_vec);
+void packet_iovec_reset(struct packet_iovec * pkt_vec);
+void packet_iovec_destroy(struct packet_iovec * pkt_vec);
+int packet_iovec_create(struct packet_iovec * pkt_vec, const size_t pkt_nr);
+int packet_iovec_end(const struct packet_iovec * const pkt_vec);
 
-uint8_t * packet_vector_packet_payload_get(const struct packet_vector * const pkt_vec);
-size_t packet_vector_packet_length_get(const struct packet_vector * const pkt_vec);
-int packet_vector_next(struct packet_vector * pkt_vec);
-void packet_vector_set(struct packet_vector * pkt_vec, uint8_t * pkt, const size_t len, const struct timeval * ts);
+uint8_t * packet_iovec_packet_payload_get(const struct packet_iovec * const pkt_vec);
+size_t packet_iovec_packet_length_get(const struct packet_iovec * const pkt_vec);
+int packet_iovec_next(struct packet_iovec * pkt_vec);
+void packet_iovec_set(struct packet_iovec * pkt_vec, uint8_t * pkt, const size_t len, const struct timeval * ts);
 #endif				/* __PACKET_H__ */

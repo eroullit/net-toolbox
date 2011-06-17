@@ -105,8 +105,8 @@ static ssize_t ethernet_dissector_job(const struct generic_nic_context * const c
 
 	assert(ctx);
 
-	pkt = packet_vector_packet_payload_get(&ctx->pkt_vec);
-	len = packet_vector_packet_length_get(&ctx->pkt_vec);
+	pkt = packet_iovec_packet_payload_get(&ctx->pkt_vec);
+	len = packet_iovec_packet_length_get(&ctx->pkt_vec);
 
 	return(ethernet_dissector_run(pkt, len));
 }
