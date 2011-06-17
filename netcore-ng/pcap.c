@@ -286,26 +286,10 @@ void pcap_packet_header_set(struct pcap_sf_pkthdr * pcap_pkt_hdr, const struct t
 
 ssize_t pcap_writev(const int fd, const struct packet_vector * const pkt_vec)
 {
-	size_t a, iov_chunks, iov_rest;
-	ssize_t written = 0;
-
 	assert(fd > 0);
 	assert(pkt_vec);
 
-	iov_chunks = pkt_vec->used / UIO_MAXIOV;
-	iov_rest = pkt_vec->used - (iov_chunks * UIO_MAXIOV);
-
-	info("There are %zu chucks of size %i and rest %zu\n", iov_chunks, UIO_MAXIOV, iov_rest);
-
-	for (a = 0; a < iov_chunks; a++)
-		written += writev(fd, &pkt_vec->pkt_io_vec[a * UIO_MAXIOV], UIO_MAXIOV);
-
-	if (iov_rest)
-		written += writev(fd, &pkt_vec->pkt_io_vec[iov_chunks * UIO_MAXIOV], iov_rest);
-	
-	info("writev() %zu vectors %zi bytes\n", pkt_vec->used, written);
-
-	return (written);
+	return (writev(fd, pkt_vec->pkt_io_vec, pkt_vec->used));
 }
 
 /**
