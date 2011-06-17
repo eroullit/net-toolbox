@@ -124,45 +124,7 @@ static void * rx_thread_listen(void * arg)
 			job->job(&nic_ctx->generic);
 		}
 	}
-
-#if 0
-	for(;;)
-	{
-		while (rb->cur_frame < rb->layout.tp_frame_nr)
-		{
-			fm = rb->frames[rb->cur_frame].iov_base;
-
-			if ((frame_map_pkt_status_get(fm) & TP_STATUS_KERNEL) == TP_STATUS_KERNEL)
-			{
-				/* Force sleep here when the user wants */
-				if ((rc = poll(&pfd, 1, -1)) < 0)
-				{
-					err("polling error %i", rc);
-					continue;
-				}
-			}
-
-			/* TODO Add support for TP_STATUS_COPY */
-			if ((frame_map_pkt_status_get(fm) & TP_STATUS_USER) == TP_STATUS_USER)
-			{
-				pkt_ctx->pkt_buf = frame_map_pkt_buf_get(fm);
-				pkt_ctx->pkt_ts.tv_sec = fm->tp_h.tp_sec;
-				pkt_ctx->pkt_ts.tv_usec = fm->tp_h.tp_usec;
-				pkt_ctx->pkt_len = fm->tp_h.tp_len;
-				pkt_ctx->pkt_snaplen = fm->tp_h.tp_snaplen;
-
-				SLIST_FOREACH(job, &nic_ctx->generic.job_list.head, entry)
-				{
-					/* TODO think about return values handling */
-					job->job(&nic_ctx->generic);
-				}
-			}
 	
-			frame_map_pkt_status_kernel(fm);
-			rb->cur_frame = (rb->cur_frame + 1) % rb->layout.tp_frame_nr;
-		}
-	}
-#endif
 	pthread_exit(NULL);
 }
 

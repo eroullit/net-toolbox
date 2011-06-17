@@ -156,39 +156,6 @@ int pcap_is_valid(const int fd)
 	return (1);
 }
 
-#if 0
-/**
- * \brief Fetches the following packet in a PCAP
- * \param[in] fd PCAP file descriptor
- * \param[out] pkt_ctx Pointer to the packet context to set
- * \return	Length valid date in the fetched packet. \n
- * 		0 if packet header or packet payload could not be read
- */
-
-size_t pcap_read(const int fd, struct packet_ctx * pkt_ctx)
-{
-	struct pcap_sf_pkthdr sf_hdr;
-
-	assert(fd > 0);
-	assert(pkt_ctx);
-
-	if (read(fd, (char *)&sf_hdr, sizeof(sf_hdr)) != sizeof(sf_hdr)) {
-		return (0);
-	}
-	
-	/* TODO Need to set the other structure element ? */
-	pkt_ctx->pkt_ts.tv_sec = sf_hdr.ts.tv_sec;
-	pkt_ctx->pkt_ts.tv_usec = sf_hdr.ts.tv_usec;
-	pkt_ctx->pkt_snaplen = sf_hdr.caplen;
-	pkt_ctx->pkt_len = sf_hdr.len;
-
-	if (read(fd, pkt_ctx->pkt_buf, sf_hdr.len) != sf_hdr.len) {
-		return (0);
-	}
-
-	return (sf_hdr.len);
-}
-#endif
 /**
  * \brief Write the PCAP file header on a file descriptor
  * \param[in] fd PCAP file descriptor
@@ -221,57 +188,6 @@ int pcap_file_header_write(const int fd, const int linktype, const int thiszone,
 
 	return (0);
 }
-
-#if 0
-/**
- * \brief Write the packet payload on a file descriptor
- * \param[in] fd PCAP file descriptor
- * \param[in] pkt_ctx Pointer to the packet context
- * \return	Length of written packet on success, 
- * 		-1 if either the packet header or packet payload could not be written
- */
-
-ssize_t pcap_write(const int fd, const struct packet_ctx * const pkt_ctx)
-{
-	struct pcap_sf_pkthdr sf_hdr;
-	ssize_t written = 0;
-
-	assert(fd > 0);
-	assert(pkt_ctx);
-	assert(pkt_ctx->pkt_buf);
-
-	/* 
-	 *  XXX keep in mind that timestamps in pkt_ctx are unsigned int
-	 * whereas they are int32_t in pcap_sf_pkthdr
-	 */
-
-	memset(&sf_hdr, 0, sizeof(sf_hdr));
-
-	sf_hdr.ts.tv_sec = pkt_ctx->pkt_ts.tv_sec;
-	sf_hdr.ts.tv_usec = pkt_ctx->pkt_ts.tv_sec;
-	sf_hdr.caplen = pkt_ctx->pkt_snaplen;
-	sf_hdr.len = pkt_ctx->pkt_snaplen;
-
-	/*
-	 * XXX we should check the return status
-	 * but then do what just inform the user
-	 * or exit gracefully ?
-	 */
-
-	if ((written = write(fd, &sf_hdr, sizeof(sf_hdr))) != sizeof(sf_hdr)) {
-		err("Cannot write pcap header wrote %zi/%zi bytes", written, sizeof(sf_hdr));
-		return(-1);
-	}
-
-	if ((written = write(fd, pkt_ctx->pkt_buf, sf_hdr.len)) != sf_hdr.len)
-	{
-		err("Cannot write pcap payload wrote %zi/%u bytes", written, sf_hdr.len);
-		return(-1);
-	}
-
-	return (written);
-}
-#endif
 
 void pcap_packet_header_set(struct pcap_sf_pkthdr * pcap_pkt_hdr, const struct timeval * ts, const size_t len)
 {
