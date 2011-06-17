@@ -27,7 +27,7 @@
 #include <net/if.h>
 
 #include <netcore-ng/job.h>
-#include <netcore-ng/packet_vector.h>
+#include <netcore-ng/packet_iovec.h>
 #include <netcore-ng/bpf.h>
 #include <netcore-ng/pcap.h>
 

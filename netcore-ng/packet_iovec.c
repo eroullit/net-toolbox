@@ -4,7 +4,7 @@
 #include <errno.h>
 
 #include <netcore-ng/pcap.h>
-#include <netcore-ng/packet_vector.h>
+#include <netcore-ng/packet_iovec.h>
 
 void packet_iovec_destroy(struct packet_iovec * pkt_vec)
 {

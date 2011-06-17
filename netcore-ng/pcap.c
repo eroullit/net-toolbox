@@ -40,7 +40,7 @@
 
 #include <netcore-ng/job.h>
 #include <netcore-ng/pcap.h>
-#include <netcore-ng/packet_vector.h>
+#include <netcore-ng/packet_iovec.h>
 #include <netcore-ng/macros.h>
 
 /**
