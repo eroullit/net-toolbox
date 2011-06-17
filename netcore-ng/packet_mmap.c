@@ -85,10 +85,6 @@ static int packet_mmap_ctx_vector_create(struct packet_mmap_ctx * pkt_mmap_ctx)
 	assert(pkt_mmap_ctx);
 	assert(pkt_mmap_ctx->mmap_buf);
 
-	/* XXX Limit tp_frame_nr to fit to bitmask size */
-	pkt_mmap_ctx->layout.tp_frame_nr = 64;
-
-
 	pkt_mmap_ctx->mmap_vec = calloc(pkt_mmap_ctx->layout.tp_frame_nr, sizeof(*pkt_mmap_ctx->mmap_vec));
 
 	if (!pkt_mmap_ctx->mmap_vec)

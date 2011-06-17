@@ -217,7 +217,7 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 	/* tp_frame_size should be carefully chosen to fit closely to snapshot len */
 	layout.tp_frame_size = TPACKET_ALIGNMENT << 7;
 	layout.tp_block_size = getpagesize() << 2;
-	layout.tp_block_nr = ((1024 * 1024) / layout.tp_block_size); /* 1MB mmap */
+	layout.tp_block_nr = ((128 * 1024) / layout.tp_block_size); /* 128kB mmap */
 	layout.tp_frame_nr = layout.tp_block_size / layout.tp_frame_size * layout.tp_block_nr;
 
 	if (!is_device_ready(dev_name))
