@@ -106,7 +106,7 @@ void * rx_thread_compat_listen(void * arg)
 	{
 		packet_vector_reset(pkt_vec);
 
-		for(packet_compat_ctx_reset(pkt_ctx); !packet_compat_ctx_is_full(pkt_ctx); packet_compat_ctx_next(pkt_ctx))
+		for(packet_compat_ctx_reset(pkt_ctx); !packet_compat_ctx_end(pkt_ctx); packet_compat_ctx_next(pkt_ctx))
 		{
 			pkt = packet_compat_ctx_get(pkt_ctx);
 

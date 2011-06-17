@@ -73,7 +73,7 @@ void packet_compat_ctx_reset(struct packet_compat_ctx * pkt_ctx)
 	pkt_ctx->used = 0;
 }
 
-int packet_compat_ctx_is_full(const struct packet_compat_ctx * const pkt_ctx)
+int packet_compat_ctx_end(const struct packet_compat_ctx * const pkt_ctx)
 {
 	assert(pkt_ctx);
 	return (pkt_ctx->used >= pkt_ctx->total);
@@ -81,7 +81,7 @@ int packet_compat_ctx_is_full(const struct packet_compat_ctx * const pkt_ctx)
 
 int packet_compat_ctx_next(struct packet_compat_ctx * pkt_ctx)
 {
-	if (packet_compat_ctx_is_full(pkt_ctx))
+	if (packet_compat_ctx_end(pkt_ctx))
 		return (EAGAIN);
 
 	pkt_ctx->used++;

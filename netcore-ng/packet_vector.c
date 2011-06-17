@@ -56,7 +56,7 @@ void packet_vector_reset(struct packet_vector * pkt_vec)
 	pkt_vec->used = 0;
 }
 
-int packet_vector_is_full(const struct packet_vector * const pkt_vec)
+int packet_vector_end(const struct packet_vector * const pkt_vec)
 {
 	assert(pkt_vec);
 	return (pkt_vec->used >= pkt_vec->total);
@@ -64,7 +64,7 @@ int packet_vector_is_full(const struct packet_vector * const pkt_vec)
 
 int packet_vector_next(struct packet_vector * pkt_vec)
 {
-	if (packet_vector_is_full(pkt_vec))
+	if (packet_vector_end(pkt_vec))
 		return (EAGAIN);
 
 	pkt_vec->used += 2;

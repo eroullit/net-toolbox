@@ -93,7 +93,7 @@ static ssize_t pcap_writev_processing_job(const struct generic_nic_context * con
 
 	assert(ctx);
 
-	if (packet_vector_is_full(&ctx->pkt_vec))
+	if (packet_vector_end(&ctx->pkt_vec))
 		written = pcap_writev(ctx->pcap_fd, &ctx->pkt_vec);
 
 	return(written);

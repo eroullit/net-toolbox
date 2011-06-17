@@ -41,7 +41,7 @@ struct packet_vector
 void packet_vector_reset(struct packet_vector * pkt_vec);
 void packet_vector_destroy(struct packet_vector * pkt_vec);
 int packet_vector_create(struct packet_vector * pkt_vec, const size_t pkt_nr);
-int packet_vector_is_full(const struct packet_vector * const pkt_vec);
+int packet_vector_end(const struct packet_vector * const pkt_vec);
 
 uint8_t * packet_vector_packet_payload_get(const struct packet_vector * const pkt_vec);
 size_t packet_vector_packet_length_get(const struct packet_vector * const pkt_vec);
