@@ -247,7 +247,7 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 			goto error;
 		}
 		
-		if ((rc = pcap_writev_job_register(&nic_ctx->generic.processing_job_list, &nic_ctx->generic.cleanup_job_list)) != 0)
+		if ((rc = pcap_writev_job_register(&nic_ctx->generic.cleanup_job_list)) != 0)
 		{
 			warn("Could not register pcap write job\n");
 			goto error;
