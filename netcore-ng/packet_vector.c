@@ -72,6 +72,16 @@ int packet_vector_next(struct packet_vector * pkt_vec)
 	return (0);
 }
 
+uint8_t * packet_vector_packet_payload_get(const struct packet_vector * const pkt_vec)
+{
+	return (pkt_vec->pkt_io_vec[pkt_vec->used + 1].iov_base);
+}
+
+size_t packet_vector_packet_length_get(const struct packet_vector * const pkt_vec)
+{
+	return (pkt_vec->pkt_io_vec[pkt_vec->used + 1].iov_len);
+}
+
 void packet_vector_set(struct packet_vector * pkt_vec, uint8_t * pkt, const size_t len, const struct timeval * ts)
 {
 	struct pcap_sf_pkthdr * hdr = NULL;

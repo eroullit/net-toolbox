@@ -114,6 +114,13 @@ static void * rx_thread_listen(void * arg)
 				pkt_ts = packet_mmap_ctx_ts_get(pkt_mmap_ctx);
 				packet_mmap_ctx_set(pkt_mmap_ctx);
 				packet_vector_set(pkt_vec, packet_mmap_ctx_payload_get(pkt_mmap_ctx), packet_mmap_ctx_payload_len_get(pkt_mmap_ctx), &pkt_ts);
+
+				SLIST_FOREACH(job, &nic_ctx->generic.processing_job_list.head, entry)
+				{
+					/* TODO think about return values handling */
+					job->job(&nic_ctx->generic);
+				}
+
 				packet_vector_next(pkt_vec);
 			}
 		}
@@ -246,21 +253,13 @@ static int rx_nic_ctx_init(struct netsniff_ng_rx_thread_context * thread_ctx, co
 			goto error;
 		}
 	}
-#if 0
-	if ((rc = ethernet_dissector_register(&nic_ctx->generic.job_list)) != 0)
+
+	if ((rc = ethernet_dissector_register(&nic_ctx->generic.processing_job_list)) != 0)
 	{
 		warn("Could not register ethernet dissector job\n");
 		goto error;
 	}
 
-	if ((rc = rx_ring_create(nic_ctx->generic.dev_fd, &nic_ctx->nic_rb, dev_name)) != 0)
-	{
-		/* If something goes wrong here, the create PCAP must be deleted */
-		pcap_destroy(nic_ctx->generic.pcap_fd, pcap_path);
-		goto error;
-	}
-
-#endif
 	if ((rc = packet_vector_create(&nic_ctx->generic.pkt_vec, layout.tp_frame_nr) != 0))
 	{
 		pcap_destroy(nic_ctx->generic.pcap_fd, pcap_path);

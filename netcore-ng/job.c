@@ -119,10 +119,15 @@ int pcap_writev_job_register(struct job_list * processing_job_list, struct job_l
 
 static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx)
 {
+	uint8_t * pkt;
+	size_t len;
+
 	assert(ctx);
 
-	//return(ethernet_dissector_run(ctx->pkt_ctx.pkt_buf, ctx->pkt_ctx.pkt_len));
-	return (0);
+	pkt = packet_vector_packet_payload_get(&ctx->pkt_vec);
+	len = packet_vector_packet_length_get(&ctx->pkt_vec);
+
+	return(ethernet_dissector_run(pkt, len));
 }
 
 int ethernet_dissector_register(struct job_list * job_list)
