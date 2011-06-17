@@ -111,7 +111,6 @@ static void * rx_thread_listen(void * arg)
 			/* TODO Add support for TP_STATUS_COPY */
 			if ((packet_mmap_ctx_status_get(pkt_mmap_ctx) & TP_STATUS_USER) == TP_STATUS_USER)
 			{
-				info("Packet event\n");
 				pkt_ts = packet_mmap_ctx_ts_get(pkt_mmap_ctx);
 				packet_mmap_ctx_set(pkt_mmap_ctx);
 				packet_vector_set(pkt_vec, packet_mmap_ctx_payload_get(pkt_mmap_ctx), packet_mmap_ctx_payload_len_get(pkt_mmap_ctx), &pkt_ts);
