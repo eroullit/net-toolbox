@@ -32,6 +32,8 @@
 
 struct packet_iovec
 {
+	uint64_t		packet;
+	uint64_t		bytes;
 	size_t			used;
 	size_t			total;
 	struct pcap_sf_pkthdr *	pkt_pcap_hdr;
@@ -45,6 +47,8 @@ int packet_iovec_end(const struct packet_iovec * const pkt_vec);
 
 uint8_t * packet_iovec_packet_payload_get(const struct packet_iovec * const pkt_vec);
 size_t packet_iovec_packet_length_get(const struct packet_iovec * const pkt_vec);
+uint64_t packet_iovec_total_packet_get(const struct packet_iovec * const pkt_vec);
+uint64_t packet_iovec_total_bytes_get(const struct packet_iovec * const pkt_vec);
 int packet_iovec_next(struct packet_iovec * pkt_vec);
 void packet_iovec_set(struct packet_iovec * pkt_vec, uint8_t * pkt, const size_t len, const struct timeval * ts);
 #endif				/* __PACKET_H__ */

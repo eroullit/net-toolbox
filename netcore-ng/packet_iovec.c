@@ -82,6 +82,16 @@ size_t packet_iovec_packet_length_get(const struct packet_iovec * const pkt_vec)
 	return (pkt_vec->pkt_io_vec[pkt_vec->used + 1].iov_len);
 }
 
+uint64_t packet_iovec_total_packet_get(const struct packet_iovec * const pkt_vec)
+{
+	return (pkt_vec->packet);
+}
+
+uint64_t packet_iovec_total_bytes_get(const struct packet_iovec * const pkt_vec)
+{
+	return (pkt_vec->bytes);
+}
+
 void packet_iovec_set(struct packet_iovec * pkt_vec, uint8_t * pkt, const size_t len, const struct timeval * ts)
 {
 	struct pcap_sf_pkthdr * hdr = NULL;
@@ -99,4 +109,7 @@ void packet_iovec_set(struct packet_iovec * pkt_vec, uint8_t * pkt, const size_t
 
 	pkt_vec->pkt_io_vec[pkt_vec->used + 1].iov_base = pkt;
 	pkt_vec->pkt_io_vec[pkt_vec->used + 1].iov_len = len;
+
+	pkt_vec->packet++;
+	pkt_vec->bytes += len;
 }

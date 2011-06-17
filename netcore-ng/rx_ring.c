@@ -147,6 +147,8 @@ static void rx_nic_ctx_destroy(struct netsniff_ng_rx_nic_context * nic_ctx)
 		job->job(&nic_ctx->generic);
 	}
 
+	printf("RX packet I/O vector processed %"PRIu64" packets %"PRIu64" bytes\n", packet_iovec_total_packet_get(&nic_ctx->generic.pkt_vec), packet_iovec_total_bytes_get(&nic_ctx->generic.pkt_vec));
+
 	packet_mmap_ctx_destroy(&nic_ctx->pkt_mmap_ctx);
 	packet_iovec_destroy(&nic_ctx->generic.pkt_vec);
 	
