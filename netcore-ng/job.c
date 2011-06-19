@@ -65,6 +65,8 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	struct job * jobp = NULL;
 
 	assert(job_list);
+	assert(job);
+	assert(job_id);
 
 	if ((jobp = malloc(sizeof(*jobp))) == NULL)
 	{
