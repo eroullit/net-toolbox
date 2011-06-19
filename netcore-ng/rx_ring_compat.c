@@ -84,7 +84,6 @@ void * rx_thread_compat_listen(void * arg)
 	struct packet_iovec * pkt_vec = NULL;
 	struct packet_compat_ctx * pkt_ctx = NULL;
 	struct packet * pkt = NULL;
-	struct job * job = NULL;
 	struct timeval		now;
 	struct sockaddr_ll      from;
         socklen_t               from_len = sizeof(from);
@@ -119,20 +118,12 @@ void * rx_thread_compat_listen(void * arg)
 			packet_iovec_set(pkt_vec, pkt->buf, pkt->len, &now);
 
 			//info("pkt %zu/%zu len %zu at %i.%i s\n", a, pkt_vec->pkt_nr, read, pkt_ctx->pkt_hdr.ts.tv_sec, pkt_ctx->pkt_hdr.ts.tv_usec);
-			SLIST_FOREACH(job, &nic_ctx->generic.processing_job_list.head, entry)
-			{
-				/* TODO think about return values handling */
-				job->job(&nic_ctx->generic);
-			}
+			job_list_run(&nic_ctx->generic.processing_job_list, &nic_ctx->generic);
 
 			packet_iovec_next(pkt_vec);
 		}
 
-		SLIST_FOREACH(job, &nic_ctx->generic.cleanup_job_list.head, entry)
-		{
-			/* TODO think about return values handling */
-			job->job(&nic_ctx->generic);
-		}
+		job_list_run(&nic_ctx->generic.cleanup_job_list, &nic_ctx->generic);
 	}
 
 	pthread_exit(NULL);
@@ -140,18 +131,12 @@ void * rx_thread_compat_listen(void * arg)
 
 void rx_nic_compat_ctx_destroy(struct netsniff_ng_rx_nic_compat_context * nic_ctx)
 {
-	struct job * jobp = NULL;
-
 	assert(nic_ctx);
-	
-	job_list_cleanup(&nic_ctx->generic.processing_job_list);
 
-	SLIST_FOREACH(jobp, &nic_ctx->generic.cleanup_job_list.head, entry)
-	{
-		jobp->job(&nic_ctx->generic);
-	}
+	job_list_run(&nic_ctx->generic.cleanup_job_list, &nic_ctx->generic);
 	
 	job_list_cleanup(&nic_ctx->generic.cleanup_job_list);
+	job_list_cleanup(&nic_ctx->generic.processing_job_list);
 
 	printf("RX packet I/O vector processed %"PRIu64" packets %"PRIu64" bytes\n", packet_iovec_total_packet_get(&nic_ctx->generic.pkt_vec), packet_iovec_total_bytes_get(&nic_ctx->generic.pkt_vec));
 

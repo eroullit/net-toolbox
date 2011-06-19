@@ -87,6 +87,23 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	return (0);
 }
 
+int job_list_run(struct job_list * job_list, const struct generic_nic_context * const ctx)
+{
+	struct job * job;
+
+	pthread_spin_lock(&job_list->lock);
+
+	SLIST_FOREACH(job, &job_list->head, entry)
+	{
+		/* TODO Make proper return values handling */
+		job->job(ctx);
+	}
+
+	pthread_spin_unlock(&job_list->lock);
+
+	return (0);
+}
+
 static ssize_t pcap_writev_job(const struct generic_nic_context * const ctx)
 {
 	assert(ctx);
