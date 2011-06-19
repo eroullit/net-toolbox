@@ -35,6 +35,7 @@ struct generic_nic_context;
 
 struct job
 {
+	const char *            id;
 	uint64_t                total_call;
 	struct timeval          elapsed_time;
 	ssize_t (*job)(const struct generic_nic_context * const ctx);
@@ -49,8 +50,9 @@ struct job_list
 
 int job_list_init(struct job_list * job_list);
 void job_list_cleanup(struct job_list * job_list);
-int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx));
+int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx), const char * job_id);
 int job_list_run(struct job_list * job_list, const struct generic_nic_context * const ctx);
+void job_list_print_profiling(struct job_list * job_list);
 
 int pcap_writev_job_register(struct job_list * job_list);
 int ethernet_dissector_register(struct job_list * job_list);

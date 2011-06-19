@@ -43,18 +43,19 @@ void job_list_cleanup(struct job_list * job_list)
 
 	assert(job_list);
 
+	job_list_print_profiling(job_list);
+
 	while(SLIST_EMPTY(&job_list->head) == 0)
 	{
 		jobp = SLIST_FIRST(&job_list->head);
 		SLIST_REMOVE_HEAD(&job_list->head, entry);
-		info("Job took %ld.%06ld s and was called %"PRIu64" times\n", jobp->elapsed_time.tv_sec, jobp->elapsed_time.tv_usec, jobp->total_call);
 		free(jobp);
 	}
 
 	pthread_spin_destroy(&job_list->lock);
 }
 
-int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx))
+int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx), const char * job_id)
 {
 	struct job * cur = NULL;
 	struct job * jobp = NULL;
@@ -68,6 +69,7 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	
 	memset(jobp, 0, sizeof(*jobp));
 	jobp->job = job;
+	jobp->id = job_id;
 
 	pthread_spin_lock(&job_list->lock);
 
@@ -116,6 +118,26 @@ int job_list_run(struct job_list * job_list, const struct generic_nic_context * 
 	return (0);
 }
 
+void job_list_print_profiling(struct job_list * job_list)
+{
+	struct job * job;
+
+	assert(job_list);
+
+	pthread_spin_lock(&job_list->lock);
+
+	SLIST_FOREACH(job, &job_list->head, entry)
+	{
+		info("\"%s\" took %ld.%06ld s and was called %"PRIu64" times\n",
+			job->id,
+			job->elapsed_time.tv_sec,
+			job->elapsed_time.tv_usec,
+			job->total_call);
+	}
+
+	pthread_spin_unlock(&job_list->lock);
+}
+
 static ssize_t pcap_writev_job(const struct generic_nic_context * const ctx)
 {
 	assert(ctx);
@@ -124,7 +146,7 @@ static ssize_t pcap_writev_job(const struct generic_nic_context * const ctx)
 
 int pcap_writev_job_register(struct job_list * job_list)
 {
-	return (job_list_insert(job_list, pcap_writev_job));
+	return (job_list_insert(job_list, pcap_writev_job, "pcap_writev_job"));
 }
 
 static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx)
@@ -142,5 +164,5 @@ static ssize_t ethernet_dissector_job(const struct generic_nic_context * const c
 
 int ethernet_dissector_register(struct job_list * job_list)
 {
-	return (job_list_insert(job_list, ethernet_dissector_job));
+	return (job_list_insert(job_list, ethernet_dissector_job, "ethernet_dissector_job"));
 }
