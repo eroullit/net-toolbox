@@ -34,7 +34,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <time.h>
 
 #include <net/if.h>
 #include <arpa/inet.h>
@@ -43,7 +42,6 @@
 #include <sys/mman.h>
 #include <sys/poll.h>
 #include <sys/types.h>
-#include <sys/time.h>
 
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>
@@ -58,6 +56,7 @@
 #include <netcore-ng/netdev.h>
 #include <netcore-ng/xmalloc.h>
 #include <netcore-ng/strlcpy.h>
+#include <netcore-ng/time.h>
 
 static int sock_dev_bind(const char * dev, int sock)
 {

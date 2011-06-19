@@ -25,6 +25,7 @@
 #include <netcore-ng/pcap.h>
 #include <netcore-ng/generic.h>
 #include <netcore-ng/job.h>
+#include <netcore-ng/time.h>
 #include <netcore-ng/dissector/ethernet/dissector.h>
 
 int job_list_init(struct job_list * job_list)
@@ -46,6 +47,7 @@ void job_list_cleanup(struct job_list * job_list)
 	{
 		jobp = SLIST_FIRST(&job_list->head);
 		SLIST_REMOVE_HEAD(&job_list->head, entry);
+		info("Job took %ld.%06ld s and was called %"PRIu64" times\n", jobp->elapsed_time.tv_sec, jobp->elapsed_time.tv_usec, jobp->total_call);
 		free(jobp);
 	}
 
@@ -89,14 +91,24 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 
 int job_list_run(struct job_list * job_list, const struct generic_nic_context * const ctx)
 {
+	struct timeval before, after, diff;
 	struct job * job;
 
 	pthread_spin_lock(&job_list->lock);
 
 	SLIST_FOREACH(job, &job_list->head, entry)
 	{
+		gettimeofday(&before, NULL);
+
 		/* TODO Make proper return values handling */
 		job->job(ctx);
+
+		gettimeofday(&after, NULL);
+
+		timeval_subtract(&diff, &after, &before);
+		timeval_add(&job->elapsed_time, &job->elapsed_time, &diff);
+
+		job->total_call++;
 	}
 
 	pthread_spin_unlock(&job_list->lock);

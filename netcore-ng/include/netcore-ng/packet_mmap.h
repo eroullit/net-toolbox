@@ -2,8 +2,8 @@
 #define __PACKET_MMAP_H__
 
 #include <stdint.h>
-#include <sys/time.h>
 #include <linux/if_packet.h>
+#include <netcore-ng/time.h>
 
 enum packet_mmap_ctx_type
 {

@@ -21,6 +21,7 @@ ADD_LIBRARY(netcore-ng 	init.c
 			rx_ring.c 
 			rx_ring_compat.c 
 			job.c 
+			time.c 
 			strlcpy.c 
 			system.c 
 			oui_hash.c 

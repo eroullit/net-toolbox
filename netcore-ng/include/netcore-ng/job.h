@@ -35,6 +35,8 @@ struct generic_nic_context;
 
 struct job
 {
+	uint64_t                total_call;
+	struct timeval          elapsed_time;
 	ssize_t (*job)(const struct generic_nic_context * const ctx);
 	SLIST_ENTRY(job)	entry;
 };

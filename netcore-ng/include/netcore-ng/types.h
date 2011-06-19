@@ -73,14 +73,4 @@ struct fb_count {
 	unsigned long long bytes;
 };
 
-struct ring_buff_stat {
-	struct fb_count total;
-	struct fb_count per_sec;
-	struct fb_count per_min;
-	struct fb_count s_per_sec;
-	struct fb_count s_per_min;
-	uint16_t t_elapsed;
-	struct timespec m_start;
-};
-
 #endif				/* _NET_TYPES_H_ */
