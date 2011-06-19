@@ -45,12 +45,16 @@ void job_list_cleanup(struct job_list * job_list)
 
 	job_list_print_profiling(job_list);
 
+	pthread_spin_lock(&job_list->lock);
+
 	while(SLIST_EMPTY(&job_list->head) == 0)
 	{
 		jobp = SLIST_FIRST(&job_list->head);
 		SLIST_REMOVE_HEAD(&job_list->head, entry);
 		free(jobp);
 	}
+
+	pthread_spin_unlock(&job_list->lock);
 
 	pthread_spin_destroy(&job_list->lock);
 }
