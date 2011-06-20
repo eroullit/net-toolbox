@@ -99,6 +99,7 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 
 int job_list_run(struct job_list * job_list, const struct generic_nic_context * const ctx)
 {
+	ssize_t ret;
 	struct timeval before, after, diff;
 	struct job * job;
 
@@ -109,14 +110,20 @@ int job_list_run(struct job_list * job_list, const struct generic_nic_context * 
 		gettimeofday(&before, NULL);
 
 		/* TODO Make proper return values handling */
-		job->job(ctx);
+		ret = job->job(ctx);
 
 		gettimeofday(&after, NULL);
 
 		timeval_subtract(&diff, &after, &before);
-		timeval_add(&job->elapsed_time, &job->elapsed_time, &diff);
+		timeval_add(&job->total_time, &job->total_time, &diff);
 
-		job->total_call++;
+		if (ret < 0)
+			job->total_errors++;
+		else
+			job->total_bytes += ret;
+
+		job->total_calls++;
+		job->total_packets++;
 	}
 
 	pthread_spin_unlock(&job_list->lock);
@@ -134,11 +141,13 @@ void job_list_print_profiling(struct job_list * job_list)
 
 	SLIST_FOREACH(job, &job_list->head, entry)
 	{
-		info("\"%s\" took %ld.%06ld s and was called %"PRIu64" times\n",
-			job->id,
-			job->elapsed_time.tv_sec,
-			job->elapsed_time.tv_usec,
-			job->total_call);
+		info("%s=%s\n", stringify(job->id), job->id);
+		info("%s=%"PRIu64"\n", stringify(job->total_calls), job->total_calls);
+		info("%s=%"PRIu64"\n", stringify(job->total_errors), job->total_errors);
+		info("%s=%"PRIu64"\n", stringify(job->total_packets), job->total_packets);
+		info("%s=%"PRIu64"\n", stringify(job->total_bytes), job->total_bytes);
+		info("%s=%ld.%06ld s\n", stringify(job->total_time), job->total_time.tv_sec, job->total_time.tv_usec);
+		info("\n");
 	}
 
 	pthread_spin_unlock(&job_list->lock);
@@ -152,7 +161,7 @@ static ssize_t pcap_writev_job(const struct generic_nic_context * const ctx)
 
 int pcap_writev_job_register(struct job_list * job_list)
 {
-	return (job_list_insert(job_list, pcap_writev_job, "pcap_writev_job"));
+	return (job_list_insert(job_list, pcap_writev_job, stringify(pcap_writev_job)));
 }
 
 static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx)
@@ -170,5 +179,5 @@ static ssize_t ethernet_dissector_job(const struct generic_nic_context * const c
 
 int ethernet_dissector_register(struct job_list * job_list)
 {
-	return (job_list_insert(job_list, ethernet_dissector_job, "ethernet_dissector_job"));
+	return (job_list_insert(job_list, ethernet_dissector_job, stringify(ethernet_dissector_job)));
 }

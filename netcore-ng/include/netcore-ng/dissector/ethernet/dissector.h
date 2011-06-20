@@ -40,7 +40,7 @@
 #include <netcore-ng/dissector/ethernet/icmp.h>
 
 int ethernet_dissector_insert(const struct protocol_dissector * const dis);
-int ethernet_dissector_run(uint8_t * pkt, size_t len);
+ssize_t ethernet_dissector_run(uint8_t * pkt, size_t len);
 int ethernet_dissector_init(const enum display_type dtype);
 void ethernet_dissector_destroy(void);
 

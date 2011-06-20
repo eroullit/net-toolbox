@@ -66,10 +66,11 @@ int ethernet_dissector_insert(const struct protocol_dissector * const dis)
 	return (0);
 }
 
-int ethernet_dissector_run(uint8_t * pkt, size_t len)
+ssize_t ethernet_dissector_run(uint8_t * pkt, size_t len)
 {
 	size_t off = 0;
 	size_t read = 0;
+	size_t total = 0;
 	uint16_t key = ETHERNET_HDR_DEFAULT_KEY;
 	struct protocol_dissector * dis = NULL;
 
@@ -79,7 +80,10 @@ int ethernet_dissector_run(uint8_t * pkt, size_t len)
 	while (hi_get_uint16_t(ethernet_dissector_hash, key, (void **)&dis) == 0)
 	{
 		if (dis->display)
+		{
 			read = dis->display(pkt, len, off);
+			total += read;
+		}
 
 		if (dis->get_next_key == NULL)
 		{
@@ -90,7 +94,7 @@ int ethernet_dissector_run(uint8_t * pkt, size_t len)
 		off += read;
 	}
 
-	return (0);
+	return (total);
 }
 
 void ethernet_dissector_destroy(void)

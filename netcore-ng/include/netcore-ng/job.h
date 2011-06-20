@@ -36,8 +36,11 @@ struct generic_nic_context;
 struct job
 {
 	const char *            id;
-	uint64_t                total_call;
-	struct timeval          elapsed_time;
+	uint64_t                total_calls;
+	uint64_t                total_errors;
+	uint64_t                total_packets;
+	uint64_t                total_bytes;
+	struct timeval          total_time;
 	ssize_t (*job)(const struct generic_nic_context * const ctx);
 	SLIST_ENTRY(job)	entry;
 };

@@ -104,4 +104,6 @@
 #define colorize_str(fore, text)  	     colorize_start(fore) text colorize_end()
 #define colorize_full_str(fore, back, text)  colorize_start_full(fore, back) text colorize_end()
 
+#define stringify(x) #x
+
 #endif				/* _NET_MACROS_H_ */
