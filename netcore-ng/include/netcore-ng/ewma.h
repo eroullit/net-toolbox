@@ -38,7 +38,7 @@ struct ewma {
 	uint64_t weight;
 };
 
-void ewma_init(struct ewma *avg, uint64_t factor, uint64_t weight);
+int ewma_init(struct ewma *avg, const uint64_t factor, const uint64_t weight);
 struct ewma *ewma_add(struct ewma *avg, uint64_t val);
 
 /**

@@ -28,6 +28,8 @@
  /* __LICENSE_HEADER_END__ */
 
 #include <assert.h>
+#include <errno.h>
+#include <string.h>
 #include <math.h>
 #include <netcore-ng/ewma.h>
 
@@ -64,14 +66,20 @@ static inline int is_power_of_2 (uint64_t n)
  *	For performance reasons weight has to be a power of 2.
  */
 
-void ewma_init(struct ewma *avg, uint64_t factor, uint64_t weight)
+int ewma_init(struct ewma *avg, const uint64_t factor, const uint64_t weight)
 {
-	assert(is_power_of_2(weight));
-	assert(is_power_of_2(factor));
+	assert(avg);
+
+	memset(avg, 0, sizeof(*avg));
+
+	if (!is_power_of_2(weight) || !is_power_of_2(factor))
+		return EINVAL;
 
 	avg->weight = log2(weight);
 	avg->factor = log2(factor);
 	avg->internal = 0;
+
+	return 0;
 }
 
 /**
