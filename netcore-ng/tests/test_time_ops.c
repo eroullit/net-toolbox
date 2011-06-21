@@ -54,7 +54,15 @@ int main(int argc, char ** argv)
 
 	/* Perform operation on timestamps with carry */
 	assert(test_time_add(1167778800, 233478, 140871091, 965881, 1308649892, 199359));
+	assert(test_time_add(1167778800, 200000, 140871091, 800000, 1308649892, 0));
 	assert(test_time_subtract(1167778800, 233478, 1308649892, 199359, 140871091, 965881));
+	assert(test_time_subtract(1167778800, 200000, 1308649892, 0, 140871091, 800000));
+
+	/* Perform operations on negative timestamp */
+	assert(test_time_add(-1167778800, -233478, -140871091, -965881, -1308649892, -199359));
+	assert(test_time_add(-1167778800, -200000, -140871091, -800000, -1308649892, 0));
+	assert(test_time_subtract(-1308649892, -199359, -1167778800, -233478, 140871091, 965881));
+	assert(test_time_subtract(-1308649892, 0, -1167778800, -200000, 140871091, 800000));
 
 	return(EXIT_SUCCESS);
 }
