@@ -3,48 +3,58 @@
 #include <assert.h>
 #include <netcore-ng/time.h>
 
-int test_time_add(void)
+int test_time_add(const long t1_sec, const long t1_usec,
+			const long t2_sec, const long t2_usec,
+			const long expected_sec, const long expected_usec)
 {
 	struct timeval t1, t2, expected, result;
 
-	t1.tv_sec = 1234567;
-	t1.tv_usec = 10000;
+	t1.tv_sec = t1_sec;
+	t1.tv_usec = t1_usec;
 
-	t2.tv_sec = 234567;
-	t2.tv_usec = 50000;
+	t2.tv_sec = t2_sec;
+	t2.tv_usec = t2_usec;
 
-	expected.tv_sec = 1469134;
-	expected.tv_usec = 60000;
+	expected.tv_sec = expected_sec;
+	expected.tv_usec = expected_usec;
 
 	timeval_add(&result, &t1, &t2);
 
-	return (memcmp(&result, &expected, sizeof(result)) == 0);
+	return(memcmp(&result, &expected, sizeof(result)) == 0);
 }
 
-int test_time_subtract(void)
+int test_time_subtract(const long before_sec, const long before_usec,
+			const long after_sec, const long after_usec,
+			const long expected_sec, const long expected_usec)
 {
 	struct timeval before, after, expected, diff;
 
-	before.tv_sec = 1234567;
-	before.tv_usec = 10000;
+	before.tv_sec = before_sec;
+	before.tv_usec = before_usec;
 
-	expected.tv_sec = 10000;
-	expected.tv_usec = 0;
+	after.tv_sec = after_sec;
+	after.tv_usec = after_usec;
 
-	after.tv_sec = before.tv_sec + expected.tv_sec;
-	after.tv_usec = before.tv_usec + expected.tv_usec;
+	expected.tv_sec = expected_sec;
+	expected.tv_usec = expected_usec;
 
 	timeval_subtract(&diff, &after, &before);
 
-	return (memcmp(&diff, &expected, sizeof(diff)) == 0);
+	return(memcmp(&diff, &expected, sizeof(diff)) == 0);
 }
 
 int main(int argc, char ** argv)
 {
 	assert(argc);
 	assert(argv);
-	assert(test_time_subtract());
-	assert(test_time_add());
 
-	return (EXIT_SUCCESS);
+	/* Perform operation on classic timestamps */
+	assert(test_time_add(1167778800, 233478, 140871091, 26394, 1308649891, 259872));
+	assert(test_time_subtract(1167778800, 233478, 1308649891, 259872, 140871091, 26394));
+
+	/* Perform operation on timestamps with carry */
+	assert(test_time_add(1167778800, 233478, 140871091, 965881, 1308649892, 199359));
+	assert(test_time_subtract(1167778800, 233478, 1308649892, 199359, 140871091, 965881));
+
+	return(EXIT_SUCCESS);
 }
