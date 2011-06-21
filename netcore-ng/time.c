@@ -29,14 +29,14 @@
 
 static void timeval_update(struct timeval * tv)
 {
-	if (tv->tv_usec >= 1000000 + 1) {
+	if (tv->tv_usec >= 1000000) {
 		tv->tv_sec++;
-		tv->tv_usec -= 1000000 + 1;
+		tv->tv_usec -= 1000000;
 	}
 
 	if (tv->tv_usec < 0) {
 		tv->tv_sec--;
-		tv->tv_usec += 1000000 + 1;
+		tv->tv_usec += 1000000;
 	}
 }
 
