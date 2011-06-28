@@ -59,7 +59,7 @@ static inline int is_power_of_2 (uint64_t n)
  * \brief Initialize EWMA parameters
  * \param[in,out] avg Average structure
  * \param[in] factor Factor to use for the scaled up internal value. 
- *	The maximum value of averages can be ULONG_MAX/(factor*weight).
+ *	The maximum value of averages can be UINT64_MAX/(factor*weight).
  *	For performance reasons factor has to be a power of 2.
  * \param[in] weight Exponential weight, or decay rate.
  *	This defines how fast the influence of older values decreases.

@@ -25,6 +25,8 @@
 #include <assert.h>
 #include <netcore-ng/ewma.h>
 
+#define ARRAY_SIZE(X) (sizeof(X) / sizeof((X)[0]))
+
 static const uint64_t samples[] = {
 	1476, 1482, 1488, 1483, 1523,
 	1495, 1491, 1509, 1499, 1513,
@@ -48,9 +50,23 @@ static const uint64_t samples[] = {
 	1480, 1458, 1469, 1502, 1485
 };
 
+uint64_t expected_ewma_calculate(const uint64_t ewma, const uint64_t factor, const uint64_t weight, const uint64_t val)
+{
+	uint64_t new_avg;
+
+	if (ewma != 0)
+		new_avg = (((ewma * weight) - ewma) + (val * factor)) / factor;
+	else
+		new_avg = val * factor;
+
+	return (new_avg);
+}
+
 int main(int argc, char ** argv)
 {
 	uint64_t weight, factor, a, i;
+	uint64_t expected_avg = 0;
+	uint64_t result_avg = 0;
 	struct ewma avg;
 	
 	assert(argc);
@@ -75,7 +91,17 @@ int main(int argc, char ** argv)
 	assert(ewma_init(&avg, 0, 32) != 0);
 	assert(ewma_init(&avg, 16, 0) != 0);
 	assert(ewma_init(&avg, 0, 0) != 0);
-	
+
+	assert(ewma_init(&avg, 1024, 8) == 0);
+
+	for (a = 0; a < ARRAY_SIZE(samples); a++)
+	{
+		expected_avg = expected_ewma_calculate(expected_avg, 1024, 8, samples[a]);
+
+		ewma_add(&avg, samples[a]);
+		result_avg = ewma_read(&avg);
+	}
+
 	return(EXIT_SUCCESS);
 }
 
