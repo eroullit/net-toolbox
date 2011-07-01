@@ -28,33 +28,15 @@
  /* __LICENSE_HEADER_END__ */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <inttypes.h>
 #include <assert.h>
+#include <errno.h>
+#include <time.h>
+
 #include <netcore-ng/ewma.h>
 
 #define ARRAY_SIZE(X) (sizeof(X) / sizeof((X)[0]))
-
-static const uint64_t samples[] = {
-	1476, 1482, 1488, 1483, 1523,
-	1495, 1491, 1509, 1499, 1513,
-	1450, 1505, 1509, 1472, 1497,
-	1491, 1487, 1546, 1501, 1499,
-	1473, 1536, 1487, 1491, 1525,
-	1509, 1519, 1507, 1530, 1498,
-	1534, 1539, 1482, 1532, 1523,
-	1480, 1494, 1515, 1469, 1493,
-	1467, 1508, 1488, 1514, 1478,
-	1527, 1461, 1500, 1484, 1494,
-	1534, 1484, 1532, 1481, 1517,
-	1484, 1500, 1513, 1468, 1491,
-	1540, 1503, 1505, 1503, 1518,
-	1450, 1477, 1522, 1470, 1480,
-	1481, 1501, 1465, 1513, 1512,
-	1482, 1501, 1482, 1483, 1500,
-	1489, 1490, 1460, 1440, 1488,
-	1490, 1529, 1514, 1520, 1470,
-	1477, 1460, 1445, 1478, 1491,
-	1480, 1458, 1469, 1502, 1485
-};
 
 /**
  * \brief Calculate expected new Exponentially Weighted Moving Average (EWMA)
@@ -88,7 +70,7 @@ static const uint64_t samples[] = {
  * http://www.itl.nist.gov/div898/handbook/
  */
 
-uint64_t expected_ewma_calculate(const uint64_t ewma, const uint64_t factor, const uint64_t weight, const uint64_t val)
+static uint64_t expected_ewma_calculate(const uint64_t ewma, const uint64_t factor, const uint64_t weight, const uint64_t val)
 {
 	uint64_t new_avg;
 
@@ -100,15 +82,10 @@ uint64_t expected_ewma_calculate(const uint64_t ewma, const uint64_t factor, con
 	return (new_avg);
 }
 
-int main(int argc, char ** argv)
+static void valid_init_test(void)
 {
-	uint64_t weight, factor, a, i;
-	uint64_t expected_avg = 0;
-	uint64_t result_avg = 0;
 	struct ewma avg;
-	
-	assert(argc);
-	assert(argv);
+	uint64_t weight, factor, a, i;
 	
 	/* factor and weight parameter must be power of two.
 	 * This is a limitation of the ewma* functions.
@@ -125,26 +102,149 @@ int main(int argc, char ** argv)
 		
 		factor <<= 1;
 	}
-	
+}
+
+static void invalid_init_test(void)
+{
+	struct ewma avg;
+
+	/* factor and weight parameter must be power of two.
+	 * This is a limitation of the ewma* functions.
+	 */
+
 	assert(ewma_init(&avg, 24, 32) != 0);
 	assert(ewma_init(&avg, 16, 333) != 0);
 	assert(ewma_init(&avg, 123, 241) != 0);
 	assert(ewma_init(&avg, 0, 32) != 0);
 	assert(ewma_init(&avg, 16, 0) != 0);
 	assert(ewma_init(&avg, 0, 0) != 0);
+}
 
-	assert(ewma_init(&avg, 1024, 8) == 0);
+static int ewma_test(const uint64_t * const samples, const size_t samples_nr, const uint64_t factor, const uint64_t weight)
+{
+	uint64_t expected_avg = 0;
+	uint64_t result_avg = 0;
+	struct ewma avg;
+	size_t a;
 
-	for (a = 0; a < ARRAY_SIZE(samples); a++)
+	assert(samples != NULL);
+	assert(samples_nr > 0);
+	assert(ewma_init(&avg, factor, weight) == 0);
+
+	for (a = 0; a < samples_nr; a++)
 	{
-		expected_avg = expected_ewma_calculate(expected_avg, 1024, 8, samples[a]);
+		expected_avg = expected_ewma_calculate(expected_avg, factor, weight, samples[a]);
 
 		ewma_add(&avg, samples[a]);
 		result_avg = ewma_read(&avg);
 
-		assert((expected_avg / 1024) == result_avg);
+		if((expected_avg / factor) != result_avg)
+		{
+			printf("On sample %zu: factor:%"PRIu64" weight:%"PRIu64" EWMA expected %"PRIu64" result %"PRIu64"\n", a, factor, weight, expected_avg/factor, result_avg);
+			return EINVAL;
+		}
 	}
+
+	return 0;
+}
+
+static int known_sample_test(void)
+{
+	static const uint64_t known_samples[] = {
+		1476, 1482, 1488, 1483, 1523,
+		1495, 1491, 1509, 1499, 1513,
+		1450, 1505, 1509, 1472, 1497,
+		1491, 1487, 1546, 1501, 1499,
+		1473, 1536, 1487, 1491, 1525,
+		1509, 1519, 1507, 1530, 1498,
+		1534, 1539, 1482, 1532, 1523,
+		1480, 1494, 1515, 1469, 1493,
+		1467, 1508, 1488, 1514, 1478,
+		1527, 1461, 1500, 1484, 1494,
+		1534, 1484, 1532, 1481, 1517,
+		1484, 1500, 1513, 1468, 1491,
+		1540, 1503, 1505, 1503, 1518,
+		1450, 1477, 1522, 1470, 1480,
+		1481, 1501, 1465, 1513, 1512,
+		1482, 1501, 1482, 1483, 1500,
+		1489, 1490, 1460, 1440, 1488,
+		1490, 1529, 1514, 1520, 1470,
+		1477, 1460, 1445, 1478, 1491,
+		1480, 1458, 1469, 1502, 1485
+	};
+
+	uint64_t weight, factor, a, i;
+	int rc = 0;
+
+	for (a = 0, factor = 1; a < sizeof(factor) * 8 - 1; a++)
+	{
+		for (i = 0, weight = 1; i < sizeof(weight) * 8 - 1; i++)
+		{
+			rc = ewma_test(known_samples, ARRAY_SIZE(known_samples), factor, weight);
+
+			if (rc)
+				break;
+
+			weight <<= 1;
+		}
+
+		factor <<= 1;
+	}
+
+	return rc;
+}
+
+static int random_sample_test(const size_t samples_nr)
+{
+	uint64_t * random_samples = NULL;
+	uint64_t weight, factor, a, i;
+	int rc = 0;
+
+	assert(samples_nr > 0);
+
+	random_samples = calloc(samples_nr, sizeof(*random_samples));
+
+	if (!random_samples)
+		return ENOMEM;
+
+	for (a = 0; a < samples_nr; a++)
+	{
+		random_samples[a] = abs(rand());
+	}
+
+	for (a = 0, factor = 1; a < sizeof(factor) * 8 - 1; a++)
+	{
+		for (i = 0, weight = 1; i < sizeof(weight) * 8 - 1; i++)
+		{
+			rc = ewma_test(random_samples, samples_nr, factor, weight);
+
+			if (rc)
+				break;
+
+			weight <<= 1;
+		}
+
+		factor <<= 1;
+	}
+
+	free(random_samples);
+
+	return rc;
+}
+
+int main(int argc, char ** argv)
+{
+	assert(argc);
+	assert(argv);
+
+	srand(time(NULL));
+
+	valid_init_test();
+	invalid_init_test();
+
+	known_sample_test();
+
+	random_sample_test(100000);
 
 	return(EXIT_SUCCESS);
 }
-
