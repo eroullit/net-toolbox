@@ -38,8 +38,8 @@ struct ewma {
 	uint64_t weight;
 };
 
-int ewma_init(struct ewma *avg, const uint64_t factor, const uint64_t weight);
-struct ewma *ewma_add(struct ewma *avg, uint64_t val);
+int ewma_init(struct ewma * const avg, const uint64_t factor, const uint64_t weight);
+struct ewma * ewma_add(struct ewma * const avg, const uint64_t val);
 
 /**
  * \brief Read average struct
@@ -48,7 +48,7 @@ struct ewma *ewma_add(struct ewma *avg, uint64_t val);
  * \note The maximum value of averages can be \f$\frac{UINT64\_MAX}{factor*weight}\f$.
  */
 
-static inline uint64_t ewma_read(const struct ewma *avg)
+static inline uint64_t ewma_read(const struct ewma * const avg)
 {
 	return avg->internal >> avg->factor;
 }

@@ -91,7 +91,7 @@ static inline int is_power_of_2 (const uint64_t n)
  *	For performance reasons weight has to be a power of 2.
  */
 
-int ewma_init(struct ewma *avg, const uint64_t factor, const uint64_t weight)
+int ewma_init(struct ewma * const avg, const uint64_t factor, const uint64_t weight)
 {
 	assert(avg);
 
@@ -113,7 +113,7 @@ int ewma_init(struct ewma *avg, const uint64_t factor, const uint64_t weight)
  * \param[in] val Current value
  * \return Updated average structure
  */
-struct ewma *ewma_add(struct ewma *avg, uint64_t val)
+struct ewma * ewma_add(struct ewma * const avg, const uint64_t val)
 {
 	avg->internal = avg->internal  ?
 		(((avg->internal << avg->weight) - avg->internal) +
