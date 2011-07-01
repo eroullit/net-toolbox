@@ -27,6 +27,43 @@
 
  /* __LICENSE_HEADER_END__ */
 
+/**
+ * \page ewma Exponentially Weighted Moving Average (EWMA)
+ *
+ * Exponentially Weighted Moving Averages (EWMA) are manipulated by generic
+ * functions. We keep a structure with the EWMA parameters and a scaled
+ * up internal representation of the average value to prevent rounding errors.
+ * The factor for scaling up and the exponential weight (or decay rate) have to
+ * be specified through the init fuction. The structure should not be accessed
+ * directly but only through the helper functions.
+ *
+ * The formula to calculate a new EWMA value can be written as:
+ * \f[EWMA_{t} = \lambda value_{t} + (1 - \lambda)EWMA_{t-1}\f]
+ * for \f[ t = 1, 2, ..., n\f]
+ *
+ * Where:
+ *	- \f$EWMA_{0}\f$ is the average of historical data
+ *	- \f$value_{t}\f$ is the current value
+ *	- \f$n\f$ is the number of samples, \f$EWMA_{0}\f$ included
+ *	- \f$0 < \lambda \le 1\f$ is the depth of memory of the EWMA
+ *
+ * To avoid loss of precision due to floating point operations, we set
+ * \f$\lambda = 1/weight\f$, therefore the equation can be written:
+ * \f[EWMA_{t} = \frac{value_{t}}{weight} + EWMA_{t-1} - \frac{EWMA_{t-1}}{weight}\f]
+ *
+ * The factor parameter is here to upscale all the samples to avoid rounding
+ * errors.
+ *
+ * For performance reasons, division and multiplication are done via a left or
+ * right arithmetic shifts. This restricts the values of \f$factor\f$ and
+ * \f$weight\f$ to power of two unsigned intergers.
+ *
+ * Resource:\n
+ * NIST/SEMATECH e-Handbook of Statistical Methods. 2011.
+ * Chap.6.3.2.4 EWMA Control Charts
+ * http://www.itl.nist.gov/div898/handbook/
+ */
+
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
@@ -34,23 +71,12 @@
 #include <netcore-ng/ewma.h>
 
 /**
- * DOC: Exponentially Weighted Moving Average (EWMA)
- *
- * These are generic functions for calculating Exponentially Weighted Moving
- * Averages (EWMA). We keep a structure with the EWMA parameters and a scaled
- * up internal representation of the average value to prevent rounding errors.
- * The factor for scaling up and the exponential weight (or decay rate) have to
- * be specified thru the init fuction. The structure should not be accessed
- * directly but only thru the helper functions.
- */
-
-/**
  * \brief Tell if a integer is a power of 2
  * \param[in] n Integer to test
  * \return 1 if true, 0 otherwise
  */
 
-static inline int is_power_of_2 (uint64_t n)
+static inline int is_power_of_2 (const uint64_t n)
 {
 	return (n != 0 && ((n & (n - 1)) == 0));
 }
@@ -58,9 +84,8 @@ static inline int is_power_of_2 (uint64_t n)
 /**
  * \brief Initialize EWMA parameters
  * \param[in,out] avg Average structure
- * \param[in] factor Factor to use for the scaled up internal value. 
- *	The maximum value of averages can be UINT64_MAX/(factor*weight).
- *	For performance reasons factor has to be a power of 2.
+ * \param[in] factor Factor to use for the scaled up internal value.
+ *	For performance reasons, factor has to be a power of 2.
  * \param[in] weight Exponential weight, or decay rate.
  *	This defines how fast the influence of older values decreases.
  *	For performance reasons weight has to be a power of 2.
@@ -84,8 +109,9 @@ int ewma_init(struct ewma *avg, const uint64_t factor, const uint64_t weight)
 
 /**
  * \brief Exponentially weighted moving average (EWMA)
- * \param[in,out] avg Average structure
+ * \param[in] avg Average structure
  * \param[in] val Current value
+ * \return Updated average structure
  */
 struct ewma *ewma_add(struct ewma *avg, uint64_t val)
 {

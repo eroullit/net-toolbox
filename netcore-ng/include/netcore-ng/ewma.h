@@ -43,8 +43,9 @@ struct ewma *ewma_add(struct ewma *avg, uint64_t val);
 
 /**
  * \brief Read average struct
- * \param[in,out] avg Average structure
+ * \param[in] avg Average structure
  * \return average value
+ * \note The maximum value of averages can be \f$\frac{UINT64\_MAX}{factor*weight}\f$.
  */
 
 static inline uint64_t ewma_read(const struct ewma *avg)
