@@ -1,3 +1,9 @@
+/**
+ * \file test_ewma.c
+ * \author written by Emmanuel Roullit emmanuel@netsniff-ng.org (c) 2009-2011
+ * \date 2011
+ */
+
 /* __LICENSE_HEADER_BEGIN__ */
 
 /*
@@ -50,14 +56,46 @@ static const uint64_t samples[] = {
 	1480, 1458, 1469, 1502, 1485
 };
 
+/**
+ * \brief Calculate expected new Exponentially Weighted Moving Average (EWMA)
+ * \param[in] ewma Previous upscaled EWMA value
+ * \param[in] factor Upscale factor
+ * \param[in] weight Depth of memory of the EWMA
+ * \param[in] val Value to add to EWMA
+ * \return new upscaled EWMA value
+ *
+ * The formula to calculate a new EWMA value can be written as:
+ * \f[EWMA_{t} = \lambda value_{t} + (1 - \lambda)EWMA_{t-1}\f]
+ * for \f[ t = 1, 2, ..., n\f]
+ *
+ * Where:
+ *	- \f$EWMA_{0}\f$ is the average of historical data
+ *	- \f$value_{t}\f$ is the current value
+ *	- \f$n\f$ is the number of samples, \f$EWMA_{0}\f$ included
+ *	- \f$0 < \lambda \le 1\f$ is the depth of memory of the EWMA
+ *
+ * To avoid loss of precision due to floating point operations, we set
+ * \f$\lambda = 1/weight\f$, therefore the equation can be written:
+ * \f[EWMA_{t} = \frac{value_{t}}{weight} + EWMA_{t-1} - \frac{EWMA_{t-1}}{weight}\f]
+ *
+ * The factor parameter is here to upscale all the samples to avoid loss of
+ * precision on small values.
+ * Result EWMA needs then to be divided by factor before being interpreted.
+ *
+ * Resource:\n
+ * NIST/SEMATECH e-Handbook of Statistical Methods. 2011.
+ * Chap.6.3.2.4 EWMA Control Charts
+ * http://www.itl.nist.gov/div898/handbook/
+ */
+
 uint64_t expected_ewma_calculate(const uint64_t ewma, const uint64_t factor, const uint64_t weight, const uint64_t val)
 {
 	uint64_t new_avg;
 
 	if (ewma != 0)
-		new_avg = (((ewma * weight) - ewma) + (val * factor)) / factor;
+		new_avg = (((ewma * weight) - ewma) + (val * factor)) / weight;
 	else
-		new_avg = val;
+		new_avg = val * factor;
 
 	return (new_avg);
 }
@@ -72,7 +110,10 @@ int main(int argc, char ** argv)
 	assert(argc);
 	assert(argv);
 	
-	/* factor and weight parameter must be power of two */
+	/* factor and weight parameter must be power of two.
+	 * This is a limitation of the ewma* functions.
+	 */
+
 	for (a = 0, factor = 1; a < sizeof(factor) * 8 - 1; a++)
 	{
 		for (i = 0, weight = 1; i < sizeof(weight) * 8 - 1; i++)
@@ -100,6 +141,8 @@ int main(int argc, char ** argv)
 
 		ewma_add(&avg, samples[a]);
 		result_avg = ewma_read(&avg);
+
+		assert((expected_avg / 1024) == result_avg);
 	}
 
 	return(EXIT_SUCCESS);
