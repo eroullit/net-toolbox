@@ -57,7 +57,7 @@ uint64_t expected_ewma_calculate(const uint64_t ewma, const uint64_t factor, con
 	if (ewma != 0)
 		new_avg = (((ewma * weight) - ewma) + (val * factor)) / factor;
 	else
-		new_avg = val * factor;
+		new_avg = val;
 
 	return (new_avg);
 }
