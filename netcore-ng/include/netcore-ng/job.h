@@ -31,6 +31,8 @@
 #include <sys/queue.h>
 #include <pthread.h>
 
+#include <netcore-ng/ewma.h>
+
 struct generic_nic_context;
 
 struct job
@@ -40,7 +42,14 @@ struct job
 	uint64_t                total_errors;
 	uint64_t                total_packets;
 	uint64_t                total_bytes;
+        uint64_t                sample_packets;
+        uint64_t                sample_bytes;
 	struct timeval          total_time;
+        struct timeval          sample_resolution;
+        struct timeval          end_sample_ts;
+        struct ewma             ewma_bytes;
+        struct ewma             ewma_packets;
+
 	ssize_t (*job)(const struct generic_nic_context * const ctx);
 	SLIST_ENTRY(job)	entry;
 };

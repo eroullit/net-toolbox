@@ -77,6 +77,13 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	jobp->job = job;
 	jobp->id = job_id;
 
+	gettimeofday(&jobp->end_sample_ts, NULL);
+	jobp->sample_resolution.tv_sec = 1;
+	timeval_add(&jobp->end_sample_ts, &jobp->end_sample_ts, &jobp->sample_resolution);
+
+	ewma_init(&jobp->ewma_bytes, DEFAULT_EWMA_FACTOR, DEFAULT_EWMA_WEIGHT);
+	ewma_init(&jobp->ewma_packets, DEFAULT_EWMA_FACTOR, DEFAULT_EWMA_WEIGHT);
+
 	pthread_spin_lock(&job_list->lock);
 
 	SLIST_FOREACH(cur, &job_list->head, entry)
@@ -114,6 +121,22 @@ int job_list_run(struct job_list * job_list, const struct generic_nic_context * 
 
 		gettimeofday(&after, NULL);
 
+		if (timeval_subtract(&diff, &after, &job->end_sample_ts) == 0)
+		{
+			job->sample_bytes += ret;
+			job->sample_packets++;
+		}
+		else
+		{
+			ewma_add(&job->ewma_bytes, job->sample_bytes);
+			ewma_add(&job->ewma_packets, job->sample_packets);
+
+			job->sample_bytes = 0;
+			job->sample_packets = 0;
+
+			timeval_add(&job->end_sample_ts, &job->end_sample_ts, &job->sample_resolution);
+		}
+
 		timeval_subtract(&diff, &after, &before);
 		timeval_add(&job->total_time, &job->total_time, &diff);
 
@@ -147,6 +170,8 @@ void job_list_print_profiling(struct job_list * job_list)
 		info("%s=%"PRIu64"\n", stringify(job->total_packets), job->total_packets);
 		info("%s=%"PRIu64"\n", stringify(job->total_bytes), job->total_bytes);
 		info("%s=%ld.%06ld s\n", stringify(job->total_time), job->total_time.tv_sec, job->total_time.tv_usec);
+		info("%s=%"PRIu64"bytes/%ld.%06ld s\n", stringify(job->ewma_bytes), ewma_read(&job->ewma_bytes), job->sample_resolution.tv_sec, job->sample_resolution.tv_usec);
+		info("%s=%"PRIu64"bytes/%ld.%06ld s\n", stringify(job->ewma_packets), ewma_read(&job->ewma_packets), job->sample_resolution.tv_sec, job->sample_resolution.tv_usec);
 		info("\n");
 	}
 

@@ -32,6 +32,9 @@
 
 #include <stdint.h>
 
+#define DEFAULT_EWMA_WEIGHT 8
+#define DEFAULT_EWMA_FACTOR 1024
+
 struct ewma {
 	uint64_t internal;
 	uint64_t factor;
