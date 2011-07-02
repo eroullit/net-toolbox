@@ -78,7 +78,7 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	jobp->id = job_id;
 
 	gettimeofday(&jobp->end_sample_ts, NULL);
-	jobp->sample_resolution.tv_sec = 1;
+	jobp->sample_resolution.tv_usec = 1000;
 	timeval_add(&jobp->end_sample_ts, &jobp->end_sample_ts, &jobp->sample_resolution);
 
 	ewma_init(&jobp->ewma_bytes, DEFAULT_EWMA_FACTOR, DEFAULT_EWMA_WEIGHT);
