@@ -172,8 +172,8 @@ void job_list_print_profiling(struct job_list * job_list)
 		info("%s=%"PRIu64"\n", stringify(job->total_packets), job->total_packets);
 		info("%s=%"PRIu64"\n", stringify(job->total_bytes), job->total_bytes);
 		info("%s=%ld.%06ld s\n", stringify(job->total_time), job->total_time.tv_sec, job->total_time.tv_usec);
-		info("%s=%"PRIu64"bytes/%ld.%06ld s\n", stringify(job->ewma_bytes), ewma_read(&job->ewma_bytes), job->sample_resolution.tv_sec, job->sample_resolution.tv_usec);
-		info("%s=%"PRIu64"bytes/%ld.%06ld s\n", stringify(job->ewma_packets), ewma_read(&job->ewma_packets), job->sample_resolution.tv_sec, job->sample_resolution.tv_usec);
+		info("%s=%"PRIu64"/%ld.%06ld s\n", stringify(job->ewma_bytes), ewma_read(&job->ewma_bytes), job->sample_resolution.tv_sec, job->sample_resolution.tv_usec);
+		info("%s=%"PRIu64"/%ld.%06ld s\n", stringify(job->ewma_packets), ewma_read(&job->ewma_packets), job->sample_resolution.tv_sec, job->sample_resolution.tv_usec);
 		info("\n");
 	}
 
