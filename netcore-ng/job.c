@@ -121,7 +121,9 @@ int job_list_run(struct job_list * job_list, const struct generic_nic_context * 
 
 		gettimeofday(&after, NULL);
 
-		if (timeval_subtract(&diff, &after, &job->end_sample_ts) == 0)
+		timeval_subtract(&diff, &job->end_sample_ts, &after);
+
+		if (timeval_subtract(&diff, &job->sample_resolution, &diff) == 0)
 		{
 			job->sample_bytes += ret;
 			job->sample_packets++;
@@ -134,7 +136,7 @@ int job_list_run(struct job_list * job_list, const struct generic_nic_context * 
 			job->sample_bytes = 0;
 			job->sample_packets = 0;
 
-			timeval_add(&job->end_sample_ts, &job->end_sample_ts, &job->sample_resolution);
+			timeval_add(&job->end_sample_ts, &after, &job->sample_resolution);
 		}
 
 		timeval_subtract(&diff, &after, &before);
