@@ -50,7 +50,7 @@ struct job
         struct ewma             ewma_bytes;
         struct ewma             ewma_packets;
 
-	ssize_t (*job)(const struct generic_nic_context * const ctx);
+	ssize_t (*job)(const struct generic_nic_context * const ctx, struct job * const job);
 	SLIST_ENTRY(job)	entry;
 };
 
@@ -62,7 +62,7 @@ struct job_list
 
 int job_list_init(struct job_list * job_list);
 void job_list_cleanup(struct job_list * job_list);
-int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx), const char * job_id);
+int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx, struct job * const job), const char * job_id);
 int job_list_run(struct job_list * job_list, const struct generic_nic_context * const ctx);
 void job_list_print_profiling(struct job_list * job_list);
 

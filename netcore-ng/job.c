@@ -59,7 +59,7 @@ void job_list_cleanup(struct job_list * job_list)
 	pthread_spin_destroy(&job_list->lock);
 }
 
-int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx), const char * job_id)
+int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct generic_nic_context * const ctx, struct job * const self), const char * job_id)
 {
 	struct job * cur = NULL;
 	struct job * jobp = NULL;
@@ -117,7 +117,7 @@ int job_list_run(struct job_list * job_list, const struct generic_nic_context * 
 		gettimeofday(&before, NULL);
 
 		/* TODO Make proper return values handling */
-		ret = job->job(ctx);
+		ret = job->job(ctx, job);
 
 		gettimeofday(&after, NULL);
 
@@ -182,9 +182,11 @@ void job_list_print_profiling(struct job_list * job_list)
 	pthread_spin_unlock(&job_list->lock);
 }
 
-static ssize_t pcap_writev_job(const struct generic_nic_context * const ctx)
+static ssize_t pcap_writev_job(const struct generic_nic_context * const ctx, struct job * const self)
 {
 	assert(ctx);
+	assert(self);
+
 	return(pcap_writev(ctx->pcap_fd, &ctx->pkt_vec));
 }
 
@@ -193,12 +195,13 @@ int pcap_writev_job_register(struct job_list * job_list)
 	return (job_list_insert(job_list, pcap_writev_job, stringify(pcap_writev_job)));
 }
 
-static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx)
+static ssize_t ethernet_dissector_job(const struct generic_nic_context * const ctx, struct job * const self)
 {
 	uint8_t * pkt;
 	size_t len;
 
 	assert(ctx);
+	assert(self);
 
 	pkt = packet_iovec_packet_payload_get(&ctx->pkt_vec);
 	len = packet_iovec_packet_length_get(&ctx->pkt_vec);
