@@ -125,7 +125,9 @@ int job_list_run(struct job_list * job_list, const struct generic_nic_context * 
 
 		if (timeval_subtract(&diff, &job->sample_resolution, &diff) == 0)
 		{
-			job->sample_bytes += ret;
+			if (ret < 0)
+				job->sample_bytes += ret;
+
 			job->sample_packets++;
 		}
 		else
