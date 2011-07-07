@@ -27,6 +27,7 @@
 #include <time.h>
 #include <sys/time.h>
 
+int timeval_cmp(const struct timeval * const t1, const struct timeval * const t2);
 int timeval_subtract(struct timeval * result, struct timeval * x, struct timeval * y);
 void timeval_add(struct timeval * result, struct timeval * x, struct timeval * y);
 

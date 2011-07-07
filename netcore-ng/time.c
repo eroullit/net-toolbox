@@ -40,6 +40,11 @@ static void timeval_update(struct timeval * tv)
 	}
 }
 
+int timeval_cmp(const struct timeval * const t1, const struct timeval * const t2)
+{
+	return (t1->tv_sec - t2->tv_sec ? t1->tv_sec - t2->tv_sec : t1->tv_usec - t2->tv_usec);
+}
+
 int timeval_subtract(struct timeval * result, struct timeval * after, struct timeval * before)
 {
 	result->tv_sec = after->tv_sec - before->tv_sec;

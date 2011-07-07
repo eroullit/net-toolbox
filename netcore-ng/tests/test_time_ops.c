@@ -26,6 +26,21 @@
 #include <assert.h>
 #include <netcore-ng/time.h>
 
+int test_time_cmp(const long t1_sec, const long t1_usec,
+			const long t2_sec, const long t2_usec,
+			const int expected)
+{
+	struct timeval t1, t2;
+
+	t1.tv_sec = t1_sec;
+	t1.tv_usec = t1_usec;
+
+	t2.tv_sec = t2_sec;
+	t2.tv_usec = t2_usec;
+
+	return(timeval_cmp(&t1, &t2) == expected);
+}
+
 int test_time_add(const long t1_sec, const long t1_usec,
 			const long t2_sec, const long t2_usec,
 			const long expected_sec, const long expected_usec)
@@ -43,7 +58,7 @@ int test_time_add(const long t1_sec, const long t1_usec,
 
 	timeval_add(&result, &t1, &t2);
 
-	return(memcmp(&result, &expected, sizeof(result)) == 0);
+	return(timeval_cmp(&result, &expected) == 0);
 }
 
 int test_time_subtract(const long before_sec, const long before_usec,
@@ -63,13 +78,19 @@ int test_time_subtract(const long before_sec, const long before_usec,
 
 	timeval_subtract(&diff, &after, &before);
 
-	return(memcmp(&diff, &expected, sizeof(diff)) == 0);
+	return(timeval_cmp(&diff, &expected) == 0);
 }
 
 int main(int argc, char ** argv)
 {
 	assert(argc);
 	assert(argv);
+
+	assert(test_time_cmp(1167778800, 233478, 1167778800, 233478, 0));
+	assert(test_time_cmp(1167778800, 233478, 1167778799, 233478, 1));
+	assert(test_time_cmp(1167778799, 233478, 1167778800, 233478, -1));
+	assert(test_time_cmp(1167778800, 233479, 1167778800, 233478, 1));
+	assert(test_time_cmp(1167778800, 233478, 1167778800, 233479, -1));
 
 	/* Perform operation on classic timestamps */
 	assert(test_time_add(1167778800, 233478, 140871091, 26394, 1308649891, 259872));
