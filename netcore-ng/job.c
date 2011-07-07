@@ -81,8 +81,8 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	jobp->sample_resolution.tv_usec = 1000;
 	timeval_add(&jobp->end_sample_ts, &jobp->end_sample_ts, &jobp->sample_resolution);
 
-	ewma_init(&jobp->ewma_bytes, DEFAULT_EWMA_FACTOR, DEFAULT_EWMA_WEIGHT);
-	ewma_init(&jobp->ewma_packets, DEFAULT_EWMA_FACTOR, DEFAULT_EWMA_WEIGHT);
+	ewma_init(&jobp->ewma_bytes, EWMA_DEFAULT_FACTOR, EWMA_DEFAULT_WEIGHT);
+	ewma_init(&jobp->ewma_packets, EWMA_DEFAULT_FACTOR, EWMA_DEFAULT_WEIGHT);
 
 	pthread_spin_lock(&job_list->lock);
 
