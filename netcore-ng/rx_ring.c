@@ -89,13 +89,14 @@ static void * rx_thread_listen(void * arg)
 	pfd.events = POLLIN|POLLRDNORM|POLLERR;
 	pfd.fd = nic_ctx->generic.dev_fd;
 
+	packet_iovec_reset(pkt_vec);
+
 	info("--- Listening ---\n\n");
 
 	for (;;)
 	{
-		packet_iovec_reset(pkt_vec);
 
-		for(packet_mmap_ctx_reset(pkt_mmap_ctx); !packet_mmap_ctx_end(pkt_mmap_ctx); packet_mmap_ctx_next(pkt_mmap_ctx))
+		for(packet_mmap_ctx_reset(pkt_mmap_ctx); !packet_mmap_ctx_end(pkt_mmap_ctx) && !packet_iovec_end(pkt_vec); packet_mmap_ctx_next(pkt_mmap_ctx))
 		{
 			if ((packet_mmap_ctx_status_get(pkt_mmap_ctx) & TP_STATUS_KERNEL) == TP_STATUS_KERNEL)
 			{
@@ -120,7 +121,11 @@ static void * rx_thread_listen(void * arg)
 			}
 		}
 
-		job_list_run(&nic_ctx->generic.cleanup_job_list, &nic_ctx->generic);
+		if (packet_iovec_end(pkt_vec))
+		{
+			job_list_run(&nic_ctx->generic.cleanup_job_list, &nic_ctx->generic);
+			packet_iovec_reset(pkt_vec);
+		}
 	}
 	
 	pthread_exit(NULL);
