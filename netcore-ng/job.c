@@ -68,12 +68,11 @@ int job_list_insert(struct job_list * job_list, ssize_t (*job)(const struct gene
 	assert(job);
 	assert(job_id);
 
-	if ((jobp = malloc(sizeof(*jobp))) == NULL)
+	if ((jobp = calloc(1, sizeof(*jobp))) == NULL)
 	{
 		return (ENOMEM);
 	}
 	
-	memset(jobp, 0, sizeof(*jobp));
 	jobp->job = job;
 	jobp->id = job_id;
 
