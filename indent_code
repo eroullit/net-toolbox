@@ -1,0 +1,15 @@
+#!/bin/sh
+
+#
+# nettoolbox-ng Project
+# Code indention script
+#
+
+files=`find $1 -type f | egrep "*.c$|*.h$"`
+
+echo "Indenting `echo $files | wc -w` files (`cat $files | wc -l` lines) ..."
+
+for file in $files
+do
+        indent -linux $file
+done
