@@ -1,0 +1,40 @@
+What platforms are supported?
+=============================
+
+Currently only operating systems running on Linux kernels with
+CONFIG_PACKET_MMAP enabled. This feature can be found even back
+to the days of 2.4 kernels. Most operating systems ship pre-compiled
+kernels that have this config option enabled and even the latest
+kernel versions got rid of this option and have this functionality
+built-in. However, we recommend >= 2.6.26. 
+
+What libraries are required?
+============================
+
+Well, libc and libpthread, that's it. 
+Most operating systems already have these libraries shipped.
+
+What is required to build the project?
+======================================
+
+You will need cmake to build the project.
+Even if not required, doxygen is needed to build the documentation
+
+Build
+=====
+
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
+
+Install
+=======
+
+# make install
+
+Build documentation
+===================
+
+$ make doc
+
