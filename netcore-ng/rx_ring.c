@@ -21,12 +21,51 @@
 
  /* __LICENSE_HEADER_END__ */
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
+#include <poll.h>
 
 #include <netcore-ng/rx_ring.h>
 #include <netcore-ng/packet_mmap.h>
 #include <netcore-ng/nic.h>
+
+int rx_thread_listen(struct rx_thread_ctx * thread)
+{
+	struct packet_mmap_ctx * pkt_mmap = NULL;
+	struct pollfd pfd;
+	struct timeval pkt_ts;
+	int rc;
+
+	assert(thread);
+
+	memset(&pfd, 0, sizeof(pfd));
+	pfd.events = POLLIN|POLLRDNORM|POLLERR;
+	pfd.fd = thread->nic.dev_fd;
+
+	for(;;)
+	{
+		for(packet_mmap_ctx_reset(pkt_mmap); !packet_mmap_ctx_end(pkt_mmap); packet_mmap_ctx_next(pkt_mmap))
+		{
+			if ((packet_mmap_ctx_status_get(pkt_mmap) & TP_STATUS_KERNEL) == TP_STATUS_KERNEL)
+			{
+				/* Force sleep here when the user wants */
+				if ((rc = poll(&pfd, 1, -1)) < 0)
+				{
+					continue;
+				}
+			}
+
+			/* TODO Add support for TP_STATUS_COPY */
+			if ((packet_mmap_ctx_status_get(pkt_mmap) & TP_STATUS_USER) == TP_STATUS_USER)
+			{
+				pkt_ts = packet_mmap_ctx_ts_get(pkt_mmap);
+				printf("RCV packet ts:%ld.%06ld s len:%zu\n", pkt_ts.tv_sec, pkt_ts.tv_usec, packet_mmap_ctx_payload_len_get(pkt_mmap));
+			}
+		}
+	}
+}
 
 struct rx_thread_ctx * rx_thread_create(const char * const dev_name)
 {
