@@ -32,4 +32,7 @@ struct nic_ctx
 	int					dev_fd;
 };
 
+void nic_destroy(struct nic_ctx * nic);
+int nic_init(struct nic_ctx * nic, const char * const dev_name);
+
 #endif /* __NIC_H__ */

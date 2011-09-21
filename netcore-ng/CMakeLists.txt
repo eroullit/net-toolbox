@@ -4,6 +4,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/${PROJECT_NAME}/include)
 ADD_LIBRARY(${PROJECT_NAME} 	packet_mmap.c
 				nic.c
 				time.c
+				strlcpy.c
 				rx_ring.c
 )
 
