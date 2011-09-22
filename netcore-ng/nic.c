@@ -1,3 +1,9 @@
+/**
+ * \file nic.c
+ * \author written by Emmanuel Roullit emmanuel@netsniff-ng.org (c) 2009-2011
+ * \date 2011
+ */
+
 /* __LICENSE_HEADER_BEGIN__ */
 
 /*
@@ -33,6 +39,13 @@
 #include <netcore-ng/nic.h>
 #include <netcore-ng/packet_mmap.h>
 
+/**
+ * \internal
+ * \brief Get NIC status flags from the kernel
+ * \param[in] dev Name of the device
+ * \return current NIC flags on sucess, -1 on failure
+ */
+
 short nic_flags_get(const char * const dev)
 {
 	int ret;
@@ -60,6 +73,13 @@ short nic_flags_get(const char * const dev)
 
 	return (ethreq.ifr_flags);
 }
+
+/**
+ * \brief Get NIC ARP type from the kernel
+ * \param[in] dev Name of the device
+ * \param[out] arp_type NIC ARP type
+ * \return 0 on success, \c EINVAL on ioctl failure or socket(2) error code
+ */
 
 int nic_arp_type_get(const char * const dev, int * arp_type)
 {
@@ -92,6 +112,12 @@ int nic_arp_type_get(const char * const dev, int * arp_type)
 	return (0);
 }
 
+/**
+ * \brief Tell if NIC if currently up
+ * \param[in] dev Name of the device
+ * \return 0 if NIC is down, 1 if NIC is up
+ */
+
 int is_nic_up(const char * const dev)
 {
 	int up = 0;
@@ -107,6 +133,12 @@ int is_nic_up(const char * const dev)
 
 	return (up);
 }
+
+/**
+ * \brief Tell if NIC if currently running
+ * \param[in] dev Name of the device
+ * \return 0 if NIC is not running, 1 if NIC currently running
+ */
 
 int is_nic_running(const char * const dev)
 {
